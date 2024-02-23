@@ -1,7 +1,8 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using VerletRope.addons.verlet_rope_4.Structure;
+using VerletRope4.Structure;
 
 namespace VerletRope4;
 
@@ -48,13 +49,12 @@ public partial class VerletRope : MeshInstance3D
     #region Vars Private
 
     private const string DefaultMaterialPath = "res://addons/verlet_rope_4/materials/rope_default.material";
-    private const string NoNotifierWarning = "Consider adding a VisibleOnScreenNotifier3D as a child for performance (it's bounds is automatically set at runtime)";
+    private const string NoNotifierWarning = $"Consider checking '{nameof(UseVisibleOnScreenNotifier)}' to disable rope visuals when it's not on screen for increased performance.";
     private const string CreationStampMeta = "creation_stamp";
-    private const string PositionParameter = "position";
     private const string ParticlesRangeHint = "3,300";
     private const string SimulationRangeHint = "30,265";
-    private const string NormalParameter = "normal";
-    private const float CollisionCheckLength = 0.4f;
+    private const string MaxSegmentStretchRangeHint = "1,20";
+    private const float CollisionCheckLength = 0.001f;
 
     private static readonly float Cos5Deg = Mathf.Cos(Mathf.DegToRad(5.0f));
     private static readonly float Cos15Deg = Mathf.Cos(Mathf.DegToRad(15.0f));
@@ -63,14 +63,14 @@ public partial class VerletRope : MeshInstance3D
     private double _time;
     private Camera3D _camera;
     private double _simulationDelta;
-    private Vector3 _previousNormal;
     private RopeParticleData _particleData;
     private VisibleOnScreenNotifier3D _visibleNotifier;
 
+    private RayCast3D _rayCast;
     private ImmediateMesh _mesh;
     private BoxShape3D _collisionCheckBox;
     private PhysicsDirectSpaceState3D _spaceState;
-    private PhysicsShapeQueryParameters3D _collisionCheckParameters;
+    private PhysicsShapeQueryParameters3D _collisionShapeParameters;
 
     private Node3D _attachEnd;
     private bool _attachStart = true;
@@ -131,6 +131,13 @@ public partial class VerletRope : MeshInstance3D
         get => _simulationParticles;
     }
 
+    private bool _useVisibleOnScreenNotifier = true;
+    [Export] public bool UseVisibleOnScreenNotifier
+    {
+        get => _useVisibleOnScreenNotifier; 
+        set { _useVisibleOnScreenNotifier = value; UpdateConfigurationWarnings(); }
+    }
+
     #endregion
 
     #region Vars Simulation
@@ -141,6 +148,7 @@ public partial class VerletRope : MeshInstance3D
     [Export] public int PreprocessIterations { get; set; } = 5;
     [Export] public float PreprocessDelta { get; set; } = 0.016f; 
     [Export(PropertyHint.Range, "0.0, 1.5")] public float Stiffness { get; set; } = 0.9f;
+    [Export] public bool StartSimulationFromStartPoint { get; set; } = true;
     [Export] public bool Simulate { get; set; } = true;
     [Export] public bool Draw { get; set; } = true;
     [Export] public bool StartDrawSimulationOnStart { get; set; } = true;
@@ -178,8 +186,24 @@ public partial class VerletRope : MeshInstance3D
     #region Vars Collision
 
     [ExportGroup("Collision")]
-    [Export] public bool ApplyCollision { get; set; } = false;
+    [Export] public RopeCollisionType RopeCollisionType { get; set; } = RopeCollisionType.None;
+    [Export(PropertyHint.Range, MaxSegmentStretchRangeHint)] public float MaxRopeStretch { get; set; } = 1.1f;
+    [Export(PropertyHint.Range, MaxSegmentStretchRangeHint)] public float SlideIgnoreCollisionStretch { get; set; } = 1.5f;
     [Export(PropertyHint.Layers3DPhysics)] public uint CollisionMask { get; set; } = 1;
+
+    private bool _hitFromInside = true;
+    [Export] public bool HitFromInside
+    {
+        get => _hitFromInside;
+        set { _hitFromInside = value; if (_rayCast != null) { _rayCast.HitFromInside = value; } }
+    }
+
+    private bool _hitBackFaces = true;
+    [Export] public bool HitBackFaces
+    {
+        get => _hitBackFaces;
+        set { _hitBackFaces = value; if (_rayCast != null) { _rayCast.HitBackFaces = value; } }
+    }
 
     #endregion
 
@@ -199,7 +223,7 @@ public partial class VerletRope : MeshInstance3D
     private (Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3) GetSimulationParticles(int index)
     {
         var p0 = (index == 0)
-            ? _particleData[index].PositionCurrent - _particleData[index].Tangent * GetSegmentLength()
+            ? _particleData[index].PositionCurrent - (_particleData[index].Tangent * GetSegmentLength())
             : _particleData[index - 1].PositionCurrent;
 
         var p1 = _particleData[index].PositionCurrent;
@@ -207,15 +231,10 @@ public partial class VerletRope : MeshInstance3D
         var p2 = _particleData[index + 1].PositionCurrent;
 
         var p3 = index == SimulationParticles - 2
-            ? _particleData[index + 1].PositionCurrent + _particleData[index + 1].Tangent * GetSegmentLength()
+            ? _particleData[index + 1].PositionCurrent + (_particleData[index + 1].Tangent * GetSegmentLength())
             : _particleData[index + 2].PositionCurrent;
 
         return (p0, p1, p2, p3);
-    }
-
-    private VisibleOnScreenNotifier3D GetFirstOrDefaultNotifier()
-    {
-        return (VisibleOnScreenNotifier3D)GetChildren().FirstOrDefault(c => c is VisibleOnScreenNotifier3D);
     }
 
     private float GetSegmentLength()
@@ -228,6 +247,18 @@ public partial class VerletRope : MeshInstance3D
         // NOTE: rope doesn't draw from origin to attach_end_to correctly if rotated
         // calling to_local() in the drawing code is too slow
         GlobalTransform = new Transform3D(Basis.Identity, GlobalPosition);
+    }
+
+    private float GetCurrentRopeLength()
+    {
+        var length = 0f;
+
+        for (var i = 0; i < SimulationParticles - 1; i++)
+        {
+            length += (_particleData[i + 1].PositionCurrent - _particleData[i].PositionCurrent).Length();
+        }
+
+        return length;
     }
 
     #endregion
@@ -244,11 +275,11 @@ public partial class VerletRope : MeshInstance3D
         var m1 = (1f - tension) / 2f * (p2 - p0);
         var m2 = (1f - tension) / 2f * (p3 - p1);
 
-        var a = 2f * (p1 - p2) + m1 + m2;
-        var b = -3f * (p1 - p2) - 2f * m1 - m2;
+        var a = (2f * (p1 - p2)) + m1 + m2;
+        var b = (-3f * (p1 - p2)) - (2f * m1) - m2;
 
-        point = a * tCube + b * tSqr + m1 * t + p1;
-        tangent = (3f * a * tSqr + 2f * b * t + m1).Normalized();
+        point = (a * tCube) + (b * tSqr) + (m1 * t) + p1;
+        tangent = ((3f * a * tSqr) + (2f * b * t) + m1).Normalized();
     }
 
     private void DrawQuad(IReadOnlyList<Vector3> vertices, Vector3 normal, float uvx0, float uvx1)
@@ -352,34 +383,63 @@ public partial class VerletRope : MeshInstance3D
         }
 
         _collisionCheckBox.Size = visuals.Size;
-        _collisionCheckParameters.Transform = new Transform3D(_collisionCheckParameters.Transform.Basis, GlobalPosition + visuals.Position + visuals.Size / 2);
+        _collisionShapeParameters.Transform = new Transform3D(_collisionShapeParameters.Transform.Basis, GlobalPosition + visuals.Position + (visuals.Size / 2));
 
-        var collisions = _spaceState.IntersectShape(_collisionCheckParameters, 1);
+        var collisions = _spaceState.IntersectShape(_collisionShapeParameters, 1);
         return collisions.Count > 0;
     }
 
     private void CollideRope()
     {
-        for (var i = 0; i < SimulationParticles - 1; ++i)
-        {
-            var result = _spaceState.IntersectRay(new PhysicsRayQueryParameters3D
-            {
-                From = _particleData[i].PositionCurrent + _previousNormal * CollisionCheckLength,
-                To = _particleData[i + 1].PositionCurrent,
-                CollisionMask = CollisionMask
-            });
+        var segmentSlideIgnoreLength = GetSegmentLength() * SlideIgnoreCollisionStretch;
+        var isRopeStretched = GetCurrentRopeLength() > RopeLength * MaxRopeStretch;
 
-            if (result.Count == 0)
+        // visit all points from start + 1 to an end
+        for (var i = 1; i < SimulationParticles; i++)
+        {
+            ref var currentPoint = ref _particleData[i];
+            var particleMove = currentPoint.PositionCurrent - currentPoint.PositionPrevious;
+
+            if (particleMove == Vector3.Zero)
             {
                 continue;
             }
 
-            _previousNormal = result[NormalParameter].AsVector3();
-            var yDifference = result[PositionParameter].AsVector3() - _particleData[i + 1].PositionCurrent;
-            yDifference = yDifference.Project(_previousNormal);
+            if (isRopeStretched)
+            {
+                if (RopeCollisionType == RopeCollisionType.StickyStretch)
+                {
+                    // just ignore collision for sticky stretch
+                    continue;
+                }
 
-            _particleData[i + 1].PositionCurrent += yDifference;
-            _particleData[i + 1].PositionPrevious = _particleData[i + 1].PositionCurrent;
+                ref var previousPoint = ref _particleData[i - 1];
+                var currentSegmentLength = (previousPoint.PositionCurrent - currentPoint.PositionCurrent).Length();
+                if (currentSegmentLength > segmentSlideIgnoreLength)
+                {
+                    // we need to ignore collisions when it's too stretched
+                    continue;
+                }
+            }
+
+            _rayCast.GlobalPosition = currentPoint.PositionPrevious;
+            _rayCast.TargetPosition = particleMove + (particleMove.Normalized() * CollisionCheckLength);
+            _rayCast.ForceRaycastUpdate();
+
+            if (!_rayCast.IsColliding())
+            {
+                continue;
+            }
+
+            var collisionPoint = _rayCast.GetCollisionPoint();
+            var collisionNormal = _rayCast.GetCollisionNormal();
+            currentPoint.PositionCurrent = collisionPoint + (collisionNormal * CollisionCheckLength);
+
+            if (isRopeStretched)
+            {
+                // slide collision towards initial movement
+                currentPoint.PositionCurrent += particleMove.Slide(collisionNormal);
+            }
         }
     }
 
@@ -388,7 +448,6 @@ public partial class VerletRope : MeshInstance3D
     private void DrawCurve()
     {
         // Catmull curve
-
         _mesh.SurfaceBegin(Mesh.PrimitiveType.Triangles);
 
         var cameraPosition = _camera?.GlobalPosition ?? Vector3.Zero;
@@ -414,10 +473,10 @@ public partial class VerletRope : MeshInstance3D
 
                 var vs = new[]
                 {
-                    currentPosition - currentBinormal * RopeWidth,
-                    nextPosition - nextBinormal * RopeWidth,
-                    nextPosition + nextBinormal * RopeWidth,
-                    currentPosition + currentBinormal * RopeWidth
+                    currentPosition - (currentBinormal * RopeWidth),
+                    nextPosition - (nextBinormal * RopeWidth),
+                    nextPosition + (nextBinormal * RopeWidth),
+                    currentPosition + (currentBinormal * RopeWidth)
                 };
 
                 DrawQuad(vs, -currentBinormal, t, t + step);
@@ -440,7 +499,7 @@ public partial class VerletRope : MeshInstance3D
             }
 
             var positionCurrentCopy = p.PositionCurrent;
-            p.PositionCurrent = 2f * p.PositionCurrent - p.PositionPrevious + delta * delta * p.Acceleration;
+            p.PositionCurrent = (2f * p.PositionCurrent) - p.PositionPrevious + (delta * delta * p.Acceleration);
             p.PositionPrevious = positionCurrentCopy;
         }
     }
@@ -459,7 +518,7 @@ public partial class VerletRope : MeshInstance3D
 
             if (ApplyWind && WindNoise != null)
             {
-                var timedPosition = p.PositionCurrent + Vector3.One * (float)_time;
+                var timedPosition = p.PositionCurrent + (Vector3.One * (float)_time);
                 var windForce = WindNoise.GetNoise3D(timedPosition.X, timedPosition.Y, timedPosition.Z);
                 totalAcceleration += WindScale * Wind * windForce;
             }
@@ -479,7 +538,7 @@ public partial class VerletRope : MeshInstance3D
     {
         StiffRope();
 
-        if (ApplyCollision && IsRopeCollides())
+        if (RopeCollisionType != RopeCollisionType.None && IsRopeCollides())
         {
             CollideRope();
         }
@@ -489,8 +548,7 @@ public partial class VerletRope : MeshInstance3D
 
     public override string[] _GetConfigurationWarnings()
     {
-        _visibleNotifier = GetFirstOrDefaultNotifier();
-        return _visibleNotifier == null ? new[] { NoNotifierWarning } : Array.Empty<string>();
+        return UseVisibleOnScreenNotifier ? Array.Empty<string>() : new[] { NoNotifierWarning };
     }
 
     public override void _Ready()
@@ -509,9 +567,17 @@ public partial class VerletRope : MeshInstance3D
             _mesh.ResourceLocalToScene = true;
         }
 
-        _visibleNotifier = GetFirstOrDefaultNotifier();
-        if (_visibleNotifier != null)
+        AddChild(_rayCast = new RayCast3D
         {
+            CollisionMask = CollisionMask,
+            HitFromInside = _hitFromInside,
+            HitBackFaces = _hitBackFaces,
+            Enabled = false
+        });
+
+        if (UseVisibleOnScreenNotifier)
+        {
+            AddChild(_visibleNotifier = new VisibleOnScreenNotifier3D());
             _visibleNotifier.ScreenEntered += () => Draw = true;
             _visibleNotifier.ScreenExited += () => Draw = false;
         }
@@ -525,14 +591,14 @@ public partial class VerletRope : MeshInstance3D
             Size = visuals.Size
         };
 
-        _collisionCheckParameters = new PhysicsShapeQueryParameters3D
+        _collisionShapeParameters = new PhysicsShapeQueryParameters3D
         {
             ShapeRid = _collisionCheckBox.GetRid(),
             CollisionMask = CollisionMask,
             Margin = 0.1f
         };
 
-        _collisionCheckParameters.Transform = new Transform3D(_collisionCheckParameters.Transform.Basis, GlobalPosition + visuals.Position + visuals.Size / 2);
+        _collisionShapeParameters.Transform = new Transform3D(_collisionShapeParameters.Transform.Basis, GlobalPosition + visuals.Position + (visuals.Size / 2));
         MaterialOverride ??= GD.Load<StandardMaterial3D>(DefaultMaterialPath);
 
         CreateRope();
@@ -569,7 +635,7 @@ public partial class VerletRope : MeshInstance3D
         if (Simulate)
         {
             ApplyForces();
-            VerletProcess((float) _simulationDelta);
+            VerletProcess((float)_simulationDelta);
             ApplyConstraints();
         }
 
@@ -594,7 +660,17 @@ public partial class VerletRope : MeshInstance3D
 
     public void CreateRope()
     {
-        var endLocation = _attachEnd?.GlobalPosition ?? GlobalPosition + Vector3.Down * RopeLength;
+        var endLocation = GlobalPosition + (Vector3.Down * RopeLength);
+
+        if (_attachEnd != null)
+        {
+            endLocation = _attachEnd.GlobalPosition;
+        }
+        else if (StartSimulationFromStartPoint)
+        {
+            endLocation = GlobalPosition;
+        }
+
         var acceleration = Gravity * GravityScale;
         var segment = GetSegmentLength();
         _particleData = RopeParticleData.GenerateParticleData(endLocation, GlobalPosition, acceleration, _simulationParticles, segment);
@@ -639,13 +715,13 @@ public partial class VerletRope : MeshInstance3D
             var localPosition = particle.PositionCurrent - GlobalPosition;
 
             _mesh.SurfaceAddVertex(localPosition);
-            _mesh.SurfaceAddVertex(localPosition + debugParticleLength * particle.Tangent);
+            _mesh.SurfaceAddVertex(localPosition + (debugParticleLength * particle.Tangent));
 
             _mesh.SurfaceAddVertex(localPosition);
-            _mesh.SurfaceAddVertex(localPosition + debugParticleLength * particle.Normal);
+            _mesh.SurfaceAddVertex(localPosition + (debugParticleLength * particle.Normal));
 
             _mesh.SurfaceAddVertex(localPosition);
-            _mesh.SurfaceAddVertex(localPosition + debugParticleLength * particle.Binormal);
+            _mesh.SurfaceAddVertex(localPosition + (debugParticleLength * particle.Binormal));
         }
 
         _mesh.SurfaceEnd();

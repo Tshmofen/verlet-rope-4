@@ -1,4 +1,0 @@
-﻿[*.cs]
-
-# RCS1123: Add parentheses when necessary.
-dotnet_diagnostic.RCS1123.severity = none

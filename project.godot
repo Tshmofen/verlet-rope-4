@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="VerletRope"
-run/main_scene="res://addons/verlet_rope_4/demo/demo.tscn"
+run/main_scene="res://demo/demo.tscn"
 config/features=PackedStringArray("4.2", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 
