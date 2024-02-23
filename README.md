@@ -58,6 +58,7 @@ That's it, enjoy cool physics ropes! <sub>(C) 2023 Timofey Ivanov / tshmofen</su
 | Iterations     | Number of verlet constraint iterations per frame, higher value gives accurate rope simulation for lengthy ropes with many simulation particles. Increase if you find the rope is sagging or stretching too much. |
 | Preprocess Iterations| Number of iterations to be precalculated in `Ready()` to set the rope in a rest position. Value of 20-30 should be enough. |
 | Stiffness      | AKA elasticity - it is a fraction that controls how much the verlet constraint corrects the rope. value from 0.1 to 1.0 is recommended. |
+| Start Simulation From Start Point | When enabled makes all rope particles start from a single point, instead of a straight line with a length of the rope.  |
 | Simulate       | Enables the simulation. Rope is still being drawn every frame if this is off. |
 | Draw           | Enables the mesh drawing, you will still see the rope because `SurfacesClear()` wasnt called, but the rope isnt being drawn every frame. Rope is still being simulated if this is off. |
 | Start Draw Simulation On Start | Will enable `Simulate` and `Draw` on the start of the game. Useful to not have moving ropes in editor. |
