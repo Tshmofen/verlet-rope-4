@@ -189,20 +189,26 @@ public partial class VerletRope : MeshInstance3D
     [Export] public RopeCollisionType RopeCollisionType { get; set; } = RopeCollisionType.None;
     [Export(PropertyHint.Range, MaxSegmentStretchRangeHint)] public float MaxRopeStretch { get; set; } = 1.1f;
     [Export(PropertyHint.Range, MaxSegmentStretchRangeHint)] public float SlideIgnoreCollisionStretch { get; set; } = 1.5f;
-    [Export(PropertyHint.Layers3DPhysics)] public uint CollisionMask { get; set; } = 1;
+
+    private uint _collisionMask = 1;
+    [Export(PropertyHint.Layers3DPhysics)] public uint CollisionMask 
+    {
+        get => _collisionMask;
+        set { _collisionMask = value; if (_rayCast != null) _rayCast.CollisionMask = value; if (_collisionShapeParameters != null) _collisionShapeParameters.CollisionMask = value; }
+    }
 
     private bool _hitFromInside = true;
     [Export] public bool HitFromInside
     {
         get => _hitFromInside;
-        set { _hitFromInside = value; if (_rayCast != null) { _rayCast.HitFromInside = value; } }
+        set { _hitFromInside = value; if (_rayCast != null) _rayCast.HitFromInside = value; }
     }
 
     private bool _hitBackFaces = true;
     [Export] public bool HitBackFaces
     {
         get => _hitBackFaces;
-        set { _hitBackFaces = value; if (_rayCast != null) { _rayCast.HitBackFaces = value; } }
+        set { _hitBackFaces = value; if (_rayCast != null) _rayCast.HitBackFaces = value; }
     }
 
     #endregion
