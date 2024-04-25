@@ -39,6 +39,12 @@ That's it, enjoy cool physics ropes! <sub>(C) 2023 Timofey Ivanov / tshmofen</su
 8. Integration of different forces: gravity, wind and air damping.
 9. Advanced performance-friendly slide collisions with adjustable parameters based on a single raycast per rope particle.
 
+# FAQ
+* Addon is throwing errors when I'm trying to enable it, what should I do?
+  * It's likely the aftermath of using .NET version of Godot. First of all be sure that you've created a solution with `Project` -> `Tools` -> `C#` -> `Create C# Solution` and make sure that it is using `.NET 8.0`. After that just build the project and it will generate .NET binaries, now reload Godot and enable the addon - it should now read the scripts correctly.
+* I see the recording above that shows how planks are being dragged by each other, but my rope just streches instead. What am I doing wrong?
+  * You doing everything correctly, it just that `VerletRope` only provides visuals - it will not move the bodies on it's own. See the possible solution in the [[following thread]](https://github.com/Tshmofen/verlet-rope-4/issues/5).
+
 # Export documentation
 
 ### Basics
