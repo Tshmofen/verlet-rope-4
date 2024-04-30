@@ -438,16 +438,13 @@ public partial class VerletRope : MeshInstance3D
 
     private void CollideRope(ICollection<Vector3> dynamicCollisions)
     {
-        var generalCollisionMask = StaticCollisionMask;
-
-        if (RopeCollisionType == RopeCollisionType.All)
+        var generalCollisionMask = RopeCollisionType switch
         {
-            generalCollisionMask |= DynamicCollisionMask;
-        }
-        else if (RopeCollisionType == RopeCollisionType.DynamicOnly)
-        {
-            generalCollisionMask = DynamicCollisionMask;
-        }
+            RopeCollisionType.All => StaticCollisionMask | DynamicCollisionMask,
+            RopeCollisionType.DynamicOnly => DynamicCollisionMask,
+            RopeCollisionType.StaticOnly => StaticCollisionMask,
+            _ => StaticCollisionMask
+        };
 
         var segmentSlideIgnoreLength = GetAverageSegmentLength() * SlideIgnoreCollisionStretch;
         var isRopeStretched = GetCurrentRopeLength() > RopeLength * MaxRopeStretch;
@@ -489,16 +486,16 @@ public partial class VerletRope : MeshInstance3D
                 continue;
             }
 
-            var toStatic = particleMove + (particleMove.Normalized() * CollisionCheckLength);
-            if (!CollideRayCast(currentPoint.PositionPrevious, toStatic, generalCollisionMask, out var staticCollision, out var staticNormal))
+            var generalTo = particleMove + (particleMove.Normalized() * CollisionCheckLength);
+            if (!CollideRayCast(currentPoint.PositionPrevious, generalTo, generalCollisionMask, out var generalCollision, out var generalNormal))
             {
                 continue;
             }
 
-            currentPoint.PositionCurrent = staticCollision + (staticNormal * CollisionCheckLength);
+            currentPoint.PositionCurrent = generalCollision + (generalNormal * CollisionCheckLength);
             if (isRopeStretched)
             {
-                currentPoint.PositionCurrent += particleMove.Slide(staticNormal);
+                currentPoint.PositionCurrent += particleMove.Slide(generalNormal);
             }
         }
     }
