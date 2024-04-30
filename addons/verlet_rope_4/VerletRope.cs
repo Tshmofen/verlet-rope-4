@@ -438,7 +438,17 @@ public partial class VerletRope : MeshInstance3D
 
     private void CollideRope(ICollection<Vector3> dynamicCollisions)
     {
-        var customStaticCollisionMask = RopeCollisionType == RopeCollisionType.All ? StaticCollisionMask | DynamicCollisionMask : StaticCollisionMask;
+        var generalCollisionMask = StaticCollisionMask;
+
+        if (RopeCollisionType == RopeCollisionType.All)
+        {
+            generalCollisionMask |= DynamicCollisionMask;
+        }
+        else if (RopeCollisionType == RopeCollisionType.DynamicOnly)
+        {
+            generalCollisionMask = DynamicCollisionMask;
+        }
+
         var segmentSlideIgnoreLength = GetAverageSegmentLength() * SlideIgnoreCollisionStretch;
         var isRopeStretched = GetCurrentRopeLength() > RopeLength * MaxRopeStretch;
 
@@ -480,7 +490,7 @@ public partial class VerletRope : MeshInstance3D
             }
 
             var toStatic = particleMove + (particleMove.Normalized() * CollisionCheckLength);
-            if (!CollideRayCast(currentPoint.PositionPrevious, toStatic, customStaticCollisionMask, out var staticCollision, out var staticNormal))
+            if (!CollideRayCast(currentPoint.PositionPrevious, toStatic, generalCollisionMask, out var staticCollision, out var staticNormal))
             {
                 continue;
             }
