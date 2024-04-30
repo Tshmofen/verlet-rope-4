@@ -143,7 +143,7 @@ SlideIgnoreCollisionStretch = 1.25
 
 [node name="MovingRope" type="Node3D" parent="." node_paths=PackedStringArray("MovingNode")]
 script = ExtResource("2_vutyd")
-MovingNode = NodePath("CSGCylinder3D")
+MovingNode = NodePath("VerletRopeMoving")
 MovingPath = Vector3(7, 0, 0)
 PathTime = 7.0
 TransitionType = 7
@@ -157,7 +157,7 @@ height = 3.10616
 sides = 50
 
 [node name="VerletRopeMoving" type="MeshInstance3D" parent="MovingRope"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.61681, 2.69336, 5.34074)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.537658, 2.69336, 5.85259)
 material_override = SubResource("StandardMaterial3D_8qm37")
 mesh = SubResource("ImmediateMesh_gleic")
 skeleton = NodePath("../..")
@@ -173,10 +173,15 @@ RopeCollisionType = 2
 RopeCollisionBehavior = 2
 DynamicCollisionMask = 2
 
-[node name="CSGCylinder3D" type="CSGCylinder3D" parent="MovingRope"]
-transform = Transform3D(0.990629, 0.13658, -5.9701e-09, 0, -4.37114e-08, -1, -0.13658, 0.990629, -4.33018e-08, 0.607767, 1.29974, 5.47773)
+[node name="MovingCylinder" type="CSGCylinder3D" parent="MovingRope" node_paths=PackedStringArray("MovingNode")]
+transform = Transform3D(0.999993, 0.00371743, -1.62487e-10, -3.88745e-16, -4.37114e-08, -1, -0.00371743, 0.999993, -4.37111e-08, -0.297686, 1.49849, 5.83115)
 use_collision = true
 collision_layer = 2
 collision_mask = 0
 sides = 20
 smooth_faces = false
+script = ExtResource("2_vutyd")
+MovingNode = NodePath(".")
+MovingPath = Vector3(3, 0, 0)
+PathTime = 5.0
+TransitionType = 1
