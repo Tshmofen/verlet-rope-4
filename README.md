@@ -14,9 +14,9 @@ The port extensevily refactored and refined funcitonality of the original addon.
 That's it, enjoy cool physics ropes! <sub>(C) 2023 Timofey Ivanov / tshmofen</sub>
 
 <p align="center">
- <img height=360 src="https://github.com/Tshmofen/verlet-rope-4/blob/master/images/advanced_physics.gif"/>
- <img height=360 src="https://github.com/Tshmofen/verlet-rope-4/blob/master/images/advanced_physics_2.gif"/>
- <img height=360 src="https://github.com/Tshmofen/verlet-rope-4/blob/master/images/physics_ropes.gif"/>
+ <img height=295 src="https://github.com/Tshmofen/verlet-rope-4/blob/master/images/advanced_physics.gif"/>
+ <img height=295 src="https://github.com/Tshmofen/verlet-rope-4/blob/master/images/advanced_physics_2.gif"/>
+ <img height=295 src="https://github.com/Tshmofen/verlet-rope-4/blob/master/images/physics_ropes.gif"/>
 </p>
 
 # Hints
