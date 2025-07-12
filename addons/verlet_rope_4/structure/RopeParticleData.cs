@@ -3,8 +3,23 @@ using Godot;
 
 namespace VerletRope4.Structure;
 
-internal sealed class RopeParticleData
+public sealed class RopeParticleData
 {
+    private RopeParticle[] _particles;
+
+    public int Count => _particles.Length;
+    public ref RopeParticle this[Index i] => ref _particles[i];
+
+    private RopeParticleData(RopeParticle[] particles)
+    {
+        _particles = particles;
+    }
+
+    public void Resize(int size)
+    {
+        Array.Resize(ref _particles, size);
+    }
+
     public static RopeParticleData GenerateParticleData(Vector3 endLocation, Vector3 globalPosition, Vector3 initialAcceleration, int simulationParticles, float segmentLength)
     {
         var direction = (endLocation - globalPosition).Normalized();
@@ -23,20 +38,6 @@ internal sealed class RopeParticleData
 
         return new RopeParticleData(data);
     }
-
-    private RopeParticle[] _particles;
-
-    private RopeParticleData(RopeParticle[] particles)
-    {
-        _particles = particles;
-    }
-
-    public void Resize(int size)
-    {
-        Array.Resize(ref _particles, size);
-    }
-
-    public ref RopeParticle this[Index i] => ref _particles[i];
 }
 
 public struct RopeParticle

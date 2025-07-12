@@ -11,9 +11,13 @@ config_version=5
 [application]
 
 config/name="VerletRope"
-run/main_scene="res://demo/demo.tscn"
+run/main_scene="uid://bota3ppynjsu1"
 config/features=PackedStringArray("4.4", "C#", "Forward Plus")
 config/icon="res://icon.svg"
+
+[debug_draw_3d]
+
+settings/addon_root_folder="res://addons/debug_draw_3d"
 
 [dotnet]
 
