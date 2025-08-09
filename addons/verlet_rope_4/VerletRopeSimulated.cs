@@ -22,8 +22,8 @@ public partial class VerletRopeSimulated : VerletRopeMesh
     private const string SimulationRangeHint = "0,1000";
     private const string MaxSegmentStretchRangeHint = "1,20";
     private const string MaxCollisionsRangeHint = "1,256";
-    private const float CollisionCheckLength = 0.001f;
-    private const float DynamicCollisionCheckLength = 0.08f;
+    private const float CollisionCheckLength = 0.005f;
+    private const float DynamicCollisionLength = 0.08f;
 
     private double _time;
     private double _simulationDelta;
@@ -90,7 +90,7 @@ public partial class VerletRopeSimulated : VerletRopeMesh
     [Export] public RopeCollisionBehavior RopeCollisionBehavior { get; set; } = RopeCollisionBehavior.None;
     [Export(PropertyHint.Range, MaxSegmentStretchRangeHint)] public float MaxRopeStretch { get; set; } = 1.1f;
     [Export(PropertyHint.Range, MaxSegmentStretchRangeHint)] public float SlideIgnoreCollisionStretch { get; set; } = 1.5f;
-    [Export(PropertyHint.Range, MaxCollisionsRangeHint)] public int MaxDynamicCollisions { get; set; } = 32;
+    [Export(PropertyHint.Range, MaxCollisionsRangeHint)] public int MaxDynamicCollisions { get; set; } = 8;
 
     private uint _staticCollisionMask = 1;
     [Export(PropertyHint.Layers3DPhysics)] public uint StaticCollisionMask 
@@ -196,40 +196,73 @@ public partial class VerletRopeSimulated : VerletRopeMesh
         }
     }
 
-    private (bool isStaticCollision, Vector3[] dynamicCollisions) GetRopeCollisions()
+    private List<Vector3?> GetRopeCollisionTargets()
     {
         var visuals = GetAabb();
-
         if (visuals.Size == Vector3.Zero)
         {
-            return (false, []);
+            return [];
         }
-
+        
         _collisionCheckBox.Size = visuals.Size;
         _collisionShapeParameters.Transform = new Transform3D(_collisionShapeParameters.Transform.Basis, GlobalPosition + visuals.Position + (visuals.Size / 2));
+        var collisionTargets = new List<Vector3?>(MaxDynamicCollisions + 1);
 
-        var isStaticCollision = false;
-        if (RopeCollisionType is RopeCollisionType.All or RopeCollisionType.StaticOnly)
-        {
-            _collisionShapeParameters.CollisionMask = StaticCollisionMask;
-            isStaticCollision = _spaceState.CollideShape(_collisionShapeParameters, 1).Any();
-        }
-
-        var dynamicCollisions = (Vector3[]) null;
         if (RopeCollisionType is RopeCollisionType.All or RopeCollisionType.DynamicOnly)
         {
             _collisionShapeParameters.CollisionMask = DynamicCollisionMask;
-            dynamicCollisions = _spaceState
+            collisionTargets.AddRange(_spaceState
                 .IntersectShape(_collisionShapeParameters, MaxDynamicCollisions)
-                .Select(c => c["collider"].As<Node3D>().GlobalPosition)
-                .ToArray();
+                .Select(c =>  (Vector3?) c["collider"].As<Node3D>().GlobalPosition)
+            );
         }
 
-        return (isStaticCollision, dynamicCollisions ?? []);
+        if (RopeCollisionType is RopeCollisionType.All or RopeCollisionType.StaticOnly)
+        {
+            _collisionShapeParameters.CollisionMask = StaticCollisionMask;
+            if (_spaceState.CollideShape(_collisionShapeParameters, 1).Count > 0)
+            {
+                collisionTargets.Add(null);
+            }
+        }
+
+        return collisionTargets;
     }
 
-    private void CollideRope(ICollection<Vector3> dynamicCollisions)
+    private Vector3? CollideMovementCurrent(Vector3 previous, Vector3 move, Vector3? target, uint collisionMask, bool isSlideAllowed)
     {
+        if (move == Vector3.Zero)
+        {
+            if (target != null)
+            {
+                move = (target.Value - previous).Normalized() * DynamicCollisionLength;
+            }
+            else
+            {
+                return null;
+            }
+        }
+        
+        var checkDirection = move + (move.Normalized() * CollisionCheckLength);
+        if (!CollideRayCast(previous, checkDirection, collisionMask, out var collision, out var normal))
+        {
+            return null;
+        }
+
+        var collisionDirection = (collision - previous).Normalized();
+        var newPosition = collision - collisionDirection * CollisionCheckLength;
+        return isSlideAllowed
+            ? newPosition + move.Slide(normal)
+            : newPosition;
+    }
+
+    private void CollideRope(List<Vector3?> collisionTargets)
+    {
+        if (collisionTargets.Count == 0)
+        {
+            return;
+        }
+
         var generalCollisionMask = RopeCollisionType switch
         {
             RopeCollisionType.All => StaticCollisionMask | DynamicCollisionMask,
@@ -257,36 +290,22 @@ public partial class VerletRopeSimulated : VerletRopeMesh
                 var currentSegmentLength = (previousPoint.PositionCurrent - currentPoint.PositionCurrent).Length();
                 if (currentSegmentLength > segmentSlideIgnoreLength)
                 {
-                    // We still need to ignore collisions when it's too stretched
+                    // We still need to ignore collisionTargets when it's too stretched
                     continue;
                 }
             }
 
-            foreach (var dynamicCollision in dynamicCollisions)
-            {
-                var toDynamic = (dynamicCollision - currentPoint.PositionCurrent).Normalized() * DynamicCollisionCheckLength;
-                if (CollideRayCast(currentPoint.PositionCurrent, toDynamic, DynamicCollisionMask, out var collision, out var normal))
-                {
-                    currentPoint.PositionCurrent = collision + (normal * DynamicCollisionCheckLength);
-                }
-            }
-
             var particleMove = currentPoint.PositionCurrent - currentPoint.PositionPrevious;
-            if (particleMove == Vector3.Zero)
+            foreach (var target in collisionTargets)
             {
-                continue;
-            }
+                var updatedPosition = CollideMovementCurrent(currentPoint.PositionPrevious, particleMove, target, generalCollisionMask, isRopeStretched);
+                if (updatedPosition == null)
+                {
+                    continue;
+                }
 
-            var generalTo = particleMove + (particleMove.Normalized() * CollisionCheckLength);
-            if (!CollideRayCast(currentPoint.PositionPrevious, generalTo, generalCollisionMask, out var generalCollision, out var generalNormal))
-            {
-                continue;
-            }
-
-            currentPoint.PositionCurrent = generalCollision + (generalNormal * CollisionCheckLength);
-            if (isRopeStretched)
-            {
-                currentPoint.PositionCurrent += particleMove.Slide(generalNormal);
+                currentPoint.PositionCurrent = updatedPosition.Value;
+                break;
             }
         }
     }
@@ -314,7 +333,7 @@ public partial class VerletRopeSimulated : VerletRopeMesh
     {
         for (var i = 0; i < SimulationParticles; i++)
         {
-            ref var p = ref _particleData[i];
+            ref var particle = ref _particleData[i];
             var totalAcceleration = Vector3.Zero;
 
             if (ApplyGravity)
@@ -324,7 +343,7 @@ public partial class VerletRopeSimulated : VerletRopeMesh
 
             if (ApplyWind && WindNoise != null)
             {
-                var timedPosition = p.PositionCurrent + (Vector3.One * (float)_time);
+                var timedPosition = particle.PositionCurrent + (Vector3.One * (float)_time);
                 var windForce = WindNoise.GetNoise3D(timedPosition.X, timedPosition.Y, timedPosition.Z);
                 totalAcceleration += WindScale * Wind * windForce;
             }
@@ -336,7 +355,7 @@ public partial class VerletRopeSimulated : VerletRopeMesh
                 totalAcceleration += drag;
             }
 
-            p.Acceleration = totalAcceleration;
+            particle.Acceleration = totalAcceleration;
         }
     }
 
@@ -349,18 +368,13 @@ public partial class VerletRopeSimulated : VerletRopeMesh
             || (RopeCollisionType == RopeCollisionType.StaticOnly && StaticCollisionMask != 0)
             || (RopeCollisionType == RopeCollisionType.DynamicOnly && DynamicCollisionMask != 0)
         );
+
         if (RopeCollisionBehavior == RopeCollisionBehavior.None || !isLayersAvailable)
         {
             return;
         }
 
-        var (isStaticCollision, dynamicCollisions) = GetRopeCollisions();
-        if (!isStaticCollision && dynamicCollisions.Length == 0)
-        {
-            return;
-        }
-
-        CollideRope(dynamicCollisions);
+        CollideRope(GetRopeCollisionTargets());
     }
 
     #endregion
@@ -416,16 +430,16 @@ public partial class VerletRopeSimulated : VerletRopeMesh
             }
         }
 
-        if (AttachEndNode != null)
-        {
-            ref var end = ref _particleData![SimulationParticles - 1];
-            end.PositionCurrent = AttachEndNode.GlobalPosition;
-        }
-
         if (AttachStartNode != null || IsAttachedToGlobalPosition)
         {
             ref var start = ref _particleData![0];
             start.PositionCurrent = AttachStartNode?.GlobalPosition ?? GlobalPosition;
+        }
+
+        if (AttachEndNode != null)
+        {
+            ref var end = ref _particleData![SimulationParticles - 1];
+            end.PositionCurrent = AttachEndNode.GlobalPosition;
         }
 
         if (Simulate)

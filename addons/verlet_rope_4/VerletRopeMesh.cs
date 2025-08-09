@@ -29,7 +29,7 @@ public abstract partial class VerletRopeMesh : MeshInstance3D
     #region Export Properties
 
     [ExportGroup("Visuals")]
-    [Export] public float RopeLength { get; set; } = 5.0f;
+    [Export] public float RopeLength { get; set; } = 3.0f;
     [Export] public float RopeWidth { get; set; } = 0.07f;
     [Export] public float SubdivisionLodDistance { get; set; } = 15.0f;
 
@@ -200,7 +200,14 @@ public abstract partial class VerletRopeMesh : MeshInstance3D
             return;
         }
 
+        #if TOOLS
+        _camera = Engine.IsEditorHint()
+            ? EditorInterface.Singleton.GetEditorViewport3D().GetCamera3D()
+            : GetViewport().GetCamera3D();
+        #else
         _camera = GetViewport().GetCamera3D();
+        #endif
+
         CalculateRopeCameraOrientation(particles);
         ResetRopeRotation();
         DrawCurve(particles);
@@ -262,7 +269,6 @@ public abstract partial class VerletRopeMesh : MeshInstance3D
             _isVisible = _visibleNotifier.IsOnScreen();
         }
 
-        _camera = GetViewport().GetCamera3D();
         MaterialOverride ??= GD.Load<StandardMaterial3D>(DefaultMaterialPath);
     }
 }
