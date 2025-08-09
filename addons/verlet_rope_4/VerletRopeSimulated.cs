@@ -47,11 +47,9 @@ public partial class VerletRopeSimulated : VerletRopeMesh
     [Export] public Node3D AttachStartNode { get; set; }
     [Export] public Node3D AttachEndNode { get; set; }
 
-    [Export] public Vector3 InitialDirection { get; set; } = Vector3.Down;
-    [Export] public int PreprocessIterations { get; set; } = 5;
-
     [Export(PropertyHint.Range, "0.0, 1.5")] public float Stiffness { get; set; } = 0.9f;
     [Export] public int StiffnessIterations { get; set; } = 2;
+    [Export] public int PreprocessIterations { get; set; } = 5;
 
     [Export] public bool Simulate { get; set; } = true;
     [Export] public bool Draw { get; set; } = true;
@@ -242,7 +240,6 @@ public partial class VerletRopeSimulated : VerletRopeMesh
 
         var segmentSlideIgnoreLength = GetAverageSegmentLength() * SlideIgnoreCollisionStretch;
         var isRopeStretched = GetCurrentRopeLength() > RopeLength * MaxRopeStretch;
-
 
         for (var i = 1; i < SimulationParticles; i++)
         {
@@ -454,23 +451,11 @@ public partial class VerletRopeSimulated : VerletRopeMesh
 
     public void CreateRope()
     {
-        var startLocation = AttachStartNode?.GlobalPosition ?? GlobalPosition;
-        Vector3 endLocation;
-
-        if (AttachEndNode != null)
-        {
-            endLocation = AttachEndNode.GlobalPosition;
-        }
-        else
-        {
-            var random = new RandomNumberGenerator();
-            var jitterDirection = InitialDirection + (new Vector3(random.Randf(), random.Randf(), random.Randf()) / 100);
-            endLocation = startLocation + jitterDirection.Normalized() * RopeLength;
-        }
-
         var acceleration = Gravity * GravityScale;
         var segmentLength = GetAverageSegmentLength();
-        _particleData = RopeParticleData.GenerateParticleData(endLocation, startLocation, acceleration, SimulationParticles, segmentLength);
+        var startLocation = AttachStartNode?.GlobalPosition ?? GlobalPosition;
+        var endLocation = AttachEndNode?.GlobalPosition ?? startLocation;
+        _particleData = RopeParticleData.GenerateParticleData(startLocation, endLocation, acceleration, SimulationParticles, segmentLength);
 
         ref var start = ref _particleData[0];
         ref var end = ref _particleData[SimulationParticles - 1];

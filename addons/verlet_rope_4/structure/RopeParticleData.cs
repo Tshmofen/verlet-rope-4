@@ -5,6 +5,9 @@ namespace VerletRope4.Structure;
 
 public sealed class RopeParticleData
 {
+    private const float UnwrappingJitter = 0.005f;
+    private static readonly RandomNumberGenerator Random = new();
+
     private RopeParticle[] _particles;
 
     public int Count => _particles.Length;
@@ -22,7 +25,10 @@ public sealed class RopeParticleData
 
     public static RopeParticleData GenerateParticleData(Vector3 endLocation, Vector3 startLocation, Vector3 initialAcceleration, int simulationParticles, float segmentLength)
     {
-        var direction = (endLocation - startLocation).Normalized();
+        var isUnwrapping = endLocation == startLocation;
+        var direction = !isUnwrapping
+            ? (endLocation - startLocation).Normalized()
+            : Vector3.Zero;
         var data = new RopeParticle[simulationParticles];
 
         for (var i = 0; i < simulationParticles; i++)
@@ -34,6 +40,15 @@ public sealed class RopeParticleData
             particle.PositionCurrent = particle.PositionPrevious;
             particle.Acceleration = initialAcceleration;
             particle.IsAttached = false;
+
+            if (isUnwrapping)
+            {
+                particle.PositionPrevious = particle.PositionCurrent = new Vector3(
+                    particle.PositionCurrent.X + Random.RandfRange(-UnwrappingJitter, UnwrappingJitter),
+                    particle.PositionCurrent.Y + Random.RandfRange(-UnwrappingJitter, UnwrappingJitter),
+                    particle.PositionCurrent.Z + Random.RandfRange(-UnwrappingJitter, UnwrappingJitter)
+                );
+            }
         }
 
         return new RopeParticleData(data);

@@ -96,7 +96,7 @@ PathTime = 5.0
 TransitionType = 1
 
 [node name="VerletRope" type="MeshInstance3D" parent="MovingRope"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.46091, 1.79536, 2.51642)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.09232, 1.25985, 4.60988)
 material_override = ExtResource("2_dar0o")
 mesh = SubResource("ImmediateMesh_dar0o")
 script = ExtResource("2_lows4")
