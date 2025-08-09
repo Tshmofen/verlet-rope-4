@@ -37,7 +37,7 @@ public partial class MovingRopeDemo : Node3D
 
 	public override void _Ready()
 	{
-        if (MovingNode is VerletRope rope)
+        if (MovingNode is VerletRopeSimulated rope)
         {
             rope.SimulationStep += SynchronizeNodePosition;
         }

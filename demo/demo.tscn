@@ -1,7 +1,7 @@
 [gd_scene load_steps=10 format=3 uid="uid://bota3ppynjsu1"]
 
 [ext_resource type="Material" uid="uid://o7na8drc2je2" path="res://addons/verlet_rope_4/materials/rope_default.material" id="2_dar0o"]
-[ext_resource type="Script" uid="uid://v22nt3dj3ewl" path="res://addons/verlet_rope_4/VerletRope.cs" id="2_lows4"]
+[ext_resource type="Script" uid="uid://bmd7t8mvpjqwr" path="res://addons/verlet_rope_4/VerletRopeSimulated.cs" id="2_lows4"]
 [ext_resource type="Script" uid="uid://d36wx6t8jmjcx" path="res://demo/MovingRopeDemo.cs" id="2_vutyd"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_3bmw0"]
@@ -25,7 +25,7 @@ albedo_color = Color(0.529412, 0.12549, 0.133333, 1)
 
 [sub_resource type="ImmediateMesh" id="ImmediateMesh_dar0o"]
 resource_local_to_scene = true
-metadata/verlet_rope_internal_stamp = 14658790576662
+metadata/verlet_rope_internal_stamp = 2201858686341
 
 [node name="Demo" type="Node3D"]
 
@@ -96,10 +96,9 @@ PathTime = 5.0
 TransitionType = 1
 
 [node name="VerletRope" type="MeshInstance3D" parent="MovingRope"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.85672, 6.56651, 4.66125)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.46091, 1.79536, 2.51642)
 material_override = ExtResource("2_dar0o")
 mesh = SubResource("ImmediateMesh_dar0o")
 script = ExtResource("2_lows4")
 RopeCollisionBehavior = 2
 RopeLength = 3.0
-metadata/_custom_type_script = "uid://v22nt3dj3ewl"

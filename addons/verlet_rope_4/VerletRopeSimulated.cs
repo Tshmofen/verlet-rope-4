@@ -2,17 +2,17 @@ using Godot;
 using System.Collections.Generic;
 using System.Linq;
 using VerletRope4.Structure;
+using Vector3 = Godot.Vector3;
 
 namespace VerletRope4;
 
 [Tool]
-public partial class VerletRope : VerletRopeMesh
+public partial class VerletRopeSimulated : VerletRopeMesh
 {
-    #region Signals
+    public const string ScriptPath = "res://addons/verlet_rope_4/VerletRopeSimulated.cs";
+    public const string IconPath = "res://addons/verlet_rope_4/icon.svg";
 
     [Signal] public delegate void SimulationStepEventHandler(double delta);
-
-    #endregion
 
     #region Variables
 
@@ -34,76 +34,27 @@ public partial class VerletRope : VerletRopeMesh
     private PhysicsDirectSpaceState3D _spaceState;
     private PhysicsShapeQueryParameters3D _collisionShapeParameters;
 
-    private Node3D _attachEnd;
-    private bool _attachStart = true;
-    private int _simulationParticles = 10;
-
-    #endregion
-
-    #region Vars Basics
-
-    [ExportGroup("Basics")]
-    [Export]
-    public bool AttachStart
-    {
-        set
-        {
-            _attachStart = value;
-
-            if (_particleData != null)
-            {
-                _particleData[0].IsAttached = value;
-            }
-        }
-        get => _attachStart;
-    }
-
-    [Export] public Node3D AttachEnd
-    {
-        set
-        {
-            _attachEnd = value;
-
-            if (_particleData != null)
-            {
-                _particleData[^1].IsAttached = _attachEnd != null;
-            }
-        }
-        get => _attachEnd;
-    }
-
-    [Export(PropertyHint.Range, ParticlesRangeHint)]
-    public int SimulationParticles
-    {
-        set
-        {
-            _simulationParticles = value;
-
-            if (_particleData == null)
-            {
-                return;
-            }
-
-            _particleData.Resize(_simulationParticles);
-            CreateRope();
-        }
-        get => _simulationParticles;
-    }
-
     #endregion
 
     #region Vars Simulation
-
+    
     [ExportGroup("Simulation")]
+    [ExportToolButton("Reset Rope")] public Callable ResetRopeButton => Callable.From(CreateRope);
+
+    [Export(PropertyHint.Range, ParticlesRangeHint)] public int SimulationParticles { get; set; } = 10;
     [Export(PropertyHint.Range, SimulationRangeHint)] public int SimulationRate { get; set; } = 0;
-    [Export] public int Iterations { get; set; } = 2;
+    [Export] public bool IsAttachedToGlobalPosition { get; set; } = true;
+    [Export] public Node3D AttachStartNode { get; set; }
+    [Export] public Node3D AttachEndNode { get; set; }
+
+    [Export] public Vector3 InitialDirection { get; set; } = Vector3.Down;
     [Export] public int PreprocessIterations { get; set; } = 5;
-    [Export] public float PreprocessDelta { get; set; } = 0.016f; 
+
     [Export(PropertyHint.Range, "0.0, 1.5")] public float Stiffness { get; set; } = 0.9f;
-    [Export] public bool StartSimulationFromStartPoint { get; set; } = true;
+    [Export] public int StiffnessIterations { get; set; } = 2;
+
     [Export] public bool Simulate { get; set; } = true;
     [Export] public bool Draw { get; set; } = true;
-    [Export] public bool StartDrawSimulationOnStart { get; set; } = true;
 
     #endregion
 
@@ -222,7 +173,7 @@ public partial class VerletRope : VerletRopeMesh
 
     private void StiffRope()
     {
-        for (var iteration = 0; iteration < Iterations; iteration++)
+        for (var iteration = 0; iteration < StiffnessIterations; iteration++)
         {
             for (var i = 0; i < SimulationParticles - 1; i++)
             {
@@ -421,12 +372,6 @@ public partial class VerletRope : VerletRopeMesh
     {
         base._Ready();
 
-        if (!Engine.IsEditorHint() && StartDrawSimulationOnStart)
-        {
-            Draw = true;
-            Simulate = true;
-        }
-
         AddChild(_rayCast = new RayCast3D
         {
             CollisionMask = StaticCollisionMask,
@@ -474,16 +419,16 @@ public partial class VerletRope : VerletRopeMesh
             }
         }
 
-        if (_attachEnd != null)
+        if (AttachEndNode != null)
         {
             ref var end = ref _particleData![SimulationParticles - 1];
-            end.PositionCurrent = _attachEnd.GlobalPosition;
+            end.PositionCurrent = AttachEndNode.GlobalPosition;
         }
 
-        if (AttachStart)
+        if (AttachStartNode != null || IsAttachedToGlobalPosition)
         {
             ref var start = ref _particleData![0];
-            start.PositionCurrent = GlobalPosition;
+            start.PositionCurrent = AttachStartNode?.GlobalPosition ?? GlobalPosition;
         }
 
         if (Simulate)
@@ -509,32 +454,35 @@ public partial class VerletRope : VerletRopeMesh
 
     public void CreateRope()
     {
-        var endLocation = GlobalPosition + (Vector3.Down * RopeLength);
+        var startLocation = AttachStartNode?.GlobalPosition ?? GlobalPosition;
+        Vector3 endLocation;
 
-        if (_attachEnd != null)
+        if (AttachEndNode != null)
         {
-            endLocation = _attachEnd.GlobalPosition;
+            endLocation = AttachEndNode.GlobalPosition;
         }
-        else if (StartSimulationFromStartPoint)
+        else
         {
-            endLocation = GlobalPosition;
+            var random = new RandomNumberGenerator();
+            var jitterDirection = InitialDirection + (new Vector3(random.Randf(), random.Randf(), random.Randf()) / 100);
+            endLocation = startLocation + jitterDirection.Normalized() * RopeLength;
         }
 
         var acceleration = Gravity * GravityScale;
-        var segment = GetAverageSegmentLength();
-        _particleData = RopeParticleData.GenerateParticleData(endLocation, GlobalPosition, acceleration, _simulationParticles, segment);
+        var segmentLength = GetAverageSegmentLength();
+        _particleData = RopeParticleData.GenerateParticleData(endLocation, startLocation, acceleration, SimulationParticles, segmentLength);
 
         ref var start = ref _particleData[0];
         ref var end = ref _particleData[SimulationParticles - 1];
 
-        start.IsAttached = AttachStart;
-        end.IsAttached = _attachEnd != null;
+        start.IsAttached = AttachStartNode != null || IsAttachedToGlobalPosition;
+        end.IsAttached = AttachEndNode != null;
         end.PositionPrevious = endLocation;
         end.PositionCurrent = endLocation;
 
         for (var i = 0; i < PreprocessIterations; i++)
         {
-            VerletProcess(PreprocessDelta);
+            VerletProcess(1/60f);
             ApplyConstraints();
         }
     }

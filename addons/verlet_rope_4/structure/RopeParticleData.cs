@@ -20,9 +20,9 @@ public sealed class RopeParticleData
         Array.Resize(ref _particles, size);
     }
 
-    public static RopeParticleData GenerateParticleData(Vector3 endLocation, Vector3 globalPosition, Vector3 initialAcceleration, int simulationParticles, float segmentLength)
+    public static RopeParticleData GenerateParticleData(Vector3 endLocation, Vector3 startLocation, Vector3 initialAcceleration, int simulationParticles, float segmentLength)
     {
-        var direction = (endLocation - globalPosition).Normalized();
+        var direction = (endLocation - startLocation).Normalized();
         var data = new RopeParticle[simulationParticles];
 
         for (var i = 0; i < simulationParticles; i++)
@@ -30,7 +30,7 @@ public sealed class RopeParticleData
             data[i] = new RopeParticle();
             ref var particle = ref data[i];
             particle.Tangent = particle.Normal = particle.Binormal = Vector3.Zero;
-            particle.PositionPrevious = globalPosition + (direction * segmentLength * i);
+            particle.PositionPrevious = startLocation + (direction * segmentLength * i);
             particle.PositionCurrent = particle.PositionPrevious;
             particle.Acceleration = initialAcceleration;
             particle.IsAttached = false;
