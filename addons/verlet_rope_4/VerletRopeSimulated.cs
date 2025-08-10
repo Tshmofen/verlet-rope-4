@@ -88,8 +88,8 @@ public partial class VerletRopeSimulated : VerletRopeMesh
     [ExportGroup("Collision")]
     [Export] public RopeCollisionType RopeCollisionType { get; set; } = RopeCollisionType.StaticOnly;
     [Export] public RopeCollisionBehavior RopeCollisionBehavior { get; set; } = RopeCollisionBehavior.None;
-    [Export(PropertyHint.Range, MaxSegmentStretchRangeHint)] public float MaxRopeStretch { get; set; } = 1.1f;
-    [Export(PropertyHint.Range, MaxSegmentStretchRangeHint)] public float SlideIgnoreCollisionStretch { get; set; } = 1.5f;
+    [Export(PropertyHint.Range, MaxSegmentStretchRangeHint)] public float SlideCollisionStretch { get; set; } = 1.03f;
+    [Export(PropertyHint.Range, MaxSegmentStretchRangeHint)] public float IgnoreCollisionStretch { get; set; } = 1.5f;
     [Export(PropertyHint.Range, MaxCollisionsRangeHint)] public int MaxDynamicCollisions { get; set; } = 8;
 
     private uint _staticCollisionMask = 1;
@@ -229,7 +229,7 @@ public partial class VerletRopeSimulated : VerletRopeMesh
         return collisionTargets;
     }
 
-    private Vector3? CollideMovementCurrent(Vector3 previous, Vector3 move, Vector3? target, uint collisionMask, bool isSlideAllowed)
+    private Vector3? CollideMovementCurrent(Vector3 previous, Vector3 move, Vector3? target, uint collisionMask, bool isSliding)
     {
         if (move == Vector3.Zero)
         {
@@ -251,7 +251,7 @@ public partial class VerletRopeSimulated : VerletRopeMesh
 
         var collisionDirection = (collision - previous).Normalized();
         var newPosition = collision - collisionDirection * CollisionCheckLength;
-        return isSlideAllowed
+        return isSliding
             ? newPosition + move.Slide(normal)
             : newPosition;
     }
@@ -271,34 +271,33 @@ public partial class VerletRopeSimulated : VerletRopeMesh
             _ => StaticCollisionMask
         };
 
-        var segmentSlideIgnoreLength = GetAverageSegmentLength() * SlideIgnoreCollisionStretch;
-        var isRopeStretched = GetCurrentRopeLength() > RopeLength * MaxRopeStretch;
+        var segmentLength = GetAverageSegmentLength();
+        var segmentCollisionSlideLength = segmentLength * SlideCollisionStretch;
+        var segmentCollisionIgnoreLength = segmentLength * IgnoreCollisionStretch;
 
         for (var i = 1; i < SimulationParticles; i++)
         {
             ref var currentPoint = ref _particleData[i];
+            ref var previousPoint = ref _particleData[i - 1];
 
-            if (isRopeStretched)
+            var currentSegmentLength = (previousPoint.PositionCurrent - currentPoint.PositionCurrent).Length();
+            var isSliding = currentSegmentLength > segmentCollisionSlideLength;
+            if (isSliding && RopeCollisionBehavior == RopeCollisionBehavior.StickyStretch)
             {
-                if (RopeCollisionBehavior == RopeCollisionBehavior.StickyStretch)
-                {
-                    // Just ignore collision for sticky stretch
-                    continue;
-                }
+                // Just ignore collision for sticky stretch
+                continue;
+            }
 
-                ref var previousPoint = ref _particleData[i - 1];
-                var currentSegmentLength = (previousPoint.PositionCurrent - currentPoint.PositionCurrent).Length();
-                if (currentSegmentLength > segmentSlideIgnoreLength)
-                {
-                    // We still need to ignore collisionTargets when it's too stretched
-                    continue;
-                }
+            if (currentSegmentLength > segmentCollisionIgnoreLength)
+            {
+                // We still need to ignore collisionTargets when it's too stretched
+                continue;
             }
 
             var particleMove = currentPoint.PositionCurrent - currentPoint.PositionPrevious;
             foreach (var target in collisionTargets)
             {
-                var updatedPosition = CollideMovementCurrent(currentPoint.PositionPrevious, particleMove, target, generalCollisionMask, isRopeStretched);
+                var updatedPosition = CollideMovementCurrent(currentPoint.PositionPrevious, particleMove, target, generalCollisionMask, isSliding);
                 if (updatedPosition == null)
                 {
                     continue;
@@ -488,7 +487,7 @@ public partial class VerletRopeSimulated : VerletRopeMesh
 
     public void DestroyRope()
     {
-        _particleData.Resize(0);
+        _particleData = null;
         SimulationParticles = 0;
     }
 }
