@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -18,10 +19,6 @@ public partial class VerletRopeSimulated : VerletRopeMesh
 
     #region Vars Private
 
-    private const string ParticlesRangeHint = "3,300";
-    private const string SimulationRangeHint = "0,1000";
-    private const string MaxSegmentStretchRangeHint = "1,20";
-    private const string MaxCollisionsRangeHint = "1,256";
     private const float StaticCollisionCheckLength = 0.005f;
     private const float DynamicCollisionCheckLength = 0.1f;
 
@@ -42,13 +39,13 @@ public partial class VerletRopeSimulated : VerletRopeMesh
     [ExportGroup("Simulation")]
     [ExportToolButton("Reset Rope")] public Callable ResetRopeButton => Callable.From(CreateRope);
 
-    [Export(PropertyHint.Range, ParticlesRangeHint)] public int SimulationParticles { get; set; } = 10;
-    [Export(PropertyHint.Range, SimulationRangeHint)] public int SimulationRate { get; set; } = 0;
+    [Export(PropertyHint.Range, "3,100")] public int SimulationParticles { get; set; } = 10;
+    [Export(PropertyHint.Range, "0,1000")] public int SimulationRate { get; set; } = 0;
     [Export] public bool IsAttachedToGlobalPosition { get; set; } = true;
     [Export] public Node3D AttachStartNode { get; set; }
     [Export] public Node3D AttachEndNode { get; set; }
 
-    [Export(PropertyHint.Range, "0.0, 1.5")] public float Stiffness { get; set; } = 0.9f;
+    [Export(PropertyHint.Range, "0.2, 1.5")] public float Stiffness { get; set; } = 0.9f;
     [Export] public int StiffnessIterations { get; set; } = 2;
     [Export] public int PreprocessIterations { get; set; } = 5;
 
@@ -80,7 +77,7 @@ public partial class VerletRopeSimulated : VerletRopeMesh
 
     [ExportGroup("Damping")]
     [Export] public bool ApplyDamping { get; set; } = true;
-    [Export] public float DampingFactor { get; set; } = 100.0f;
+    [Export] public float DampingFactor { get; set; } = 1f;
 
     #endregion
 
@@ -89,12 +86,13 @@ public partial class VerletRopeSimulated : VerletRopeMesh
     [ExportGroup("Collision")]
     [Export] public RopeCollisionType RopeCollisionType { get; set; } = RopeCollisionType.StaticOnly;
     [Export] public RopeCollisionBehavior RopeCollisionBehavior { get; set; } = RopeCollisionBehavior.None;
-    [Export(PropertyHint.Range, MaxSegmentStretchRangeHint)] public float SlideCollisionStretch { get; set; } = 1.05f;
-    [Export(PropertyHint.Range, MaxSegmentStretchRangeHint)] public float IgnoreCollisionStretch { get; set; } = 1.5f;
-    [Export(PropertyHint.Range, MaxCollisionsRangeHint)] public int MaxDynamicCollisions { get; set; } = 8;
+    [Export(PropertyHint.Range, "1,20")] public float SlideCollisionStretch { get; set; } = 1.05f;
+    [Export(PropertyHint.Range, "1,20")] public float IgnoreCollisionStretch { get; set; } = 1.5f;
+    [Export(PropertyHint.Range, "1,256")] public int MaxDynamicCollisions { get; set; } = 4;
+    [Export(PropertyHint.Range, "0.1,100")] public float DynamicCollisionTrackingMargin { get; set; } = 1;
 
     [Export(PropertyHint.Layers3DPhysics)] public uint StaticCollisionMask { get; set; } = 1;
-    [Export(PropertyHint.Layers3DPhysics)] public uint DynamicCollisionMask { get; set; }
+    [Export(PropertyHint.Layers3DPhysics)] public uint DynamicCollisionMask { get; set; } = 1;
 
     [Export] public bool HitFromInside { get; set; }
     [Export] public bool HitBackFaces { get; set; }
@@ -182,7 +180,7 @@ public partial class VerletRopeSimulated : VerletRopeMesh
         }
     }
 
-    private void UpdateDynamicCollisions(float delta)
+    private void TrackDynamicCollisions(float delta)
     {
         if (RopeCollisionType is not RopeCollisionType.All and not RopeCollisionType.DynamicOnly)
         {
@@ -197,7 +195,7 @@ public partial class VerletRopeSimulated : VerletRopeMesh
             return;
         }
 
-        _collisionShape.Size = visuals.Size + Vector3.One;
+        _collisionShape.Size = visuals.Size + Vector3.One * DynamicCollisionTrackingMargin;
         _collisionShapeParameters.Transform = new Transform3D(_collisionShapeParameters.Transform.Basis, GlobalPosition + visuals.GetCenter());
         _collisionShapeParameters.CollisionMask = DynamicCollisionMask;
 
@@ -265,6 +263,7 @@ public partial class VerletRopeSimulated : VerletRopeMesh
 
         if (bodyData.Movement != Vector3.Zero)
         {
+            // Adjusting ray to be sent relative to interpolated body movement
             adjustedPrevious = previous + bodyData.Movement;
             checkLength = DynamicCollisionCheckLength;
             checkDirection = -bodyData.Movement.Normalized() * checkLength;
@@ -382,8 +381,7 @@ public partial class VerletRopeSimulated : VerletRopeMesh
             if (ApplyDamping)
             {
                 var velocity = _particleData[i].PositionCurrent - _particleData[i].PositionPrevious;
-                var drag = -DampingFactor * velocity.Length() * velocity;
-                totalAcceleration += drag;
+                totalAcceleration -= DampingFactor * velocity;
             }
 
             particle.Acceleration = totalAcceleration;
@@ -407,7 +405,7 @@ public partial class VerletRopeSimulated : VerletRopeMesh
             return;
         }
 
-        UpdateDynamicCollisions(delta);
+        TrackDynamicCollisions(delta);
         CollideRope();
     }
 
