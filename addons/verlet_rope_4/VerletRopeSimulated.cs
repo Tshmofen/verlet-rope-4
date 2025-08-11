@@ -21,6 +21,7 @@ public partial class VerletRopeSimulated : VerletRopeMesh
     private const float StaticCollisionCheckLength = 0.005f;
     private const float DynamicCollisionCheckLength = 0.1f;
 
+    private bool _wasCreated;
     private double _time;
     private double _simulationDelta;
     private RopeParticleData _particleData;
@@ -48,9 +49,8 @@ public partial class VerletRopeSimulated : VerletRopeMesh
     [Export] public int StiffnessIterations { get; set; } = 2;
     [Export] public int PreprocessIterations { get; set; } = 5;
 
-    [Export] public bool DisableWhenInvisible { get; set; } = false;
-    [Export] public bool Simulate { get; set; } = true;
-    [Export] public bool Draw { get; set; } = true;
+    [Export] public bool IsDisabledWhenInvisible { get; set; } = true;
+    [Export] public RopeSimulationBehavior SimulationBehavior { get; set; } = RopeSimulationBehavior.Editor;
 
     #endregion
 
@@ -442,12 +442,13 @@ public partial class VerletRopeSimulated : VerletRopeMesh
 
     public override void _PhysicsProcess(double delta)
     {
-        if (DisableWhenInvisible && !IsRopeVisible)
+        if (IsDisabledWhenInvisible && !IsRopeVisible)
         {
             return;
         }
 
-        if (Engine.IsEditorHint() && _particleData == null)
+        var isEditor = Engine.IsEditorHint();
+        if (isEditor && _particleData == null)
         {
             CreateRope();
         }
@@ -476,16 +477,20 @@ public partial class VerletRopeSimulated : VerletRopeMesh
             end.PositionCurrent = AttachEndNode.GlobalPosition;
         }
 
-        if (Simulate)
+        var toSimulate = SimulationBehavior is RopeSimulationBehavior.Editor || SimulationBehavior is RopeSimulationBehavior.Game && !isEditor;
+
+        if (_wasCreated)
+        {
+            toSimulate = true;
+            _wasCreated = false;
+        }
+
+        if (toSimulate)
         {
             var simulationDeltaF = (float)_simulationDelta;
             ApplyForces();
             VerletProcess(simulationDeltaF);
             ApplyConstraints(simulationDeltaF);
-        }
-
-        if (Draw)
-        {
             DrawRopeParticles(_particleData);
         }
 
@@ -519,6 +524,8 @@ public partial class VerletRopeSimulated : VerletRopeMesh
             VerletProcess(1/60f);
             ApplyConstraints(1/60f);
         }
+
+        _wasCreated = true;
     }
 
     public void DestroyRope()
