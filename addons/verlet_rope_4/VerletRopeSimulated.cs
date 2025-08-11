@@ -94,6 +94,7 @@ public partial class VerletRopeSimulated : VerletRopeMesh
     [Export(PropertyHint.Layers3DPhysics)] public uint StaticCollisionMask { get; set; } = 1;
     [Export(PropertyHint.Layers3DPhysics)] public uint DynamicCollisionMask { get; set; } = 1;
 
+    [Export] public bool IgnoreAttachedPhysicsBodies { get; set; } = true;
     [Export] public bool HitFromInside { get; set; }
     [Export] public bool HitBackFaces { get; set; }
 
@@ -129,6 +130,28 @@ public partial class VerletRopeSimulated : VerletRopeMesh
         return length;
     }
 
+    private List<Rid> GetCollisionExceptionRids()
+    {
+        if (!IgnoreAttachedPhysicsBodies)
+        {
+            return [];
+        }
+
+        var exceptionRids = new List<Rid>(2);
+        
+        if (AttachStartNode is PhysicsBody3D startBody)
+        {
+            exceptionRids.Add(startBody.GetRid());
+        }
+
+        if (AttachEndNode is PhysicsBody3D endBody)
+        {
+            exceptionRids.Add(endBody.GetRid());
+        }
+
+        return exceptionRids;
+    }
+
     private bool CollideRayCast(Vector3 from, Vector3 direction, uint collisionMask, out Vector3 collision, out Vector3 normal)
     {
         _rayCast.CollisionMask = collisionMask;
@@ -136,8 +159,14 @@ public partial class VerletRopeSimulated : VerletRopeMesh
         _rayCast.TargetPosition = direction;
         _rayCast.HitBackFaces = HitBackFaces;
         _rayCast.HitFromInside = HitFromInside;
-        _rayCast.ForceRaycastUpdate();
 
+        _rayCast.ClearExceptions();
+        foreach (var rid in GetCollisionExceptionRids())
+        {
+            _rayCast.AddExceptionRid(rid);
+        }
+            
+        _rayCast.ForceRaycastUpdate();
         if (!_rayCast.IsColliding())
         {
             collision = normal = Vector3.Zero;
