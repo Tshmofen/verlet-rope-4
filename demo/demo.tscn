@@ -44,7 +44,7 @@ radius = 1.5
 
 [sub_resource type="ImmediateMesh" id="ImmediateMesh_dar0o"]
 resource_local_to_scene = true
-metadata/verlet_rope_internal_stamp = 2202781433233
+metadata/verlet_rope_internal_stamp = 13118927360159
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_dar0o"]
 height = 5.0
@@ -119,19 +119,19 @@ surface_material_override/0 = SubResource("StandardMaterial3D_dar0o")
 shape = SubResource("CylinderShape3D_u10mr")
 
 [node name="VerletRope" type="MeshInstance3D" parent="MovingRope"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.824232, 3.25962, 6.10712)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.91602, 2.40789, 6.10712)
 material_override = ExtResource("2_dar0o")
 mesh = SubResource("ImmediateMesh_dar0o")
 script = ExtResource("2_lows4")
 SimulationParticles = 20
+DisableWhenInvisible = true
 RopeCollisionType = 2
 RopeCollisionBehavior = 2
-MaxDynamicCollisions = 8
 StaticCollisionMask = 3
 DynamicCollisionMask = 2
 
 [node name="MovingCylinder" type="RigidBody3D" parent="MovingRope"]
-transform = Transform3D(1, 0, 0, 0, 2.98023e-08, -1, 0, 1, 2.98023e-08, -0.911293, 1.51977, 5.47205)
+transform = Transform3D(1, 0, 0, 0, 2.98023e-08, -1, 0, 1, 2.98023e-08, -0.0910583, 1.51977, 5.47205)
 collision_layer = 2
 metadata/_edit_group_ = true
 

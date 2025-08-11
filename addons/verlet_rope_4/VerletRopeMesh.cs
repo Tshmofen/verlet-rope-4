@@ -22,7 +22,8 @@ public abstract partial class VerletRopeMesh : MeshInstance3D
     private Camera3D _camera;
     
     private double _simulationDelta;
-    private bool _isVisible = true;
+
+    protected bool IsRopeVisible { get; private set; } = true;
 
     #endregion
 
@@ -195,7 +196,7 @@ public abstract partial class VerletRopeMesh : MeshInstance3D
 
     public void DrawRopeParticles(RopeParticleData particles)
     {
-        if (!_isVisible)
+        if (!IsRopeVisible)
         {
             return;
         }
@@ -220,7 +221,7 @@ public abstract partial class VerletRopeMesh : MeshInstance3D
 
     public void DrawRopeDebugParticles(RopeParticleData particles)
     {        
-        if (!_isVisible)
+        if (!IsRopeVisible)
         {
             return;
         }
@@ -264,9 +265,9 @@ public abstract partial class VerletRopeMesh : MeshInstance3D
         if (UseVisibleOnScreenNotifier && !Engine.IsEditorHint())
         {
             AddChild(_visibleNotifier = new VisibleOnScreenNotifier3D());
-            _visibleNotifier.ScreenEntered += () => _isVisible = true;
-            _visibleNotifier.ScreenExited += () => _isVisible = false;
-            _isVisible = _visibleNotifier.IsOnScreen();
+            _visibleNotifier.ScreenEntered += () => IsRopeVisible = true;
+            _visibleNotifier.ScreenExited += () => IsRopeVisible = false;
+            IsRopeVisible = _visibleNotifier.IsOnScreen();
         }
 
         MaterialOverride ??= GD.Load<StandardMaterial3D>(DefaultMaterialPath);

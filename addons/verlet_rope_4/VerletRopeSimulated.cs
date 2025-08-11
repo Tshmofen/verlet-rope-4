@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -49,6 +48,7 @@ public partial class VerletRopeSimulated : VerletRopeMesh
     [Export] public int StiffnessIterations { get; set; } = 2;
     [Export] public int PreprocessIterations { get; set; } = 5;
 
+    [Export] public bool DisableWhenInvisible { get; set; } = false;
     [Export] public bool Simulate { get; set; } = true;
     [Export] public bool Draw { get; set; } = true;
 
@@ -77,7 +77,7 @@ public partial class VerletRopeSimulated : VerletRopeMesh
 
     [ExportGroup("Damping")]
     [Export] public bool ApplyDamping { get; set; } = true;
-    [Export] public float DampingFactor { get; set; } = 1f;
+    [Export(PropertyHint.Range, "0, 10000")] public float DampingFactor { get; set; } = 1f;
 
     #endregion
 
@@ -87,7 +87,7 @@ public partial class VerletRopeSimulated : VerletRopeMesh
     [Export] public RopeCollisionType RopeCollisionType { get; set; } = RopeCollisionType.StaticOnly;
     [Export] public RopeCollisionBehavior RopeCollisionBehavior { get; set; } = RopeCollisionBehavior.None;
     [Export(PropertyHint.Range, "1,20")] public float SlideCollisionStretch { get; set; } = 1.05f;
-    [Export(PropertyHint.Range, "1,20")] public float IgnoreCollisionStretch { get; set; } = 1.5f;
+    [Export(PropertyHint.Range, "1,20")] public float IgnoreCollisionStretch { get; set; } = 3f;
     [Export(PropertyHint.Range, "1,256")] public int MaxDynamicCollisions { get; set; } = 4;
     [Export(PropertyHint.Range, "0.1,100")] public float DynamicCollisionTrackingMargin { get; set; } = 1;
 
@@ -264,8 +264,8 @@ public partial class VerletRopeSimulated : VerletRopeMesh
         if (bodyData.Movement != Vector3.Zero)
         {
             // Adjusting ray to be sent relative to interpolated body movement
-            adjustedPrevious = previous + bodyData.Movement;
             checkLength = DynamicCollisionCheckLength;
+            adjustedPrevious = previous + bodyData.Movement;
             checkDirection = -bodyData.Movement.Normalized() * checkLength;
         }
         else if (move != Vector3.Zero)
@@ -296,12 +296,21 @@ public partial class VerletRopeSimulated : VerletRopeMesh
         var segmentCollisionSlideLength = segmentLength * SlideCollisionStretch;
         var segmentCollisionIgnoreLength = segmentLength * IgnoreCollisionStretch;
 
-        for (var i = 1; i < _particleData.Count; i++)
+        for (var i = 0; i < _particleData.Count; i++)
         {
             ref var currentPoint = ref _particleData[i];
-            ref var previousPoint = ref _particleData[i - 1];
+            if (currentPoint.IsAttached)
+            {
+                continue;
+            }
 
-            var currentSegmentLength = (previousPoint.PositionCurrent - currentPoint.PositionCurrent).Length();
+            var currentSegmentLength = 0f;
+            if (i > 0)
+            {
+                ref var previousPoint = ref _particleData[i - 1];
+                currentSegmentLength = (previousPoint.PositionCurrent - currentPoint.PositionCurrent).Length();
+            }
+
             var isSliding = currentSegmentLength > segmentCollisionSlideLength;
             if (isSliding && RopeCollisionBehavior == RopeCollisionBehavior.StickyStretch)
             {
@@ -433,6 +442,11 @@ public partial class VerletRopeSimulated : VerletRopeMesh
 
     public override void _PhysicsProcess(double delta)
     {
+        if (DisableWhenInvisible && !IsRopeVisible)
+        {
+            return;
+        }
+
         if (Engine.IsEditorHint() && _particleData == null)
         {
             CreateRope();
@@ -449,16 +463,16 @@ public partial class VerletRopeSimulated : VerletRopeMesh
                 return;
             }
         }
-
-        if (AttachStartNode != null || IsAttachedToGlobalPosition)
+        
+        ref var start = ref _particleData![0];
+        if (start.IsAttached && (AttachStartNode != null || IsAttachedToGlobalPosition))
         {
-            ref var start = ref _particleData![0];
             start.PositionCurrent = AttachStartNode?.GlobalPosition ?? GlobalPosition;
         }
-
-        if (AttachEndNode != null)
+        
+        ref var end = ref _particleData![_particleData.Count - 1];
+        if (end.IsAttached && AttachEndNode != null)
         {
-            ref var end = ref _particleData![_particleData.Count - 1];
             end.PositionCurrent = AttachEndNode.GlobalPosition;
         }
 
