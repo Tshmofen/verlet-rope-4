@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using VerletRope4.Structure;
+using VerletRope4.Data;
 using Vector3 = Godot.Vector3;
 
 namespace VerletRope4;

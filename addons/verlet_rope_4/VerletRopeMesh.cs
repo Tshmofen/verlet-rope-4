@@ -1,6 +1,6 @@
 using Godot;
 using System.Collections.Generic;
-using VerletRope4.Structure;
+using VerletRope4.Data;
 
 namespace VerletRope4;
 

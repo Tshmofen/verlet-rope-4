@@ -1,4 +1,4 @@
-﻿namespace VerletRope4.Structure;
+﻿namespace VerletRope4.Data;
 
 // ReSharper disable UnusedMember.Global
 public enum RopeCollisionType
