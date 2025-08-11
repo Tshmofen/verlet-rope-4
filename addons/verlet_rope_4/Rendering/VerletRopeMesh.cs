@@ -2,9 +2,8 @@ using Godot;
 using System.Collections.Generic;
 using VerletRope4.Data;
 
-namespace VerletRope4;
+namespace VerletRope4.Rendering;
 
-[Tool]
 public abstract partial class VerletRopeMesh : MeshInstance3D
 {
     #region Private Properties

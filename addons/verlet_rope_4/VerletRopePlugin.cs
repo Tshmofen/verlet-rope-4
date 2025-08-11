@@ -1,6 +1,8 @@
 #if TOOLS
 
 using Godot;
+using VerletRope.Physics.Joints;
+using VerletRope4.Physics;
 
 namespace VerletRope4;
 
@@ -12,11 +14,16 @@ public partial class VerletRopePlugin : EditorPlugin
         var script = GD.Load<Script>(VerletRopeSimulated.ScriptPath);
         var texture = GD.Load<Texture2D>(VerletRopeSimulated.IconPath);
         AddCustomType(nameof(VerletRopeSimulated), nameof(MeshInstance3D), script, texture);
+
+        script = GD.Load<Script>(VerletRopeJoint.ScriptPath);
+        texture = GD.Load<Texture2D>(VerletRopeJoint.IconPath);
+        AddCustomType(nameof(VerletRopeJoint), nameof(Node3D), script, texture);
     }
 
     public override void _ExitTree()
     {
         RemoveCustomType(nameof(VerletRopeSimulated));
+        RemoveCustomType(nameof(VerletRopeJoint));
     }
 }
 
