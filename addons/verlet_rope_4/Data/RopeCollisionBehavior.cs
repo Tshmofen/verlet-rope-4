@@ -4,6 +4,5 @@
 public enum RopeCollisionBehavior
 {
     None,
-    StickyStretch,
     SlideStretch
 }

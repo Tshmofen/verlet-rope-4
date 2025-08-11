@@ -119,13 +119,13 @@ surface_material_override/0 = SubResource("StandardMaterial3D_dar0o")
 shape = SubResource("CylinderShape3D_u10mr")
 
 [node name="VerletRope" type="MeshInstance3D" parent="MovingRope"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0875369, 4.04702, 5.99404)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8896, 1.37395, 5.99404)
 material_override = ExtResource("2_dar0o")
 mesh = SubResource("ImmediateMesh_dar0o")
 script = ExtResource("2_lows4")
 SimulationParticles = 20
 RopeCollisionType = 2
-RopeCollisionBehavior = 2
+RopeCollisionBehavior = 1
 StaticCollisionMask = 3
 DynamicCollisionMask = 2
 

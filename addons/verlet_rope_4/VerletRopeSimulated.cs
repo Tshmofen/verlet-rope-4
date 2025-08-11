@@ -311,13 +311,6 @@ public partial class VerletRopeSimulated : VerletRopeMesh
                 currentSegmentLength = (previousPoint.PositionCurrent - currentPoint.PositionCurrent).Length();
             }
 
-            var isSliding = currentSegmentLength > segmentCollisionSlideLength;
-            if (isSliding && RopeCollisionBehavior == RopeCollisionBehavior.StickyStretch)
-            {
-                // Just ignore collision for sticky stretch
-                continue;
-            }
-
             if (currentSegmentLength > segmentCollisionIgnoreLength)
             {
                 // We still need to ignore collision targets when it's too stretched
@@ -325,6 +318,7 @@ public partial class VerletRopeSimulated : VerletRopeMesh
             }
             
             var particleMove = currentPoint.PositionCurrent - currentPoint.PositionPrevious;
+            var isSliding = currentSegmentLength > segmentCollisionSlideLength;
 
             if (RopeCollisionType is RopeCollisionType.All or RopeCollisionType.StaticOnly)
             {
