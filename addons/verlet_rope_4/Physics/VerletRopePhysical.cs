@@ -9,6 +9,11 @@ public abstract partial class VerletRopePhysical : VerletRopeMesh
 {
     protected readonly List<Rid> CollisionExceptions = [];
 
+    public virtual void ClearExceptions()
+    {
+        CollisionExceptions.Clear();
+    }
+
     public virtual void RegisterExceptionRid(Rid rid, bool toInclude)
     {
         if (toInclude)

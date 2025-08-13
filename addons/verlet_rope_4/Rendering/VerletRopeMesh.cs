@@ -6,8 +6,6 @@ namespace VerletRope4.Rendering;
 
 public abstract partial class VerletRopeMesh : MeshInstance3D
 {
-    #region Private Properties
-
     private const string DefaultMaterialPath = "res://addons/verlet_rope_4/materials/rope_default.material";
     private const string NoNotifierWarning = $"Consider checking '{nameof(UseVisibleOnScreenNotifier)}' to disable rope visuals when it's not on screen for increased performance.";
     private const string CreationStampMeta = "verlet_rope_internal_stamp";
@@ -19,14 +17,9 @@ public abstract partial class VerletRopeMesh : MeshInstance3D
     private VisibleOnScreenNotifier3D _visibleNotifier;
     private ImmediateMesh _mesh;
     private Camera3D _camera;
-    
     private double _simulationDelta;
 
     protected bool IsRopeVisible { get; private set; } = true;
-
-    #endregion
-
-    #region Export Properties
 
     [ExportGroup("Visuals")]
     [Export] public float RopeLength { get; set; } = 3.0f;
@@ -39,8 +32,6 @@ public abstract partial class VerletRopeMesh : MeshInstance3D
         get => _useVisibleOnScreenNotifier; 
         set { _useVisibleOnScreenNotifier = value; UpdateConfigurationWarnings(); }
     }
-
-    #endregion
 
     #region Util
 

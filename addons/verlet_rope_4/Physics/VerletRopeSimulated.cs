@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using VerletRope.Physics;
 using VerletRope4.Data;
-using Vector3 = Godot.Vector3;
 
 namespace VerletRope4.Physics;
 
@@ -12,16 +11,10 @@ public partial class VerletRopeSimulated : VerletRopePhysical
 {
     public const string ScriptPath = "res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs";
     public const string IconPath = "res://addons/verlet_rope_4/icon.svg";
-
     [Signal] public delegate void SimulationStepEventHandler(double delta);
-
-    #region Variables
-
-    #region Vars Private
 
     private const float StaticCollisionCheckLength = 0.005f;
     private const float DynamicCollisionCheckLength = 0.1f;
-
 
     private bool _wasCreated;
     private double _time;
@@ -34,35 +27,21 @@ public partial class VerletRopeSimulated : VerletRopePhysical
     private PhysicsShapeQueryParameters3D _collisionShapeParameters;
     private readonly Dictionary<RigidBody3D, RopeDynamicCollisionData> _dynamicBodies = [];
 
-    #endregion
-
-    #region Vars Simulation
+    [ExportToolButton("Reset Rope")] public Callable ResetRopeButton => Callable.From(CreateRope);
     
     [ExportGroup("Simulation")]
-    [ExportToolButton("Reset Rope")] public Callable ResetRopeButton => Callable.From(CreateRope);
-
     [Export(PropertyHint.Range, "3,100")] public int SimulationParticles { get; set; } = 10;
     [Export(PropertyHint.Range, "0,1000")] public int SimulationRate { get; set; } = 0;
-
     [Export(PropertyHint.Range, "0.2, 1.5")] public float Stiffness { get; set; } = 0.9f;
     [Export] public int StiffnessIterations { get; set; } = 2;
     [Export] public int PreprocessIterations { get; set; } = 5;
-
     [Export] public bool IsDisabledWhenInvisible { get; set; } = true;
     [Export] public RopeSimulationBehavior SimulationBehavior { get; set; } = RopeSimulationBehavior.Editor;
-
-    #endregion
-
-    #region Vars Gravity
 
     [ExportGroup("Gravity")]
     [Export] public bool ApplyGravity { get; set; } = true;
     [Export] public Vector3 Gravity { get; set; } = Vector3.Down * 9.8f;
     [Export] public float GravityScale { get; set; } = 1.0f;
-
-    #endregion
-
-    #region Vars Wind
 
     [ExportGroup("Wind")]
     [Export] public bool ApplyWind { get; set; } = false;
@@ -70,17 +49,9 @@ public partial class VerletRopeSimulated : VerletRopePhysical
     [Export] public Vector3 Wind { get; set; } = new(1.0f, 0.0f, 0.0f);
     [Export] public float WindScale { get; set; } = 20.0f;
 
-    #endregion
-
-    #region Vars Damping
-
     [ExportGroup("Damping")]
     [Export] public bool ApplyDamping { get; set; } = true;
     [Export(PropertyHint.Range, "0, 10000")] public float DampingFactor { get; set; } = 1f;
-
-    #endregion
-
-    #region Vars Collision
 
     [ExportGroup("Collision")]
     [Export] public RopeCollisionType RopeCollisionType { get; set; } = RopeCollisionType.StaticOnly;
@@ -89,30 +60,16 @@ public partial class VerletRopeSimulated : VerletRopePhysical
     [Export(PropertyHint.Range, "1,20")] public float IgnoreCollisionStretch { get; set; } = 3f;
     [Export(PropertyHint.Range, "1,256")] public int MaxDynamicCollisions { get; set; } = 4;
     [Export(PropertyHint.Range, "0.1,100")] public float DynamicCollisionTrackingMargin { get; set; } = 1;
-
     [Export(PropertyHint.Layers3DPhysics)] public uint StaticCollisionMask { get; set; } = 1;
     [Export(PropertyHint.Layers3DPhysics)] public uint DynamicCollisionMask { get; set; } = 1;
-
     [Export] public bool HitFromInside { get; set; }
     [Export] public bool HitBackFaces { get; set; }
-
-    #endregion
-
-    #region Vars Debug
 
     [ExportGroup("Debug")]
     [Export] public bool DrawDebugParticles { get; set; } = false;
 
-    #endregion
-
-    #region Vars External
-
     public Node3D StartNodeAttach { get; set; }
     public Node3D EndNodeAttach { get; set; }
-
-    #endregion
-
-    #endregion
 
     #region Internal Logic
 
@@ -137,6 +94,13 @@ public partial class VerletRopeSimulated : VerletRopePhysical
 
     private bool CollideRayCast(Vector3 from, Vector3 direction, uint collisionMask, out Vector3 collision, out Vector3 normal)
     {
+        if (_rayCast == null)
+        {
+            // Return for pre-ready calls from outer scripts on rope pre-initialization
+            collision = normal = Vector3.Zero;
+            return false;
+        }
+
         _rayCast.CollisionMask = collisionMask;
         _rayCast.GlobalPosition = from;
         _rayCast.TargetPosition = direction;
