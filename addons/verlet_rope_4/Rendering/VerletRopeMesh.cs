@@ -21,9 +21,10 @@ public abstract partial class VerletRopeMesh : MeshInstance3D
 
     protected bool IsRopeVisible { get; private set; } = true;
 
-    [ExportGroup("Visuals")]
     [Export] public float RopeLength { get; set; } = 3.0f;
     [Export] public float RopeWidth { get; set; } = 0.07f;
+
+    [ExportGroup("Visuals")]
     [Export] public float SubdivisionLodDistance { get; set; } = 15.0f;
 
     private bool _useVisibleOnScreenNotifier = true;

@@ -57,7 +57,7 @@ public partial class VerletRopeSimulated : VerletRopePhysical
     [Export] public RopeCollisionType RopeCollisionType { get; set; } = RopeCollisionType.StaticOnly;
     [Export] public RopeCollisionBehavior RopeCollisionBehavior { get; set; } = RopeCollisionBehavior.None;
     [Export(PropertyHint.Range, "1,20")] public float SlideCollisionStretch { get; set; } = 1.05f;
-    [Export(PropertyHint.Range, "1,20")] public float IgnoreCollisionStretch { get; set; } = 3f;
+    [Export(PropertyHint.Range, "1,20")] public float IgnoreCollisionStretch { get; set; } = 5f;
     [Export(PropertyHint.Range, "1,256")] public int MaxDynamicCollisions { get; set; } = 4;
     [Export(PropertyHint.Range, "0.1,100")] public float DynamicCollisionTrackingMargin { get; set; } = 1;
     [Export(PropertyHint.Layers3DPhysics)] public uint StaticCollisionMask { get; set; } = 1;

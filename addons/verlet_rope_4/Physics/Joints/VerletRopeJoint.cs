@@ -35,8 +35,12 @@ public partial class VerletRopeJoint : Node3D, ISerializationListener
 
     public override void _ExitTree()
     {
-        // Needed to restore rope state on joint delete
-
+        if (VerletRope == null)
+        {
+            return;
+        }
+        
+        // Needed to restore rope state on joint delete or move
         if (VerletRope is VerletRopeSimulated simulatedRope)
         {
             simulatedRope.StartNodeAttach = null;
