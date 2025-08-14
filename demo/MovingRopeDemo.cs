@@ -1,7 +1,7 @@
 using Godot;
 using VerletRope4.Physics;
 
-namespace VerletRope4;
+namespace VerletRope4.Demo;
 
 public partial class MovingRopeDemo : Node3D
 {
@@ -9,7 +9,7 @@ public partial class MovingRopeDemo : Node3D
 	private Vector3 _targetPosition;
     private bool _handleMovingManually;
 
-[Export] public Node3D MovingNode { get; set; }
+    [Export] public Node3D MovingNode { get; set; }
 	[Export] public Vector3 MovingPath { get; set; }
 	[Export] public float PathTime{ get; set; }
 	[Export] public Tween.TransitionType TransitionType { get; set; }

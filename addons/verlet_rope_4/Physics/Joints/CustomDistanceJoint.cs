@@ -3,28 +3,35 @@
 namespace VerletRope.Physics.Joints;
 
 [Tool]
-public partial class CustomDistanceJoint : Generic6DofJoint3D
+public partial class CustomDistanceJoint : Node
 {
-    [ExportToolButton("Reset Joint")] public Callable ResetJointButton => Callable.From(ResetJoint);
-
-    [ExportCategory("Distance Joint Settings")]
+    [ExportCategory("Connection Settings")]
     [Export] public PhysicsBody3D BodyA { get; set; }
     [Export] public Node3D CustomLocationA { get; set; }
 
     [Export] public PhysicsBody3D BodyB { get; set; }
     [Export] public Node3D CustomLocationB { get; set; }
+    
+    [ExportCategory("Movement Settings")]
+    [Export] public float MaxDistance { get; set; } = 1f;
+    [Export] public float MaxForce { get; set; } = 100;
+    [Export(PropertyHint.ExpEasing)] public float ForceEasing { get; set; } = 1f;
 
-    [Export(PropertyHint.Range,"0,10000")] public float MaxDistance { get; set; }
-    [Export(PropertyHint.Range,"0.00,16")] public float UniformDamping { get; set; } = 0;
-    [Export(PropertyHint.Range,"0.00,16")] public float UniformSoftness { get; set; } = 0;
-    [Export(PropertyHint.Range,"0.00,16")] public float UniformRestitution { get; set; } = 0;
-
-    public override void _Ready()
+    private static void ApplyPullForce(PhysicsBody3D body, Node3D customLocation, Vector3 pullForce)
     {
-        SetFlagX(Flag.EnableAngularLimit, false);
-        SetFlagY(Flag.EnableAngularLimit, false);
-        SetFlagZ(Flag.EnableAngularLimit, false);
-        ResetJoint();
+        if (body is not RigidBody3D rigidBody)
+        {
+            return;
+        }
+
+        if (customLocation != null)
+        {
+            rigidBody.ApplyForce(pullForce, customLocation.GlobalPosition - body.GlobalPosition);
+        }
+        else
+        {
+            rigidBody.ApplyCentralForce(pullForce);
+        }
     }
 
     public override void _PhysicsProcess(double delta)
@@ -36,46 +43,19 @@ public partial class CustomDistanceJoint : Generic6DofJoint3D
 
         var a = CustomLocationA?.GlobalPosition ?? BodyA.GlobalPosition;
         var b = CustomLocationB?.GlobalPosition ?? BodyB.GlobalPosition;
-        GlobalPosition = a + (b - a) / 2f;
-    }
 
-    public void ResetJoint()
-    {
-        if (MaxDistance != 0)
+        var connectionDirection = b - a;
+        var connectionDistance = connectionDirection.Length();
+
+        if (connectionDistance < MaxDistance)
         {
-            var lowerLimit = -MaxDistance / 2f;
-            var upperLimit = MaxDistance / 2f;
-            SetParamX(Param.LinearLowerLimit, lowerLimit);
-            SetParamX(Param.LinearUpperLimit, upperLimit);
-            SetParamY(Param.LinearLowerLimit, lowerLimit);
-            SetParamY(Param.LinearUpperLimit, upperLimit);
-            SetParamZ(Param.LinearLowerLimit, lowerLimit);
-            SetParamZ(Param.LinearUpperLimit, upperLimit);
+            return;
         }
+        
+        var currentScale = Mathf.Ease(connectionDistance / MaxDistance - 1f, ForceEasing);
+        var pullForce = connectionDirection.Normalized() * Mathf.Clamp(currentScale * MaxForce, 0, MaxForce);
 
-        if (UniformSoftness != 0)
-        {
-            SetParamX(Param.LinearLimitSoftness, UniformSoftness);
-            SetParamY(Param.LinearLimitSoftness, UniformSoftness);
-            SetParamZ(Param.LinearLimitSoftness, UniformSoftness);
-        }
-
-        if (UniformRestitution != 0)
-        {
-            
-            SetParamX(Param.LinearRestitution, UniformRestitution);
-            SetParamY(Param.LinearRestitution, UniformRestitution);
-            SetParamZ(Param.LinearRestitution, UniformRestitution);
-        }
-
-        if (UniformDamping != 0)
-        {
-            SetParamX(Param.LinearDamping, UniformDamping);
-            SetParamY(Param.LinearDamping, UniformDamping);
-            SetParamZ(Param.LinearDamping, UniformDamping);
-        }
-
-        base.NodeA = BodyA?.GetPath();
-        base.NodeB = BodyB?.GetPath();
+        ApplyPullForce(BodyA, CustomLocationA, pullForce);
+        ApplyPullForce(BodyB, CustomLocationB, -pullForce);
     }
 } 

@@ -28,11 +28,24 @@ public partial class VerletRopeJoint : Node3D, ISerializationListener
 
     [ExportSubgroup("Distance Joint Settings")]
     [Export(PropertyHint.Range, "0, 10000")] public float JointMaxDistance { get; set; } = 0;
-    [Export(PropertyHint.Range, "0.01,16")] public float DistanceDamping { get; set; } = 1.0f;
-    [Export(PropertyHint.Range, "0.01,16")] public float DistanceSoftness { get; set; } = 0.7f;
-    [Export(PropertyHint.Range, "0.01,16")] public float DistanceRestitution { get; set; } = 0.5f;
+    [Export(PropertyHint.Range, "0, 10000")] public float JointMaxForce { get; set; } = 50f;
+    [Export(PropertyHint.ExpEasing)] public float JointForceEasing { get; set; } = 0.9f;
 
     public override void _Ready() => ResetJoint();
+
+    public override void _ExitTree()
+    {
+        // Needed to restore rope state on joint delete
+
+        if (VerletRope is VerletRopeSimulated simulatedRope)
+        {
+            simulatedRope.StartNodeAttach = null;
+            simulatedRope.EndNodeAttach = null;
+        }
+
+        VerletRope.ClearExceptions();
+        VerletRope.CreateRope();
+    }
 
     private void ConfigureDistanceJoint()
     {
@@ -49,14 +62,12 @@ public partial class VerletRopeJoint : Node3D, ISerializationListener
         }
 
         _distanceJoint.MaxDistance = JointMaxDistance;
-        _distanceJoint.UniformDamping= DistanceDamping;
-        _distanceJoint.UniformSoftness = DistanceSoftness;
-        _distanceJoint.UniformRestitution= DistanceRestitution;
         _distanceJoint.BodyA = StartBody;
         _distanceJoint.BodyB = EndBody;
         _distanceJoint.CustomLocationA = StartJointCustomLocation;
         _distanceJoint.CustomLocationB = EndJointCustomLocation;
-        _distanceJoint.ResetJoint();
+        _distanceJoint.ForceEasing = JointForceEasing;
+        _distanceJoint.MaxForce = JointMaxForce;
     }
 
     public void ResetJoint()

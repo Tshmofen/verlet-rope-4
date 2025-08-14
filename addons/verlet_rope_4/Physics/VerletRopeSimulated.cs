@@ -158,6 +158,12 @@ public partial class VerletRopeSimulated : VerletRopePhysical
 
     private void TrackDynamicCollisions(float delta)
     {
+        if (_collisionShape == null)
+        {
+            // Ignore collisions pre-initialization
+            return;
+        }
+
         if (RopeCollisionType is not RopeCollisionType.All and not RopeCollisionType.DynamicOnly)
         {
             _dynamicBodies.Clear();

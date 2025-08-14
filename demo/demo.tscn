@@ -1,7 +1,8 @@
-[gd_scene load_steps=20 format=3 uid="uid://bota3ppynjsu1"]
+[gd_scene load_steps=25 format=3 uid="uid://bota3ppynjsu1"]
 
 [ext_resource type="Material" uid="uid://o7na8drc2je2" path="res://addons/verlet_rope_4/materials/rope_default.material" id="2_dar0o"]
 [ext_resource type="Script" uid="uid://c3oxgehluk75x" path="res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs" id="2_lows4"]
+[ext_resource type="Script" uid="uid://bccao1l5oneap" path="res://demo/MovingBodyDemo.cs" id="2_u10mr"]
 [ext_resource type="Script" uid="uid://d36wx6t8jmjcx" path="res://demo/MovingRopeDemo.cs" id="2_vutyd"]
 [ext_resource type="Script" uid="uid://chq4fc6dgmaln" path="res://addons/verlet_rope_4/Physics/Joints/VerletRopeJoint.cs" id="4_j5lb4"]
 
@@ -50,15 +51,28 @@ radial_segments = 32
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_j5lb4"]
 height = 5.0
 
-[sub_resource type="ImmediateMesh" id="ImmediateMesh_j5lb4"]
+[sub_resource type="ImmediateMesh" id="ImmediateMesh_u10mr"]
 resource_local_to_scene = true
-metadata/verlet_rope_internal_stamp = 3410707382352
+metadata/verlet_rope_internal_stamp = 26667015816113
+
+[sub_resource type="ImmediateMesh" id="ImmediateMesh_onu7k"]
+resource_local_to_scene = true
+metadata/verlet_rope_internal_stamp = 26667049369016
 
 [sub_resource type="BoxMesh" id="BoxMesh_j5lb4"]
-size = Vector3(0.5, 0.5, 0.5)
+size = Vector3(0.4, 0.4, 0.4)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_onu7k"]
-size = Vector3(0.5, 0.5, 0.5)
+size = Vector3(0.4, 0.4, 0.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_onvmd"]
+size = Vector3(0.4, 0.4, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_u10mr"]
+size = Vector3(0.1, 0.5, 3)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_s1s6j"]
+size = Vector3(0.1, 2, 3)
 
 [node name="Demo" type="Node3D"]
 
@@ -66,7 +80,7 @@ size = Vector3(0.5, 0.5, 0.5)
 environment = SubResource("Environment_2p4hb")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(0.991894, -0.0537, 0.11516, 0, 0.906308, 0.422618, -0.127065, -0.419193, 0.898962, 3.75437, 3, 8.8228)
+transform = Transform3D(0.991894, -0.0537, 0.11516, 0, 0.906308, 0.422618, -0.127065, -0.419193, 0.898962, 1.11827, 4.27401, 11.3775)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.952619, -0.233005, 0.195514, 0.0514738, 0.757012, 0.651371, -0.299779, -0.610444, 0.733137, 0, 4, 0)
@@ -89,7 +103,7 @@ shape = SubResource("BoxShape3D_u10mr")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.3697, 0, 1.81553)
 
 [node name="Pillar" type="CSGBox3D" parent="PillarRope"]
-transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 1.06294, 1.4665, -0.975477)
+transform = Transform3D(0.965926, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.965926, -1.41221, 1.4665, -2.89775)
 material_override = SubResource("StandardMaterial3D_pbhg3")
 use_collision = true
 size = Vector3(0.2, 3, 0.2)
@@ -98,7 +112,7 @@ size = Vector3(0.2, 3, 0.2)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00181818, 1.48938, 0.097929)
 
 [node name="Pillar2" type="CSGBox3D" parent="PillarRope"]
-transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, -0.937059, 1.4665, 1.02452)
+transform = Transform3D(0.965926, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.965926, -4.14425, 1.4665, -2.1657)
 material_override = SubResource("StandardMaterial3D_pbhg3")
 use_collision = true
 size = Vector3(0.2, 3, 0.2)
@@ -137,19 +151,33 @@ skeleton = NodePath("../..")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="MovingRope/MovingCylinder"]
 shape = SubResource("CylinderShape3D_j5lb4")
 
-[node name="JointRope" type="Node3D" parent="."]
-
-[node name="VerletRope" type="MeshInstance3D" parent="JointRope"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.51355, 2.54326, 5.46454)
+[node name="VerletRope" type="MeshInstance3D" parent="MovingRope"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.05277, 3.9411, 5.047)
 material_override = ExtResource("2_dar0o")
-mesh = SubResource("ImmediateMesh_j5lb4")
+mesh = SubResource("ImmediateMesh_u10mr")
 skeleton = NodePath("../../MovingRope")
 script = ExtResource("2_lows4")
-SimulationParticles = 20
+SimulationParticles = 30
 RopeCollisionType = 2
 RopeCollisionBehavior = 1
 StaticCollisionMask = 3
 DynamicCollisionMask = 2
+RopeLength = 7.0
+
+[node name="JointRope" type="Node3D" parent="."]
+transform = Transform3D(0.974421, 0, 0.22473, 0, 1, 0, -0.22473, 0, 0.974421, -0.493877, 0, 3.55581)
+
+[node name="VerletRope" type="MeshInstance3D" parent="JointRope"]
+transform = Transform3D(0.974421, 0, -0.22473, 0, 1, 0, 0.22473, 0, 0.974421, -1.90037, 0.140517, 2.38702)
+material_override = ExtResource("2_dar0o")
+mesh = SubResource("ImmediateMesh_onu7k")
+skeleton = NodePath("../../MovingRope")
+script = ExtResource("2_lows4")
+RopeCollisionType = 2
+RopeCollisionBehavior = 1
+StaticCollisionMask = 7
+DynamicCollisionMask = 2
+RopeLength = 0.7
 
 [node name="VerletRopeJoint" type="Node3D" parent="JointRope/VerletRope" node_paths=PackedStringArray("VerletRope", "StartBody", "StartJointCustomLocation", "EndBody", "EndJointCustomLocation")]
 script = ExtResource("4_j5lb4")
@@ -158,13 +186,15 @@ StartBody = NodePath("../../MovingBoxStart")
 StartJointCustomLocation = NodePath("../../MovingBoxStart/CustomConnection")
 EndBody = NodePath("../../MovingBoxEnd")
 EndJointCustomLocation = NodePath("../../MovingBoxEnd/CustomConnection")
+JointMaxDistance = 1.0
 metadata/_custom_type_script = "uid://chq4fc6dgmaln"
 
-[node name="Generic6DOFJoint3D" type="Generic6DOFJoint3D" parent="JointRope/VerletRope/VerletRopeJoint"]
-
 [node name="MovingBoxStart" type="RigidBody3D" parent="JointRope"]
-transform = Transform3D(1, 0, 0, 0, 2.98023e-08, -1, 0, 1, 2.98023e-08, 0.755546, 2.82514, 5.47205)
-collision_layer = 2
+transform = Transform3D(1, 0, 0, 0, 2.98023e-08, -1, 0, 1, 2.98023e-08, -2.32936, 0.133589, 2.83518)
+collision_layer = 3
+collision_mask = 7
+script = ExtResource("2_u10mr")
+MovementForce = 15.0
 metadata/_edit_group_ = true
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="JointRope/MovingBoxStart"]
@@ -175,11 +205,12 @@ skeleton = NodePath("../../../MovingRope")
 shape = SubResource("BoxShape3D_onu7k")
 
 [node name="CustomConnection" type="Node3D" parent="JointRope/MovingBoxStart"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.187843, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.152623, 0, 0)
 
 [node name="MovingBoxEnd" type="RigidBody3D" parent="JointRope"]
-transform = Transform3D(1, 0, 0, 0, 2.98023e-08, -1, 0, 1, 2.98023e-08, 2.21474, 2.92332, 5.47205)
-collision_layer = 2
+transform = Transform3D(1, 0, 0, 0, 2.98023e-08, -1, 0, 1, 2.98023e-08, -1.3956, 0.210121, 2.12801)
+collision_layer = 3
+collision_mask = 7
 metadata/_edit_group_ = true
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="JointRope/MovingBoxEnd"]
@@ -187,7 +218,66 @@ mesh = SubResource("BoxMesh_j5lb4")
 skeleton = NodePath("../../../MovingRope")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="JointRope/MovingBoxEnd"]
-shape = SubResource("BoxShape3D_onu7k")
+shape = SubResource("BoxShape3D_onvmd")
 
 [node name="CustomConnection" type="Node3D" parent="JointRope/MovingBoxEnd"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.179613, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.159365, 0, 0)
+
+[node name="Enclosure" type="Node3D" parent="JointRope"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.80393, -4.76837e-07, -1.45005)
+
+[node name="Fence" type="StaticBody3D" parent="JointRope/Enclosure"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.35, 0.25, 4.174)
+collision_layer = 4
+collision_mask = 0
+metadata/_edit_group_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="JointRope/Enclosure/Fence"]
+transparency = 0.9
+mesh = SubResource("BoxMesh_u10mr")
+skeleton = NodePath("../..")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="JointRope/Enclosure/Fence"]
+shape = SubResource("BoxShape3D_s1s6j")
+
+[node name="Fence3" type="StaticBody3D" parent="JointRope/Enclosure"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.45, 0.25, 4.174)
+collision_layer = 4
+collision_mask = 0
+metadata/_edit_group_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="JointRope/Enclosure/Fence3"]
+transparency = 0.9
+mesh = SubResource("BoxMesh_u10mr")
+skeleton = NodePath("../..")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="JointRope/Enclosure/Fence3"]
+shape = SubResource("BoxShape3D_s1s6j")
+
+[node name="Fence2" type="StaticBody3D" parent="JointRope/Enclosure"]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -5.9, 0.25, 2.7)
+collision_layer = 4
+collision_mask = 0
+metadata/_edit_group_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="JointRope/Enclosure/Fence2"]
+transparency = 0.9
+mesh = SubResource("BoxMesh_u10mr")
+skeleton = NodePath("../..")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="JointRope/Enclosure/Fence2"]
+shape = SubResource("BoxShape3D_s1s6j")
+
+[node name="Fence4" type="StaticBody3D" parent="JointRope/Enclosure"]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -5.9, 0.25, 5.7)
+collision_layer = 4
+collision_mask = 0
+metadata/_edit_group_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="JointRope/Enclosure/Fence4"]
+transparency = 0.9
+mesh = SubResource("BoxMesh_u10mr")
+skeleton = NodePath("../..")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="JointRope/Enclosure/Fence4"]
+shape = SubResource("BoxShape3D_s1s6j")
