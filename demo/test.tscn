@@ -1,0 +1,51 @@
+[gd_scene load_steps=7 format=3 uid="uid://du65qthqnkq21"]
+
+[ext_resource type="Material" uid="uid://o7na8drc2je2" path="res://addons/verlet_rope_4/materials/rope_default.material" id="1_8gayr"]
+[ext_resource type="Script" uid="uid://c3oxgehluk75x" path="res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs" id="2_gj5nn"]
+[ext_resource type="Script" uid="uid://chq4fc6dgmaln" path="res://addons/verlet_rope_4/Physics/Joints/VerletRopeJoint.cs" id="3_gj5nn"]
+
+[sub_resource type="ImmediateMesh" id="ImmediateMesh_gj5nn"]
+resource_local_to_scene = true
+metadata/verlet_rope_internal_stamp = 6006243410676
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_jbfwl"]
+size = Vector3(0.392334, 0.236572, 0.295898)
+
+[sub_resource type="ImmediateMesh" id="ImmediateMesh_jbfwl"]
+resource_local_to_scene = true
+metadata/verlet_rope_internal_stamp = 6006310514187
+
+[node name="Test" type="Node3D"]
+
+[node name="VerletRopeSimulated" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.14131, 0, 0)
+material_override = ExtResource("1_8gayr")
+mesh = SubResource("ImmediateMesh_gj5nn")
+script = ExtResource("2_gj5nn")
+metadata/_custom_type_script = "uid://c3oxgehluk75x"
+
+[node name="VerletRopeJoint" type="Node3D" parent="VerletRopeSimulated" node_paths=PackedStringArray("VerletRope", "EndBody")]
+script = ExtResource("3_gj5nn")
+VerletRope = NodePath("..")
+EndBody = NodePath("../../RigidBody3D")
+metadata/_custom_type_script = "uid://chq4fc6dgmaln"
+
+[node name="RigidBody3D" type="RigidBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D"]
+shape = SubResource("BoxShape3D_jbfwl")
+
+[node name="VerletRopeSimulated2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.67038, 0, 0.367546)
+material_override = ExtResource("1_8gayr")
+mesh = SubResource("ImmediateMesh_jbfwl")
+script = ExtResource("2_gj5nn")
+RopeCollisionType = 2
+RopeCollisionBehavior = 1
+metadata/_custom_type_script = "uid://c3oxgehluk75x"
+
+[node name="VerletRopeJoint" type="Node3D" parent="VerletRopeSimulated2" node_paths=PackedStringArray("VerletRope", "EndBody")]
+script = ExtResource("3_gj5nn")
+VerletRope = NodePath("..")
+EndBody = NodePath("../../RigidBody3D")
+metadata/_custom_type_script = "uid://chq4fc6dgmaln"

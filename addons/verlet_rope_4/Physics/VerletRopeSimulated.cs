@@ -94,9 +94,9 @@ public partial class VerletRopeSimulated : VerletRopePhysical
 
     private bool CollideRayCast(Vector3 from, Vector3 direction, uint collisionMask, out Vector3 collision, out Vector3 normal)
     {
-        if (_rayCast == null)
+        if (_rayCast == null || !_rayCast.IsInsideTree())
         {
-            // Return for pre-ready calls from outer scripts on rope pre-initialization
+            // Return for pre-ready calls from outer scripts on rope pre-initialization and tree exit
             collision = normal = Vector3.Zero;
             return false;
         }
@@ -377,15 +377,22 @@ public partial class VerletRopeSimulated : VerletRopePhysical
     {
         StiffRope();
 
-        var isLayersAvailable = 
-            (DynamicCollisionMask != 0 || StaticCollisionMask != 0)
-            && (
-                RopeCollisionType == RopeCollisionType.All
-                || (RopeCollisionType == RopeCollisionType.StaticOnly && StaticCollisionMask != 0)
-                || (RopeCollisionType == RopeCollisionType.DynamicOnly && DynamicCollisionMask != 0)
-            );
+        if (RopeCollisionBehavior == RopeCollisionBehavior.None)
+        {
+            return;
+        }
 
-        if (RopeCollisionBehavior == RopeCollisionBehavior.None || !isLayersAvailable)
+        if (DynamicCollisionMask == 0 && StaticCollisionMask == 0)
+        {
+            return;
+        }
+
+        if (RopeCollisionType == RopeCollisionType.StaticOnly && StaticCollisionMask == 0)
+        {
+            return;
+        }
+
+        if (RopeCollisionType == RopeCollisionType.DynamicOnly && DynamicCollisionMask == 0)
         {
             return;
         }
