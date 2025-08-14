@@ -77,6 +77,7 @@ public partial class VerletRopeJoint : Node3D, ISerializationListener
     public void ResetJoint()
     {
         ConfigureDistanceJoint();
+        UpdateConfigurationWarnings();
 
         if (VerletRope == null)
         {
@@ -104,6 +105,16 @@ public partial class VerletRopeJoint : Node3D, ISerializationListener
         }
 
         VerletRope.CreateRope();
+    }
+
+    public override string[] _GetConfigurationWarnings()
+    {
+        if (JointMaxDistance > 0 && (StartBody is null || EndBody is null))
+        {
+            return [$"{nameof(JointMaxDistance)} is configured but either `{nameof(StartBody)}` or `{nameof(EndBody)}` is not accessible for physical connection."];
+        }
+
+        return [];
     }
 
     #region Script Reload

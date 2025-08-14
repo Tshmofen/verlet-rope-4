@@ -7,7 +7,6 @@ namespace VerletRope4.Rendering;
 public abstract partial class VerletRopeMesh : MeshInstance3D
 {
     private const string DefaultMaterialPath = "res://addons/verlet_rope_4/materials/rope_default.material";
-    private const string NoNotifierWarning = $"Consider checking '{nameof(UseVisibleOnScreenNotifier)}' to disable rope visuals when it's not on screen for increased performance.";
     private const string CreationStampMeta = "verlet_rope_internal_stamp";
 
     private static readonly float Cos5Deg = Mathf.Cos(Mathf.DegToRad(5.0f));
@@ -240,7 +239,9 @@ public abstract partial class VerletRopeMesh : MeshInstance3D
 
     public override string[] _GetConfigurationWarnings()
     {
-        return UseVisibleOnScreenNotifier ? [] : [NoNotifierWarning];
+        return !UseVisibleOnScreenNotifier
+            ? [$"Consider checking '{nameof(UseVisibleOnScreenNotifier)}' to disable rope visuals when it's not on screen for increased performance."]
+            : [];
     }
 
     public override void _Ready()

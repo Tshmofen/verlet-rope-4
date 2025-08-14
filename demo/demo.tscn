@@ -36,7 +36,7 @@ albedo_color = Color(0.418766, 0.343864, 1, 1)
 
 [sub_resource type="ImmediateMesh" id="ImmediateMesh_j5lb4"]
 resource_local_to_scene = true
-metadata/verlet_rope_internal_stamp = 70733397048731
+metadata/verlet_rope_internal_stamp = 2205499342258
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_oeqrt"]
 frequency = 0.003
@@ -47,14 +47,14 @@ albedo_color = Color(0.419608, 0.345098, 1, 1)
 
 [sub_resource type="ImmediateMesh" id="ImmediateMesh_u10mr"]
 resource_local_to_scene = true
-metadata/verlet_rope_internal_stamp = 70733430603695
+metadata/verlet_rope_internal_stamp = 2205549673908
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_oeqrt"]
 albedo_color = Color(0.419608, 0.345098, 1, 1)
 
 [sub_resource type="ImmediateMesh" id="ImmediateMesh_onu7k"]
 resource_local_to_scene = true
-metadata/verlet_rope_internal_stamp = 70733447382293
+metadata/verlet_rope_internal_stamp = 2205566451125
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_j5lb4"]
 top_radius = 1.5
@@ -75,7 +75,7 @@ albedo_color = Color(0, 0.909527, 0.380237, 1)
 
 [sub_resource type="ImmediateMesh" id="ImmediateMesh_s1s6j"]
 resource_local_to_scene = true
-metadata/verlet_rope_internal_stamp = 70733531267790
+metadata/verlet_rope_internal_stamp = 2205650337210
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_dar0o"]
 height = 3.0
@@ -90,7 +90,7 @@ albedo_color = Color(0, 0.537301, 0.892989, 1)
 
 [sub_resource type="ImmediateMesh" id="ImmediateMesh_onvmd"]
 resource_local_to_scene = true
-metadata/verlet_rope_internal_stamp = 70733631930897
+metadata/verlet_rope_internal_stamp = 2205751000512
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_onu7k"]
 cull_mode = 2
@@ -98,7 +98,7 @@ albedo_color = Color(0.770813, 0.62019, 1.54018e-06, 1)
 
 [sub_resource type="ImmediateMesh" id="ImmediateMesh_oeqrt"]
 resource_local_to_scene = true
-metadata/verlet_rope_internal_stamp = 70733665484852
+metadata/verlet_rope_internal_stamp = 2205784554946
 
 [sub_resource type="BoxMesh" id="BoxMesh_j5lb4"]
 size = Vector3(0.4, 0.4, 0.4)
@@ -257,7 +257,7 @@ shape = SubResource("CylinderShape3D_j5lb4")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.42, 0.425)
 
 [node name="VerletRopeStatic" type="MeshInstance3D" parent="MovingRopes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.05277, 3.9411, 5.047)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.839, 3.9411, 5.50704)
 material_override = SubResource("StandardMaterial3D_ykvhj")
 mesh = SubResource("ImmediateMesh_onvmd")
 script = ExtResource("2_lows4")
