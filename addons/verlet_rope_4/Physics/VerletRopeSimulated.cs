@@ -46,9 +46,10 @@ public partial class VerletRopeSimulated : VerletRopePhysical
 
     [ExportGroup("Wind")]
     [Export] public bool ApplyWind { get; set; } = false;
+    [Export] public Vector3 WindDirection { get; set; } = new(20.0f, 0.0f, 0.0f);
     [Export] public FastNoiseLite WindNoise { get; set; } = null;
-    [Export] public Vector3 Wind { get; set; } = new(1.0f, 0.0f, 0.0f);
-    [Export] public float WindScale { get; set; } = 20.0f;
+    [Export(PropertyHint.Range,"-1.00,1.00")] public float WindForceMax { get; set; } = 1.0f;
+    [Export(PropertyHint.Range,"-1.00,1.00")] public float WindForceMin { get; set; } = 0;
 
     [ExportGroup("Damping")]
     [Export] public bool ApplyDamping { get; set; } = true;
@@ -65,9 +66,6 @@ public partial class VerletRopeSimulated : VerletRopePhysical
     [Export(PropertyHint.Layers3DPhysics)] public uint DynamicCollisionMask { get; set; } = 1;
     [Export] public bool HitFromInside { get; set; }
     [Export] public bool HitBackFaces { get; set; }
-
-    [ExportGroup("Debug")]
-    [Export] public bool DrawDebugParticles { get; set; } = false;
 
     public Node3D StartNodeAttach { get; set; }
     public Node3D EndNodeAttach { get; set; }
@@ -347,6 +345,7 @@ public partial class VerletRopeSimulated : VerletRopePhysical
 
     private void ApplyForces()
     {
+        var currentTimeChange = Vector3.One * Time.GetTicksMsec() / 1000f;
         for (var i = 0; i < _particleData.Count; i++)
         {
             ref var particle = ref _particleData[i];
@@ -357,11 +356,11 @@ public partial class VerletRopeSimulated : VerletRopePhysical
                 totalAcceleration += Gravity * GravityScale;
             }
 
-            if (ApplyWind && WindNoise != null)
+            if (ApplyWind)
             {
-                var timedPosition = particle.PositionCurrent + (Vector3.One * (float)_time);
-                var windForce = WindNoise.GetNoise3D(timedPosition.X, timedPosition.Y, timedPosition.Z);
-                totalAcceleration += WindScale * Wind * windForce;
+                var timedPosition = particle.PositionCurrent + currentTimeChange;
+                var windForce = WindNoise?.GetNoise3D(timedPosition.X, timedPosition.Y, timedPosition.Z) ?? WindForceMax;
+                totalAcceleration += WindDirection * Mathf.Clamp(windForce, WindForceMin, WindForceMax);
             }
 
             if (ApplyDamping)
@@ -471,11 +470,6 @@ public partial class VerletRopeSimulated : VerletRopePhysical
             VerletProcess(simulationDeltaF);
             ApplyConstraints(simulationDeltaF);
             VerletRopeMesh.DrawRopeParticles(_particleData);
-        }
-
-        if (DrawDebugParticles)
-        {
-            VerletRopeMesh.DrawRopeDebugParticles(_particleData);
         }
 
         EmitSignal(SignalName.SimulationStep, _simulationDelta);

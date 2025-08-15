@@ -19,6 +19,7 @@ public abstract partial class VerletRopePhysical : Node3D, ISerializationListene
     [Export] public float RopeWidth { get; set; } = 0.07f;
     [Export] public float SubdivisionLodDistance { get; set; } = 15.0f;
     [Export] public bool UseVisibleOnScreenNotifier { get; set; } = true;
+    [Export] public bool UseDebugParticles { get; set; } = false;
     [Export] public Material MaterialOverride { get; set; }
 
     public virtual void ClearExceptions()
@@ -44,6 +45,7 @@ public abstract partial class VerletRopePhysical : Node3D, ISerializationListene
         VerletRopeMesh.RopeWidth = RopeWidth;
         VerletRopeMesh.SubdivisionLodDistance = SubdivisionLodDistance;
         VerletRopeMesh.UseVisibleOnScreenNotifier = UseVisibleOnScreenNotifier;
+        VerletRopeMesh.UseDebugParticles = UseDebugParticles;
         VerletRopeMesh.MaterialOverride = MaterialOverride;
     }
 

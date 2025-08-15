@@ -14,6 +14,7 @@ public partial class VerletRopeMesh : MeshInstance3D
     private static readonly float Cos15Deg = Mathf.Cos(Mathf.DegToRad(15.0f));
     private static readonly float Cos30Deg = Mathf.Cos(Mathf.DegToRad(30.0f));
     
+    private bool _useVisibleOnScreenNotifier = true;
     private VisibleOnScreenNotifier3D _visibleNotifier;
     private ImmediateMesh _mesh;
     private Camera3D _camera;
@@ -23,13 +24,13 @@ public partial class VerletRopeMesh : MeshInstance3D
     [Export] public float RopeLength { get; set; } = 3.0f;
     [Export] public float RopeWidth { get; set; } = 0.07f;
     [Export] public float SubdivisionLodDistance { get; set; } = 15.0f;
-
-    private bool _useVisibleOnScreenNotifier = true;
+    [Export] public bool UseDebugParticles { get; set; } = false;
     [Export] public bool UseVisibleOnScreenNotifier
     {
         get => _useVisibleOnScreenNotifier; 
         set { _useVisibleOnScreenNotifier = value; UpdateConfigurationWarnings(); }
     }
+
 
     public bool IsRopeVisible { get; private set; } = true;
 
@@ -184,32 +185,7 @@ public partial class VerletRopeMesh : MeshInstance3D
         _mesh.SurfaceEnd();
     }
 
-    public void DrawRopeParticles(RopeParticleData particles)
-    {
-        if (!IsRopeVisible || !IsInsideTree())
-        {
-            return;
-        }
-
-        #if TOOLS
-        _camera = Engine.IsEditorHint()
-            ? EditorInterface.Singleton.GetEditorViewport3D().GetCamera3D()
-            : GetViewport().GetCamera3D();
-        #else
-        _camera = GetViewport().GetCamera3D();
-        #endif
-
-        CalculateRopeCameraOrientation(particles);
-        ResetRopeRotation();
-        DrawCurve(particles);
-
-        if (_visibleNotifier != null)
-        {
-            _visibleNotifier.Aabb = GetAabb();
-        }
-    }
-
-    public void DrawRopeDebugParticles(RopeParticleData particles)
+    private void DrawRopeDebugParticles(RopeParticleData particles)
     {        
         if (!IsRopeVisible || !IsInsideTree())
         {
@@ -235,6 +211,36 @@ public partial class VerletRopeMesh : MeshInstance3D
         }
 
         _mesh.SurfaceEnd();
+    }
+
+    public void DrawRopeParticles(RopeParticleData particles)
+    {
+        if (!IsRopeVisible || !IsInsideTree())
+        {
+            return;
+        }
+
+        #if TOOLS
+        _camera = Engine.IsEditorHint()
+            ? EditorInterface.Singleton.GetEditorViewport3D().GetCamera3D()
+            : GetViewport().GetCamera3D();
+        #else
+        _camera = GetViewport().GetCamera3D();
+        #endif
+
+        CalculateRopeCameraOrientation(particles);
+        ResetRopeRotation();
+        DrawCurve(particles);
+
+        if (_visibleNotifier != null)
+        {
+            _visibleNotifier.Aabb = GetAabb();
+        }
+
+        if (UseDebugParticles)
+        {
+            DrawRopeDebugParticles(particles);
+        }
     }
 
     public override string[] _GetConfigurationWarnings()

@@ -38,7 +38,6 @@ metadata/verlet_rope_internal_stamp = 2203637071296
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_oeqrt"]
 frequency = 0.003
-fractal_gain = -0.14
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_s1s6j"]
 cull_mode = 2
@@ -177,9 +176,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.10822, 2.90247, -2.15629)
 mesh = SubResource("ImmediateMesh_onu7k")
 script = ExtResource("2_lows4")
 ApplyWind = true
+WindDirection = Vector3(0, 0, 100)
 WindNoise = SubResource("FastNoiseLite_oeqrt")
-Wind = Vector3(0, 0, 5)
-WindScale = 40.0
+WindForceMin = 0.05
 IgnoreCollisionStretch = 3.0
 MaterialOverride = SubResource("StandardMaterial3D_s1s6j")
 metadata/_custom_type_script = "uid://c3oxgehluk75x"
@@ -197,8 +196,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.10822, 2.90247, -2.15629)
 mesh = SubResource("ImmediateMesh_s1s6j")
 script = ExtResource("2_lows4")
 ApplyWind = true
+WindDirection = Vector3(0, 0, 40)
 WindNoise = SubResource("FastNoiseLite_oeqrt")
-Wind = Vector3(2, 0, 5)
+WindForceMin = 0.05
 IgnoreCollisionStretch = 3.0
 MaterialOverride = SubResource("StandardMaterial3D_onvmd")
 metadata/_custom_type_script = "uid://c3oxgehluk75x"
@@ -209,8 +209,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.41738, 2.90247, -2.86671)
 mesh = SubResource("ImmediateMesh_onvmd")
 script = ExtResource("2_lows4")
 ApplyWind = true
+WindDirection = Vector3(0, 0, 100)
 WindNoise = SubResource("FastNoiseLite_oeqrt")
-Wind = Vector3(2, 0, 5)
+WindForceMin = 0.05
 IgnoreCollisionStretch = 3.0
 MaterialOverride = SubResource("StandardMaterial3D_oeqrt")
 metadata/_custom_type_script = "uid://c3oxgehluk75x"
@@ -353,7 +354,7 @@ shape = SubResource("BoxShape3D_onvmd")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.159365, 0, 0)
 
 [node name="Enclosure" type="Node3D" parent="RopeDemos/PhysicsJointRope"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.80393, -4.76837e-07, -1.45005)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.80393, 0.298381, -1.45005)
 metadata/_edit_group_ = true
 metadata/_edit_lock_ = true
 
@@ -417,9 +418,9 @@ shape = SubResource("BoxShape3D_s1s6j")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.81072, 0.93633, 0.998642)
 
 [node name="VerletRopeRigidBody" type="Node3D" parent="RopeDemos/RigidRope"]
-transform = Transform3D(0.943228, -0.332145, 0, 0.332145, 0.943228, 0, 0, 0, 1, -6.63832, 0.554094, 5.60718)
+transform = Transform3D(0.983114, 0.182991, 0, -0.182991, 0.983114, 0, 0, 0, 1, -6.89582, 1.10953, 6.15464)
 script = ExtResource("5_onu7k")
-IsDisabledWhenInvisible = false
+CollisionMask = 7
 UseVisibleOnScreenNotifier = false
 MaterialOverride = ExtResource("6_s1s6j")
 metadata/_custom_type_script = "uid://b6d7w4sbrb33r"

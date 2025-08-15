@@ -25,9 +25,6 @@ public partial class VerletRopeRigidBody : VerletRopePhysical
     [Export(PropertyHint.Layers3DPhysics)] public uint CollisionMask { get; set; } = 1;
     [Export] public bool IsContinuousCollision { get; set; } = false;
 
-    [ExportGroup("Debug")]
-    [Export] public bool DrawDebugParticles { get; set; } = false;
-
     public Node3D StartNodeAttach { get; set; }
     public Node3D EndNodeAttach { get; set; }
 
@@ -87,11 +84,6 @@ public partial class VerletRopeRigidBody : VerletRopePhysical
         }
 
         VerletRopeMesh.DrawRopeParticles(_particleData);
-
-        if (DrawDebugParticles)
-        {
-            VerletRopeMesh.DrawRopeDebugParticles(_particleData);
-        }
     }
 
     public override void CreateRope()
