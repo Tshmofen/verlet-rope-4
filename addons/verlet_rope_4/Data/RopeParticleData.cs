@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Godot;
 
 namespace VerletRope4.Data;
@@ -8,7 +9,7 @@ public sealed class RopeParticleData
     private const float UnwrappingJitter = 0.005f;
     private static readonly RandomNumberGenerator Random = new();
 
-    private RopeParticle[] _particles;
+    private readonly RopeParticle[] _particles;
 
     public int Count => _particles.Length;
     public ref RopeParticle this[Index i] => ref _particles[i];
@@ -18,12 +19,7 @@ public sealed class RopeParticleData
         _particles = particles;
     }
 
-    public void Resize(int size)
-    {
-        Array.Resize(ref _particles, size);
-    }
-
-    public static RopeParticleData GenerateParticleData(Vector3 endLocation, Vector3 startLocation, Vector3 initialAcceleration, int simulationParticles, float segmentLength)
+    public static RopeParticleData GenerateParticleData(Vector3 startLocation, Vector3 endLocation, Vector3 initialAcceleration, int simulationParticles, float segmentLength)
     {
         var isUnwrapping = endLocation == startLocation;
         var direction = !isUnwrapping
@@ -36,8 +32,7 @@ public sealed class RopeParticleData
             data[i] = new RopeParticle();
             ref var particle = ref data[i];
             particle.Tangent = particle.Normal = particle.Binormal = Vector3.Zero;
-            particle.PositionPrevious = startLocation + (direction * segmentLength * i);
-            particle.PositionCurrent = particle.PositionPrevious;
+            particle.PositionCurrent = particle.PositionPrevious = startLocation + (direction * segmentLength * i);
             particle.Acceleration = initialAcceleration;
             particle.IsAttached = false;
 
@@ -49,6 +44,23 @@ public sealed class RopeParticleData
                     particle.PositionCurrent.Z + Random.RandfRange(-UnwrappingJitter, UnwrappingJitter)
                 );
             }
+        }
+
+        return new RopeParticleData(data);
+    }
+
+    public static RopeParticleData GenerateParticleData(List<Vector3> particlePositions)
+    {
+        var data = new RopeParticle[particlePositions.Count];
+
+        for (var i = 0; i < particlePositions.Count; i++)
+        {
+            data[i] = new RopeParticle();
+            ref var particle = ref data[i];
+            particle.Tangent = particle.Normal = particle.Binormal = Vector3.Zero;
+            particle.PositionCurrent = particle.PositionPrevious = particlePositions[i];
+            particle.Acceleration = Vector3.Zero;
+            particle.IsAttached = false;
         }
 
         return new RopeParticleData(data);
