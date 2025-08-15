@@ -1,4 +1,4 @@
-﻿using Godot;
+﻿ using Godot;
 using System.Collections.Generic;
 using VerletRope4.Data;
 
@@ -18,6 +18,12 @@ public partial class VerletRopeRigidBody : VerletRopePhysical
     [ExportGroup("Simulation")]
     [Export(PropertyHint.Range, "1,100")] public int SimulationSegments { get; set; } = 10;
     [Export] public bool IsDisabledWhenInvisible { get; set; } = true;
+
+    [ExportGroup("Collision")]
+    [Export] public float CollisionWidthMargin { get; set; } = -0.01f;
+    [Export(PropertyHint.Layers3DPhysics)] public uint CollisionLayer { get; set; } = 1;
+    [Export(PropertyHint.Layers3DPhysics)] public uint CollisionMask { get; set; } = 1;
+    [Export] public bool IsContinuousCollision { get; set; } = false;
 
     [ExportGroup("Debug")]
     [Export] public bool DrawDebugParticles { get; set; } = false;
@@ -52,7 +58,7 @@ public partial class VerletRopeRigidBody : VerletRopePhysical
 
     public override void _PhysicsProcess(double delta)
     {
-        if (IsDisabledWhenInvisible && !IsRopeVisible)
+        if (IsDisabledWhenInvisible && !VerletRopeMesh.IsRopeVisible)
         {
             ProcessMode = ProcessModeEnum.Disabled;
             return;
@@ -65,12 +71,13 @@ public partial class VerletRopeRigidBody : VerletRopePhysical
             CreateRope();
         }
 
+        var segmentLength = GetSegmentLength();
         for (var i = 0; i < _particleData!.Count; i++)
         {
             if (i == _particleData.Count - 1)
             {
                 // There is one less segment, calculate from actual positions
-                var segmentEndPosition = new Vector3(GetSegmentLength() / 2f, 0, 0);
+                var segmentEndPosition = new Vector3(segmentLength / 2f, 0, 0);
                 _particleData[i].PositionCurrent = _segmentBodies[i - 1].ToGlobal(segmentEndPosition);
             }
             else
@@ -79,16 +86,17 @@ public partial class VerletRopeRigidBody : VerletRopePhysical
             }
         }
 
-        DrawRopeParticles(_particleData);
+        VerletRopeMesh.DrawRopeParticles(_particleData);
 
         if (DrawDebugParticles)
         {
-            DrawRopeDebugParticles(_particleData);
+            VerletRopeMesh.DrawRopeDebugParticles(_particleData);
         }
     }
 
     public override void CreateRope()
     {
+        base.CreateRope();
         ClearSections();
 
         var segmentLength = GetSegmentLength();
@@ -96,14 +104,17 @@ public partial class VerletRopeRigidBody : VerletRopePhysical
         var segmentShape = new CapsuleShape3D
         {
             Height = segmentLength,
-            Radius = RopeWidth
+            Radius = RopeWidth + CollisionWidthMargin
         };
 
         for (var i = 0; i < SimulationSegments; i++)
         {
             var rigidBody = new RigidBody3D
             {
-                Position = new Vector3(i * segmentLength, 0, 0)
+                Position = new Vector3(i * segmentLength, 0, 0),
+                CollisionMask = CollisionMask,
+                CollisionLayer = CollisionLayer,
+                ContinuousCd = IsContinuousCollision
             };
 
             rigidBody.AddChild(new CollisionShape3D

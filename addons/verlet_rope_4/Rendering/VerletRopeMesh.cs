@@ -4,7 +4,8 @@ using VerletRope4.Data;
 
 namespace VerletRope4.Rendering;
 
-public abstract partial class VerletRopeMesh : MeshInstance3D
+[Tool]
+public partial class VerletRopeMesh : MeshInstance3D
 {
     private const string DefaultMaterialPath = "res://addons/verlet_rope_4/materials/rope_default.material";
     private const string CreationStampMeta = "verlet_rope_internal_stamp";
@@ -17,13 +18,10 @@ public abstract partial class VerletRopeMesh : MeshInstance3D
     private ImmediateMesh _mesh;
     private Camera3D _camera;
     private double _simulationDelta;
-
-    protected bool IsRopeVisible { get; private set; } = true;
-
+    
+    [ExportGroup("Visuals")]
     [Export] public float RopeLength { get; set; } = 3.0f;
     [Export] public float RopeWidth { get; set; } = 0.07f;
-
-    [ExportGroup("Visuals")]
     [Export] public float SubdivisionLodDistance { get; set; } = 15.0f;
 
     private bool _useVisibleOnScreenNotifier = true;
@@ -32,6 +30,8 @@ public abstract partial class VerletRopeMesh : MeshInstance3D
         get => _useVisibleOnScreenNotifier; 
         set { _useVisibleOnScreenNotifier = value; UpdateConfigurationWarnings(); }
     }
+
+    public bool IsRopeVisible { get; private set; } = true;
 
     #region Util
 
@@ -186,7 +186,7 @@ public abstract partial class VerletRopeMesh : MeshInstance3D
 
     public void DrawRopeParticles(RopeParticleData particles)
     {
-        if (!IsRopeVisible)
+        if (!IsRopeVisible || !IsInsideTree())
         {
             return;
         }
@@ -211,7 +211,7 @@ public abstract partial class VerletRopeMesh : MeshInstance3D
 
     public void DrawRopeDebugParticles(RopeParticleData particles)
     {        
-        if (!IsRopeVisible)
+        if (!IsRopeVisible || !IsInsideTree())
         {
             return;
         }
@@ -247,6 +247,7 @@ public abstract partial class VerletRopeMesh : MeshInstance3D
     public override void _Ready()
     {
         _mesh = Mesh as ImmediateMesh;
+
         if (_mesh == null || _mesh.GetMeta(CreationStampMeta, 0ul).AsUInt64() != GetInstanceId())
         {
             Mesh = _mesh = new ImmediateMesh();

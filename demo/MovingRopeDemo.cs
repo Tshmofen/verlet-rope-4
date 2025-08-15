@@ -1,60 +1,31 @@
 using Godot;
-using VerletRope4.Physics;
 
 namespace VerletRope4.Demo;
 
 public partial class MovingRopeDemo : Node3D
 {
-	private bool _moveForward;
-	private Vector3 _targetPosition;
-    private bool _handleMovingManually;
+    private bool _isMoveForward;
 
-    [Export] public Node3D MovingNode { get; set; }
-	[Export] public Vector3 MovingPath { get; set; }
-	[Export] public float PathTime{ get; set; }
+    [Export] public RigidBody3D MovingBody { get; set; }
+	[Export] public float PathTime { get; set; }
+	[Export] public float PathMaxSpeed { get; set; }
 	[Export] public Tween.TransitionType TransitionType { get; set; }
-
-	private void SynchronizeNodePosition(double _)
-	{
-		MovingNode.GlobalPosition = _targetPosition;
-	}
-
-	private void UpdateTargetRopePosition(Vector3 position)
-	{
-		_targetPosition = position;
-	}
 
 	private void MoveNode()
 	{
-		_moveForward = !_moveForward;
-		var sign = _moveForward ? 1 : -1;
-		var fromPosition = MovingNode.GlobalPosition;
-		var toPosition = MovingNode.GlobalPosition + sign * MovingPath;
+        _isMoveForward = !_isMoveForward;
+		var sign = _isMoveForward ? 1 : -1;
+		var targetSpeed = Vector3.Right * PathMaxSpeed * sign;
 
-		var tween = MovingNode.CreateTween().SetTrans(TransitionType).SetProcessMode(Tween.TweenProcessMode.Physics);
-		tween.TweenMethod(Callable.From<Vector3>(UpdateTargetRopePosition), fromPosition, toPosition, PathTime);
+		var tween = MovingBody.CreateTween().SetTrans(TransitionType).SetProcessMode(Tween.TweenProcessMode.Physics);
+		tween.TweenProperty(MovingBody, RigidBody3D.PropertyName.LinearVelocity.ToString(), targetSpeed, PathTime / 5f);
+		tween.TweenInterval(3 / 5f * PathTime);
+        tween.TweenProperty(MovingBody, RigidBody3D.PropertyName.LinearVelocity.ToString(), Vector3.Zero, PathTime / 5f);
 		tween.TweenCallback(Callable.From(MoveNode));
 	}
 
 	public override void _Ready()
 	{
-        if (MovingNode is VerletRopeSimulated rope)
-        {
-            rope.SimulationStep += SynchronizeNodePosition;
-        }
-		else
-        {
-            _handleMovingManually = true;
-        }
-
 		MoveNode();
 	}
-
-    public override void _Process(double delta)
-    {
-        if (_handleMovingManually)
-        {
-            SynchronizeNodePosition(delta);
-        }
-    }
 }

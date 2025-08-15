@@ -1,4 +1,6 @@
 ﻿using Godot;
+using VerletRope.addons.verlet_rope_4;
+using VerletRope4;
 using VerletRope4.Physics;
 
 namespace VerletRope.Physics.Joints;
@@ -31,7 +33,10 @@ public partial class VerletRopeJoint : Node3D, ISerializationListener
     [Export(PropertyHint.Range, "0, 10000")] public float JointMaxForce { get; set; } = 50f;
     [Export(PropertyHint.ExpEasing)] public float JointForceEasing { get; set; } = 0.9f;
 
-    public override void _Ready() => ResetJoint();
+    public override void _Ready()
+    {
+        ResetJoint();
+    }
 
     public override void _ExitTree()
     {
@@ -60,11 +65,7 @@ public partial class VerletRopeJoint : Node3D, ISerializationListener
             return;
         }
 
-        if (_distanceJoint == null)
-        {
-            AddChild(_distanceJoint = new CustomDistanceJoint());
-        }
-
+        _distanceJoint ??= this.FindOrCreateChild<CustomDistanceJoint>();
         _distanceJoint.MaxDistance = JointMaxDistance;
         _distanceJoint.BodyA = StartBody;
         _distanceJoint.BodyB = EndBody;

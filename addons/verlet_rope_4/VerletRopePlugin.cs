@@ -14,11 +14,11 @@ public partial class VerletRopePlugin : EditorPlugin
     {
         var script = GD.Load<Script>(VerletRopeSimulated.ScriptPath);
         var texture = GD.Load<Texture2D>(VerletRopeSimulated.IconPath);
-        AddCustomType(nameof(VerletRopeSimulated), nameof(MeshInstance3D), script, texture);
+        AddCustomType(nameof(VerletRopeSimulated), nameof(Node3D), script, texture);
 
         script = GD.Load<Script>(VerletRopeRigidBody.ScriptPath);
         texture = GD.Load<Texture2D>(VerletRopeRigidBody.IconPath);
-        AddCustomType(nameof(VerletRopeRigidBody), nameof(MeshInstance3D), script, texture);
+        AddCustomType(nameof(VerletRopeRigidBody), nameof(Node3D), script, texture);
 
         script = GD.Load<Script>(VerletRopeJoint.ScriptPath);
         texture = GD.Load<Texture2D>(VerletRopeJoint.IconPath);
