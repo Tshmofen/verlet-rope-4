@@ -1,7 +1,6 @@
 using Godot;
 using System.Collections.Generic;
 using System.Linq;
-using VerletRope.addons.verlet_rope_4;
 using VerletRope.Physics;
 using VerletRope4.Data;
 
@@ -46,10 +45,10 @@ public partial class VerletRopeSimulated : VerletRopePhysical
 
     [ExportGroup("Wind")]
     [Export] public bool ApplyWind { get; set; } = false;
-    [Export] public Vector3 WindDirection { get; set; } = new(20.0f, 0.0f, 0.0f);
+    [Export] public Vector3 WindDirection { get; set; } = new(40.0f, 0.0f, 0.0f);
     [Export] public FastNoiseLite WindNoise { get; set; } = null;
     [Export(PropertyHint.Range,"-1.00,1.00")] public float WindForceMax { get; set; } = 1.0f;
-    [Export(PropertyHint.Range,"-1.00,1.00")] public float WindForceMin { get; set; } = 0;
+    [Export(PropertyHint.Range,"-1.00,1.00")] public float WindForceMin { get; set; } = 0.05f;
 
     [ExportGroup("Damping")]
     [Export] public bool ApplyDamping { get; set; } = true;
@@ -76,7 +75,7 @@ public partial class VerletRopeSimulated : VerletRopePhysical
 
     private float GetAverageSegmentLength()
     {
-        return VerletRopeMesh.RopeLength / (_particleData?.Count ?? SimulationParticles - 1);
+        return RopeMesh.RopeLength / (_particleData?.Count ?? SimulationParticles - 1);
     }
 
     private float GetCurrentRopeLength()
@@ -157,7 +156,7 @@ public partial class VerletRopeSimulated : VerletRopePhysical
 
     private void TrackDynamicCollisions(float delta)
     {
-        if (_collisionShape == null || !VerletRopeMesh.IsInsideTree())
+        if (_collisionShape == null || !RopeMesh.IsInsideTree())
         {
             // Ignore collisions pre-initialization or on remove
             return;
@@ -169,7 +168,7 @@ public partial class VerletRopeSimulated : VerletRopePhysical
             return;
         }
         
-        var visuals = VerletRopeMesh.GetAabb();
+        var visuals = RopeMesh.GetAabb();
         if (visuals.Size == Vector3.Zero)
         {
             _dynamicBodies.Clear();
@@ -177,7 +176,7 @@ public partial class VerletRopeSimulated : VerletRopePhysical
         }
 
         _collisionShape.Size = visuals.Size + Vector3.One * DynamicCollisionTrackingMargin;
-        _collisionShapeParameters.Transform = new Transform3D(_collisionShapeParameters.Transform.Basis, VerletRopeMesh.GlobalPosition + visuals.GetCenter());
+        _collisionShapeParameters.Transform = new Transform3D(_collisionShapeParameters.Transform.Basis, RopeMesh.GlobalPosition + visuals.GetCenter());
         _collisionShapeParameters.CollisionMask = DynamicCollisionMask;
 
         var trackingStamp = Time.GetTicksMsec();
@@ -407,7 +406,7 @@ public partial class VerletRopeSimulated : VerletRopePhysical
     {
         base._Ready();
 
-        _rayCast = VerletRopeMesh.FindOrCreateChild<RayCast3D>();
+        _rayCast = RopeMesh.FindOrCreateChild<RayCast3D>();
         _rayCast.Enabled = false;
 
         _spaceState = GetWorld3D().DirectSpaceState;
@@ -423,7 +422,9 @@ public partial class VerletRopeSimulated : VerletRopePhysical
 
     public override void _PhysicsProcess(double delta)
     {
-        if (IsDisabledWhenInvisible && !VerletRopeMesh.IsRopeVisible)
+        base._PhysicsProcess(delta);
+
+        if (IsDisabledWhenInvisible && !RopeMesh.IsRopeVisible)
         {
             return;
         }
@@ -469,11 +470,14 @@ public partial class VerletRopeSimulated : VerletRopePhysical
             ApplyForces();
             VerletProcess(simulationDeltaF);
             ApplyConstraints(simulationDeltaF);
-            VerletRopeMesh.DrawRopeParticles(_particleData);
+            RopeMesh.DrawRopeParticles(_particleData);
         }
 
         EmitSignal(SignalName.SimulationStep, _simulationDelta);
         _simulationDelta = 0;
+
+        UpdateEditorCollision(_particleData);
+        UpdateGizmos();
     }
 
     public override void CreateRope()

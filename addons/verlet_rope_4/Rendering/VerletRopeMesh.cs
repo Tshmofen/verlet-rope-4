@@ -31,7 +31,6 @@ public partial class VerletRopeMesh : MeshInstance3D
         set { _useVisibleOnScreenNotifier = value; UpdateConfigurationWarnings(); }
     }
 
-
     public bool IsRopeVisible { get; private set; } = true;
 
     #region Util

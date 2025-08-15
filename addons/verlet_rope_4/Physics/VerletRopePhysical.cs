@@ -1,6 +1,7 @@
 ﻿using Godot;
 using System.Collections.Generic;
-using VerletRope.addons.verlet_rope_4;
+using VerletRope4;
+using VerletRope4.Data;
 using VerletRope4.Rendering;
 
 namespace VerletRope.Physics;
@@ -9,11 +10,12 @@ namespace VerletRope.Physics;
 public abstract partial class VerletRopePhysical : Node3D, ISerializationListener
 {
     protected readonly List<Rid> CollisionExceptions = [];
+    private Vector3[] _editorVertexPositions = [];
+    private VerletRopeMesh _ropeMesh;
 
-    private VerletRopeMesh _verletRopeMesh;
-    protected VerletRopeMesh VerletRopeMesh => _verletRopeMesh ??= this.FindOrCreateChild<VerletRopeMesh>();
+    protected VerletRopeMesh RopeMesh => _ropeMesh ??= this.FindOrCreateChild<VerletRopeMesh>();
     
-    // Properties have the same default values as on `VerletRopeMesh`
+    // Properties have the same default values as on `RopeMesh`
     [ExportGroup("Visuals")]
     [Export] public float RopeLength { get; set; } = 3.0f;
     [Export] public float RopeWidth { get; set; } = 0.07f;
@@ -41,15 +43,33 @@ public abstract partial class VerletRopePhysical : Node3D, ISerializationListene
 
     public virtual void CreateRope()
     {
-        VerletRopeMesh.RopeLength = RopeLength;
-        VerletRopeMesh.RopeWidth = RopeWidth;
-        VerletRopeMesh.SubdivisionLodDistance = SubdivisionLodDistance;
-        VerletRopeMesh.UseVisibleOnScreenNotifier = UseVisibleOnScreenNotifier;
-        VerletRopeMesh.UseDebugParticles = UseDebugParticles;
-        VerletRopeMesh.MaterialOverride = MaterialOverride;
+        RopeMesh.RopeLength = RopeLength;
+        RopeMesh.RopeWidth = RopeWidth;
+        RopeMesh.SubdivisionLodDistance = SubdivisionLodDistance;
+        RopeMesh.UseVisibleOnScreenNotifier = UseVisibleOnScreenNotifier;
+        RopeMesh.UseDebugParticles = UseDebugParticles;
+        RopeMesh.MaterialOverride = MaterialOverride;
     }
 
     public virtual void DestroyRope() { }
+
+    public void UpdateEditorCollision(RopeParticleData particleData)
+    {
+        if (particleData.Count != _editorVertexPositions?.Length)
+        {
+            _editorVertexPositions = new Vector3[particleData.Count];
+        }
+
+        for (var i = 0; i < particleData.Count; i++)
+        {
+            _editorVertexPositions[i] = ToLocal(particleData[i].PositionCurrent);
+        }
+    }
+
+    public Vector3[] GetEditorSegments()
+    {
+        return _editorVertexPositions;
+    }
 
     #region Script Reload
 

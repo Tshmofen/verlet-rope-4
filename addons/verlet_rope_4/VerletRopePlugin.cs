@@ -4,12 +4,15 @@ using Godot;
 using VerletRope.Physics;
 using VerletRope.Physics.Joints;
 using VerletRope4.Physics;
+using VerletRope4.UI;
 
 namespace VerletRope4;
 
 [Tool]
 public partial class VerletRopePlugin : EditorPlugin
 {
+    private VerletRopeGizmoPlugin _gizmoPlugin;
+
     public override void _EnterTree()
     {
         var script = GD.Load<Script>(VerletRopeSimulated.ScriptPath);
@@ -23,12 +26,15 @@ public partial class VerletRopePlugin : EditorPlugin
         script = GD.Load<Script>(VerletRopeJoint.ScriptPath);
         texture = GD.Load<Texture2D>(VerletRopeJoint.IconPath);
         AddCustomType(nameof(VerletRopeJoint), nameof(Node3D), script, texture);
+
+        AddNode3DGizmoPlugin(_gizmoPlugin = new VerletRopeGizmoPlugin());
     }
 
     public override void _ExitTree()
     {
         RemoveCustomType(nameof(VerletRopeSimulated));
         RemoveCustomType(nameof(VerletRopeJoint));
+        RemoveNode3DGizmoPlugin(_gizmoPlugin);
     }
 }
 

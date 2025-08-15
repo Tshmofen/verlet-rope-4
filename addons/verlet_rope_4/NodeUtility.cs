@@ -1,6 +1,6 @@
 ﻿using Godot;
 
-namespace VerletRope.addons.verlet_rope_4;
+namespace VerletRope4;
 
 public static class NodeUtility
 {

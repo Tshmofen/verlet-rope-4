@@ -55,7 +55,9 @@ public partial class VerletRopeRigidBody : VerletRopePhysical
 
     public override void _PhysicsProcess(double delta)
     {
-        if (IsDisabledWhenInvisible && !VerletRopeMesh.IsRopeVisible)
+        base._PhysicsProcess(delta);
+
+        if (IsDisabledWhenInvisible && !RopeMesh.IsRopeVisible)
         {
             ProcessMode = ProcessModeEnum.Disabled;
             return;
@@ -83,7 +85,9 @@ public partial class VerletRopeRigidBody : VerletRopePhysical
             }
         }
 
-        VerletRopeMesh.DrawRopeParticles(_particleData);
+        RopeMesh.DrawRopeParticles(_particleData);
+        UpdateEditorCollision(_particleData);
+        UpdateGizmos();
     }
 
     public override void CreateRope()
