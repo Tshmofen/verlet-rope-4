@@ -1,5 +1,6 @@
 ﻿using Godot;
 using System.Collections.Generic;
+using VerletRope.Physics.Joints;
 using VerletRope4;
 using VerletRope4.Data;
 using VerletRope4.Rendering;
@@ -53,8 +54,16 @@ public abstract partial class VerletRopePhysical : Node3D, ISerializationListene
 
     public virtual void DestroyRope() { }
 
+    public void CreateJoint()
+    {
+        this.FindOrCreateChild<VerletRopeJoint>(true);
+    }
+
+    #region Editor
+
     public void UpdateEditorCollision(RopeParticleData particleData)
     {
+        #if TOOLS
         if (particleData.Count != _editorVertexPositions?.Length)
         {
             _editorVertexPositions = new Vector3[particleData.Count];
@@ -64,12 +73,15 @@ public abstract partial class VerletRopePhysical : Node3D, ISerializationListene
         {
             _editorVertexPositions[i] = ToLocal(particleData[i].PositionCurrent);
         }
+        #endif
     }
 
     public Vector3[] GetEditorSegments()
     {
         return _editorVertexPositions;
     }
+
+    #endregion
 
     #region Script Reload
 

@@ -5,7 +5,7 @@ namespace VerletRope4;
 
 public static class NodeUtility
 {
-    public static TNode FindOrCreateChild<TNode>(this Node node) where TNode : Node, new()
+    public static TNode FindOrCreateChild<TNode>(this Node node, bool isEditorOwner = false) where TNode : Node, new()
     {
         foreach (var child in node.GetChildren())
         {
@@ -15,8 +15,13 @@ public static class NodeUtility
             }
         }
 
-        var newTargetChild = new TNode();
+        var newTargetChild = new TNode() { Name = node.Name + "Joint"};
         node.CallDeferred(Node.MethodName.AddChild, newTargetChild);
+        if (isEditorOwner)
+        {
+            newTargetChild.CallDeferred(Node.MethodName.SetOwner, node.GetTree().EditedSceneRoot);
+        }
+
         return newTargetChild;
     }
 

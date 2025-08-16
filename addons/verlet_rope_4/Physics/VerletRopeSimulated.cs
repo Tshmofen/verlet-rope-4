@@ -27,6 +27,7 @@ public partial class VerletRopeSimulated : VerletRopePhysical
     private readonly Dictionary<RigidBody3D, RopeDynamicCollisionData> _dynamicBodies = [];
 
     [ExportToolButton("Reset Rope")] public Callable ResetRopeButton => Callable.From(CreateRope);
+    [ExportToolButton("Add Joint")] public Callable AddJointButton => Callable.From(CreateJoint);
     
     [ExportGroup("Simulation")]
     [Export(PropertyHint.Range, "3,100")] public int SimulationParticles { get; set; } = 10;

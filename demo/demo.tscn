@@ -281,7 +281,7 @@ shape = SubResource("CylinderShape3D_j5lb4")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.42, 0.425)
 
 [node name="VerletRopeStatic" type="MeshInstance3D" parent="RopeDemos/MovingRopes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.06887, 3.9411, 5.50704)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.19783, 3.9411, 5.50704)
 mesh = SubResource("ImmediateMesh_ykvhj")
 script = ExtResource("2_lows4")
 SimulationParticles = 30
@@ -426,7 +426,7 @@ shape = SubResource("BoxShape3D_s1s6j")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.81072, 0.93633, 0.998642)
 
 [node name="VerletRopeRigidBody" type="Node3D" parent="RopeDemos/RigidRope"]
-transform = Transform3D(0.935197, -0.354128, 0, 0.354128, 0.935197, 0, 0, 0, 1, -8.40874, 1.69739, 5.46604)
+transform = Transform3D(0.935197, -0.354128, 0, 0.354128, 0.935197, 0, 0, 0, 1, -6.86645, 1.69739, 6.76261)
 script = ExtResource("5_onu7k")
 CollisionMask = 7
 UseVisibleOnScreenNotifier = false
