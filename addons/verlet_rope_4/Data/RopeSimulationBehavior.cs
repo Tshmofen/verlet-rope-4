@@ -4,5 +4,6 @@ public enum RopeSimulationBehavior
 {
     None,
     Game,
-    Editor
+    Editor,
+    Selected
 }

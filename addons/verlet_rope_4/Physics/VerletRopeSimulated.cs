@@ -17,7 +17,6 @@ public partial class VerletRopeSimulated : VerletRopePhysical
     private const float DynamicCollisionCheckLength = 0.1f;
 
     private bool _wasCreated;
-    private double _time;
     private double _simulationDelta;
     private RopeParticleData _particleData;
 
@@ -36,7 +35,7 @@ public partial class VerletRopeSimulated : VerletRopePhysical
     [Export] public int StiffnessIterations { get; set; } = 2;
     [Export] public int PreprocessIterations { get; set; } = 5;
     [Export] public bool IsDisabledWhenInvisible { get; set; } = true;
-    [Export] public RopeSimulationBehavior SimulationBehavior { get; set; } = RopeSimulationBehavior.Editor;
+    [Export] public RopeSimulationBehavior SimulationBehavior { get; set; } = RopeSimulationBehavior.Selected;
 
     [ExportGroup("Gravity")]
     [Export] public bool ApplyGravity { get; set; } = true;
@@ -400,6 +399,24 @@ public partial class VerletRopeSimulated : VerletRopePhysical
         CollideRope();
     }
 
+    private bool IsRopeSimulated()
+    {
+        if (_wasCreated)
+        {
+            _wasCreated = false;
+            return true;
+        }
+
+        return SimulationBehavior switch
+        {
+            RopeSimulationBehavior.None => false,
+            RopeSimulationBehavior.Game => !Engine.IsEditorHint(),
+            RopeSimulationBehavior.Editor => true,
+            RopeSimulationBehavior.Selected => !Engine.IsEditorHint() || this.IsEditorSelected(),
+            _ => false
+        };
+    }
+
     #endregion
 
     public override void _Ready()
@@ -435,7 +452,11 @@ public partial class VerletRopeSimulated : VerletRopePhysical
             CreateRope();
         }
 
-        _time += delta;
+        if (!IsRopeSimulated())
+        {
+            return;
+        }
+
         _simulationDelta += delta;
 
         if (SimulationRate != 0)
@@ -456,22 +477,11 @@ public partial class VerletRopeSimulated : VerletRopePhysical
             end.PositionCurrent = EndNodeAttach.GlobalPosition;
         }
 
-        var toSimulate = SimulationBehavior is RopeSimulationBehavior.Editor || SimulationBehavior is RopeSimulationBehavior.Game && !isEditor;
-
-        if (_wasCreated)
-        {
-            toSimulate = true;
-            _wasCreated = false;
-        }
-
-        if (toSimulate)
-        {
-            var simulationDeltaF = (float)_simulationDelta;
-            ApplyForces();
-            VerletProcess(simulationDeltaF);
-            ApplyConstraints(simulationDeltaF);
-            RopeMesh.DrawRopeParticles(_particleData);
-        }
+        var simulationDeltaF = (float)_simulationDelta;
+        ApplyForces();
+        VerletProcess(simulationDeltaF);
+        ApplyConstraints(simulationDeltaF);
+        RopeMesh.DrawRopeParticles(_particleData);
 
         EmitSignal(SignalName.SimulationStep, _simulationDelta);
         _simulationDelta = 0;

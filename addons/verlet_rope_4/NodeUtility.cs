@@ -1,4 +1,5 @@
 ﻿using Godot;
+using System.Linq;
 
 namespace VerletRope4;
 
@@ -17,5 +18,16 @@ public static class NodeUtility
         var newTargetChild = new TNode();
         node.CallDeferred(Node.MethodName.AddChild, newTargetChild);
         return newTargetChild;
+    }
+
+    public static bool IsEditorSelected(this Node node)
+    {
+        if (!Engine.IsEditorHint())
+        {
+            return false;
+        }
+
+        var selectedNodes = EditorInterface.Singleton.GetSelection().GetSelectedNodes();
+        return selectedNodes.Any(n => n == node);
     }
 }
