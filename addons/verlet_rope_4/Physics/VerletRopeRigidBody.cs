@@ -1,5 +1,6 @@
 ﻿ using Godot;
 using System.Collections.Generic;
+using VerletRope.addons.verlet_rope_4.Utility;
 using VerletRope4.Data;
 
 namespace VerletRope.Physics;
@@ -19,6 +20,7 @@ public partial class VerletRopeRigidBody : VerletRopePhysical
     [ExportGroup("Simulation")]
     [Export(PropertyHint.Range, "1,100")] public int SimulationSegments { get; set; } = 10;
     [Export] public bool IsDisabledWhenInvisible { get; set; } = true;
+    [Export] public bool IsStartSegmentPinned { get; set; } = true;
 
     [ExportGroup("Collision")]
     [Export] public float CollisionWidthMargin { get; set; } = -0.01f;
@@ -104,6 +106,8 @@ public partial class VerletRopeRigidBody : VerletRopePhysical
             Radius = RopeWidth + CollisionWidthMargin
         };
 
+        ArcSegmentUtility.ConnectPoints(Position, Position + Vector3.Right * segmentLength * SimulationSegments / 2f, segmentLength, SimulationSegments);
+
         for (var i = 0; i < SimulationSegments; i++)
         {
             var rigidBody = new RigidBody3D
@@ -122,6 +126,15 @@ public partial class VerletRopeRigidBody : VerletRopePhysical
 
             _segmentBodies.Add(rigidBody);
             AddChild(rigidBody);
+        }
+
+        if (IsStartSegmentPinned)
+        {
+            _segmentBodies[0].AddChild(new PinJoint3D
+            {
+                Position = new Vector3(-segmentLength / 2f, 0, 0),
+                NodeA = _segmentBodies[0].GetPath()
+            });
         }
 
         for (var i = 0; i < _segmentBodies.Count - 1; i++)

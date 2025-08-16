@@ -1,7 +1,7 @@
 ﻿using Godot;
 using System.Linq;
 
-namespace VerletRope4;
+namespace VerletRope4.Utility;
 
 public static class NodeUtility
 {
