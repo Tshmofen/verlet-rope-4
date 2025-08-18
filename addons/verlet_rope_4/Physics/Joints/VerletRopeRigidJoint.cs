@@ -28,27 +28,14 @@ public partial class VerletRopeRigidJoint : BaseVerletRopeJoint
 
     public override void _ExitTree()
     {
-        if (VerletRope == null)
-        {
-            return;
-        }
-        
-        VerletRope.SetAttachments(null, null);
-        VerletRope.CreateRope();
+        VerletRope?.SetAttachments(null, null);
+        VerletRope?.CreateRope();
     }
 
     public override void ResetJoint()
     {
-        if (VerletRope == null)
-        {
-            VerletRope = GetParent() as VerletRopeRigidBody;
-            if (VerletRope == null)
-            {
-                return;
-            }
-        }
-
-        VerletRope.SetAttachments(StartCustomLocation ?? StartBody, EndCustomLocation ?? EndBody);
-        VerletRope.CreateRope();
+        VerletRope ??= GetParent() as VerletRopeRigidBody;
+        VerletRope?.SetAttachments(StartCustomLocation ?? StartBody, EndCustomLocation ?? EndBody);
+        VerletRope?.CreateRope();
     }
 }

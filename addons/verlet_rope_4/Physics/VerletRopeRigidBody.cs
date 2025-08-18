@@ -113,11 +113,8 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
         var segmentMesh = ShowCollisionShapeDebug ? new CapsuleMesh { Height = segmentLength, Radius = RopeWidth + CollisionWidthMargin } : null;
 
         var testA = Vector3.Zero + Vector3.Up * 0.5f;
-        var testB = testA + Vector3.Right * 1;
-        var segmentSolution = SegmentPlacerUtility
-            .ConnectPoints(testA.ToPlaneArcVector(), testB.ToPlaneArcVector(), segmentLength, SimulationSegments)
-            .Select(a => a.ToSpaceArcVector())
-            .ToList();
+        var testB = testA + Vector3.Right * 2f;
+        var segmentSolution = SegmentPlaceUtility.ConnectPoints(testA, testB, Vector3.Forward, segmentLength, SimulationSegments);
         DebugDraw3D.DrawPointPath(segmentSolution.Select(ToGlobal).ToArray(), size: 0.05f, duration: 10);
         DebugDraw3D.DrawLine(ToGlobal(testA), ToGlobal(testB), duration: 10, color: Colors.Blue);
 

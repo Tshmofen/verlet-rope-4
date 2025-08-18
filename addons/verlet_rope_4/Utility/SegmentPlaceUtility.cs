@@ -2,15 +2,15 @@
 
 namespace VerletRope4.Utility;
 
-public static class SegmentPlacerUtility
+public static class SegmentPlaceUtility
 {
-    public static Vector2[] GenerateAlternatingSegments(Vector2 a, Vector2 b, float segmentLength, int segmentCount)
+    public static Vector3[] GenerateAlternatingSegments(Vector3 a, Vector3 b, Vector3 planeNormal, float segmentLength, int segmentCount)
     {
         var pointsDistance = a.DistanceTo(b);
         var rightDirection = (b - a).Normalized();
-        var upDirection = new Vector2(-rightDirection.Y, rightDirection.X);
+        var upDirection = rightDirection.Cross(planeNormal).Normalized();
 
-        var points = new Vector2[segmentCount + 1];
+        var points = new Vector3[segmentCount + 1];
         points[0] = a;
 
         var isOddCount = segmentCount % 2 != 0;
@@ -38,9 +38,9 @@ public static class SegmentPlacerUtility
         return points;
     }
 
-    private static Vector2[] GenerateStraightLineSegments(Vector2 a, Vector2 b, float segmentLength, int segmentCount)
+    private static Vector3[] GenerateStraightLineSegments(Vector3 a, Vector3 b, float segmentLength, int segmentCount)
     {
-        var points = new Vector2[segmentCount + 1];
+        var points = new Vector3[segmentCount + 1];
         var dir = (b - a).Normalized();
 
         for (var i = 0; i <= segmentCount; i++)
@@ -51,15 +51,11 @@ public static class SegmentPlacerUtility
         return points;
     }
 
-    public static Vector2[] ConnectPoints(Vector2 a, Vector2 b, float segmentLength, int segmentCount)
+    public static Vector3[] ConnectPoints(Vector3 a, Vector3 b, Vector3 planeNormal, float segmentLength, int segmentCount)
     {
         var segmentsLength = segmentCount * segmentLength;
         return segmentCount == 1 || segmentsLength - a.DistanceTo(b) <= Mathf.Epsilon
             ? GenerateStraightLineSegments(a, b, segmentLength, segmentCount)
-            : GenerateAlternatingSegments(a, b, segmentLength, segmentCount);
+            : GenerateAlternatingSegments(a, b, planeNormal, segmentLength, segmentCount);
     }
-
-    public static Vector3 ToSpaceArcVector(this Vector2 a) => new(a.X, a.Y, 0);
-
-    public static Vector2 ToPlaneArcVector(this Vector3 b) => new(b.X, b.Y);
 }

@@ -38,15 +38,9 @@ public partial class VerletRopeSimulatedJoint : BaseVerletRopeJoint
 
     public override void _ExitTree()
     {
-        if (VerletRope == null)
-        {
-            return;
-        }
-        
-        // Needed to restore rope state on joint delete or move
-        VerletRope.SetAttachments(null, null);
-        VerletRope.ClearExceptions();
-        VerletRope.CreateRope();
+        VerletRope?.SetAttachments(null, null);
+        VerletRope?.ClearExceptions();
+        VerletRope?.CreateRope();
     }
 
     private void ConfigureDistanceJoint()
@@ -73,31 +67,23 @@ public partial class VerletRopeSimulatedJoint : BaseVerletRopeJoint
         ConfigureDistanceJoint();
         UpdateConfigurationWarnings();
 
-        if (VerletRope == null)
-        {
-            VerletRope = GetParent() as VerletRopeSimulated;
-            if (VerletRope == null)
-            {
-                return;
-            }
-        }
-
-        VerletRope.SetAttachments(
+        VerletRope ??= GetParent() as VerletRopeSimulated;
+        VerletRope?.SetAttachments(
             StartCustomLocation ?? StartBody, 
             EndCustomLocation ?? EndBody
         );
 
         if (EndBody != null)
         {
-            VerletRope.RegisterExceptionRid(EndBody.GetRid(), IgnoreEndBodyCollision);
+            VerletRope?.RegisterExceptionRid(EndBody.GetRid(), IgnoreEndBodyCollision);
         }        
         
         if (StartBody != null)
         {
-            VerletRope.RegisterExceptionRid(StartBody.GetRid(), IgnoreStartBodyCollision);
+            VerletRope?.RegisterExceptionRid(StartBody.GetRid(), IgnoreStartBodyCollision);
         }
 
-        VerletRope.CreateRope();
+        VerletRope?.CreateRope();
     }
 
     public override string[] _GetConfigurationWarnings()
