@@ -1,9 +1,9 @@
 using Godot;
 using System.Collections.Generic;
 using System.Linq;
-using VerletRope.addons.verlet_rope_4.Utility;
 using VerletRope.Physics;
 using VerletRope4.Data;
+using VerletRope4.Utility;
 
 namespace VerletRope4.Physics;
 

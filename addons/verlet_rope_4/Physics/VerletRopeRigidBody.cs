@@ -1,7 +1,8 @@
 ﻿ using Godot;
 using System.Collections.Generic;
-using VerletRope.addons.verlet_rope_4.Utility;
+using System.Linq;
 using VerletRope4.Data;
+using VerletRope4.Utility;
 
 namespace VerletRope.Physics;
 
@@ -106,7 +107,14 @@ public partial class VerletRopeRigidBody : VerletRopePhysical
             Radius = RopeWidth + CollisionWidthMargin
         };
 
-        ArcSegmentUtility.ConnectPoints(Position, Position + Vector3.Right * segmentLength * SimulationSegments / 2f, segmentLength, SimulationSegments);
+        var testA = Vector3.Zero + Vector3.Up * 0.5f;
+        var testB = testA + Vector3.Right * 1;
+        var segmentSolution = SegmentPlacerUtility
+            .ConnectPoints(testA.ToPlaneArcVector(), testB.ToPlaneArcVector(), segmentLength, SimulationSegments)
+            .Select(a => a.ToSpaceArcVector())
+            .ToList();
+        DebugDraw3D.DrawPointPath(segmentSolution.Select(ToGlobal).ToArray(), size: 0.05f, duration: 10);
+        DebugDraw3D.DrawLine(ToGlobal(testA), ToGlobal(testB), duration: 10, color: Colors.Blue);
 
         for (var i = 0; i < SimulationSegments; i++)
         {

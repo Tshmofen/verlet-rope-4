@@ -1,6 +1,6 @@
 ﻿using Godot;
-using VerletRope.addons.verlet_rope_4.Utility;
 using VerletRope4.Physics;
+using VerletRope4.Utility;
 
 namespace VerletRope.Physics.Joints;
 

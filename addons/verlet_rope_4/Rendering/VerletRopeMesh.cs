@@ -7,7 +7,7 @@ namespace VerletRope4.Rendering;
 [Tool]
 public partial class VerletRopeMesh : MeshInstance3D
 {
-    private const string DefaultMaterialPath = "res://addons/verlet_rope_4/materials/rope_default.material";
+    private const string DefaultMaterialPath = "res://addons/verlet_rope_4/Materials/rope_default.material";
     private const string CreationStampMeta = "verlet_rope_internal_stamp";
 
     private static readonly float Cos5Deg = Mathf.Cos(Mathf.DegToRad(5.0f));

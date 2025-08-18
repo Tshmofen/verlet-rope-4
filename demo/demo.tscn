@@ -5,7 +5,7 @@
 [ext_resource type="Script" uid="uid://d36wx6t8jmjcx" path="res://demo/MovingRopeDemo.cs" id="2_vutyd"]
 [ext_resource type="Script" uid="uid://chq4fc6dgmaln" path="res://addons/verlet_rope_4/Physics/Joints/VerletRopeJoint.cs" id="3_j5lb4"]
 [ext_resource type="Script" uid="uid://b6d7w4sbrb33r" path="res://addons/verlet_rope_4/Physics/VerletRopeRigidBody.cs" id="5_onu7k"]
-[ext_resource type="Material" uid="uid://o7na8drc2je2" path="res://addons/verlet_rope_4/Visuals/rope_default.material" id="6_s1s6j"]
+[ext_resource type="Material" uid="uid://o7na8drc2je2" path="res://addons/verlet_rope_4/Materials/rope_default.material" id="6_s1s6j"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_3bmw0"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -423,10 +423,9 @@ skeleton = NodePath("../..")
 shape = SubResource("BoxShape3D_s1s6j")
 
 [node name="RigidRope" type="Node3D" parent="RopeDemos"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.81072, 0.93633, 0.998642)
 
 [node name="VerletRopeRigidBody" type="Node3D" parent="RopeDemos/RigidRope"]
-transform = Transform3D(0.935197, -0.354128, 0, 0.354128, 0.935197, 0, 0, 0, 1, -6.86645, 1.69739, 6.76261)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.8828, 2.55537, 3.61579)
 script = ExtResource("5_onu7k")
 CollisionMask = 7
 UseVisibleOnScreenNotifier = false
