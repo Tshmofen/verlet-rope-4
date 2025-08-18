@@ -10,7 +10,7 @@ public partial class VerletRopeGizmoPlugin : EditorNode3DGizmoPlugin
 {
     private static void AssociateEditorCollision(EditorNode3DGizmo gizmo)
     {
-        if (gizmo.GetNode3D() is not VerletRopePhysical rope)
+        if (gizmo.GetNode3D() is not BaseVerletRopePhysical rope)
         {
             return;
         }
@@ -34,7 +34,7 @@ public partial class VerletRopeGizmoPlugin : EditorNode3DGizmoPlugin
 
     public override EditorNode3DGizmo _CreateGizmo(Node3D forNode3D)
     {
-        if (forNode3D is not VerletRopePhysical)
+        if (forNode3D is not BaseVerletRopePhysical)
         {
             return null;
         }
@@ -47,7 +47,7 @@ public partial class VerletRopeGizmoPlugin : EditorNode3DGizmoPlugin
 
     public override bool _HasGizmo(Node3D forNode3D)
     {
-        return forNode3D is VerletRopePhysical;
+        return forNode3D is BaseVerletRopePhysical;
     }
 }
 

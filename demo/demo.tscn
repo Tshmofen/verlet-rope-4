@@ -175,6 +175,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0461738, 1.38887, 0.022522
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.04443, 2.90247, -2.0848)
 mesh = SubResource("ImmediateMesh_onu7k")
 script = ExtResource("2_lows4")
+SimulationBehavior = 2
 ApplyWind = true
 WindDirection = Vector3(0, 0, 100)
 WindNoise = SubResource("FastNoiseLite_oeqrt")

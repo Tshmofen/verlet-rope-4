@@ -8,7 +8,7 @@ using VerletRope4.Utility;
 namespace VerletRope4.Physics;
 
 [Tool]
-public partial class VerletRopeRigidBody : VerletRopePhysical
+public partial class VerletRopeRigidBody : BaseVerletRopePhysical
 {
     public const string ScriptPath = "res://addons/verlet_rope_4/Physics/VerletRopeRigidBody.cs";
     public const string IconPath = "res://addons/verlet_rope_4/icon.svg";
@@ -31,9 +31,6 @@ public partial class VerletRopeRigidBody : VerletRopePhysical
     [Export(PropertyHint.Layers3DPhysics)] public uint CollisionMask { get; set; } = 1;
     [Export] public bool IsContinuousCollision { get; set; } = false;
     [Export] public bool ShowCollisionShapeDebug { get; set; } = false;
-
-    public Node3D StartNodeAttach { get; set; }
-    public Node3D EndNodeAttach { get; set; }
 
     #region Util
 

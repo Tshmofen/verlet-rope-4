@@ -4,7 +4,7 @@ using VerletRope4.Utility;
 namespace VerletRope4.Physics.Joints;
 
 [Tool]
-public partial class VerletRopeSimulatedJoint : Node3D, ISerializationListener
+public partial class VerletRopeSimulatedJoint : BaseVerletRopeJoint
 {
     public const string ScriptPath = "res://addons/verlet_rope_4/Physics/Joints/VerletRopeSimulatedJoint.cs";
     public const string IconPath = "res://addons/verlet_rope_4/icon.svg";
@@ -14,16 +14,16 @@ public partial class VerletRopeSimulatedJoint : Node3D, ISerializationListener
     [ExportToolButton("Reset Joint")] public Callable ResetJointButton => Callable.From(ResetJoint);
     
     [ExportCategory("Attachment Settings")]
-    [Export] public VerletRopePhysical VerletRope { get; set; }
+    [Export] public VerletRopeSimulated VerletRope { get; set; }
 
     [ExportSubgroup("Rope Start")]
-    [Export] public PhysicsBody3D StartBody { get; set; }
-    [Export] public Node3D StartJointCustomLocation{ get; set; }
+    [Export] public override  PhysicsBody3D StartBody { get; set; }
+    [Export] public override  Node3D StartJointCustomLocation{ get; set; }
     [Export] public bool IgnoreStartBodyCollision { get; set; } = true;
     
     [ExportSubgroup("Rope End")]
-    [Export] public PhysicsBody3D EndBody { get; set; }
-    [Export] public Node3D EndJointCustomLocation{ get; set; }
+    [Export] public override  PhysicsBody3D EndBody { get; set; }
+    [Export] public override Node3D EndJointCustomLocation{ get; set; }
     [Export] public bool IgnoreEndBodyCollision { get; set; } = true;
 
     [ExportSubgroup("Distance Joint Settings")]
@@ -44,12 +44,7 @@ public partial class VerletRopeSimulatedJoint : Node3D, ISerializationListener
         }
         
         // Needed to restore rope state on joint delete or move
-        if (VerletRope is VerletRopeSimulated simulatedRope)
-        {
-            simulatedRope.StartNodeAttach = null;
-            simulatedRope.EndNodeAttach = null;
-        }
-
+        VerletRope.SetAttachments(null, null);
         VerletRope.ClearExceptions();
         VerletRope.CreateRope();
     }
@@ -73,25 +68,24 @@ public partial class VerletRopeSimulatedJoint : Node3D, ISerializationListener
         _distanceJoint.MaxForce = JointMaxForce;
     }
 
-    public void ResetJoint()
+    public override void ResetJoint()
     {
         ConfigureDistanceJoint();
         UpdateConfigurationWarnings();
 
         if (VerletRope == null)
         {
-            VerletRope = GetParent() as VerletRopePhysical;
+            VerletRope = GetParent() as VerletRopeSimulated;
             if (VerletRope == null)
             {
                 return;
             }
         }
 
-        if (VerletRope is VerletRopeSimulated simulatedRope)
-        {
-            simulatedRope.StartNodeAttach = StartJointCustomLocation ?? StartBody;
-            simulatedRope.EndNodeAttach = EndJointCustomLocation ?? EndBody;
-        }
+        VerletRope.SetAttachments(
+            StartJointCustomLocation ?? StartBody, 
+            EndJointCustomLocation ?? EndBody
+        );
 
         if (EndBody != null)
         {
@@ -118,16 +112,11 @@ public partial class VerletRopeSimulatedJoint : Node3D, ISerializationListener
 
     #region Script Reload
 
-    public void OnBeforeSerialize()
+    public override void OnAfterDeserialize()
     {
-        // Ignore unload
-    }
-
-    public void OnAfterDeserialize()
-    {
-        // Recreate joint and clear exceptions after script reload as physics server does not retain object RIDs
+        // Clear exceptions after script reload as physics server does not retain object RIDs
         VerletRope?.ClearExceptions();
-        ResetJoint();
+        base.OnAfterDeserialize();
     }
 
     #endregion

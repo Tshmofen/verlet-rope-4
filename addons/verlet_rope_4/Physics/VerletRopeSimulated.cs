@@ -8,7 +8,7 @@ using VerletRope4.Utility;
 namespace VerletRope4.Physics;
 
 [Tool]
-public partial class VerletRopeSimulated : VerletRopePhysical
+public partial class VerletRopeSimulated : BaseVerletRopePhysical
 {
     public const string ScriptPath = "res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs";
     public const string IconPath = "res://addons/verlet_rope_4/icon.svg";
@@ -16,10 +16,11 @@ public partial class VerletRopeSimulated : VerletRopePhysical
 
     private const float StaticCollisionCheckLength = 0.005f;
     private const float DynamicCollisionCheckLength = 0.1f;
-
+    
     private bool _wasCreated;
     private double _simulationDelta;
     private RopeParticleData _particleData;
+    private readonly List<Rid> _collisionExceptions = [];
 
     private RayCast3D _rayCast;
     private BoxShape3D _collisionShape;
@@ -67,9 +68,6 @@ public partial class VerletRopeSimulated : VerletRopePhysical
     [Export] public bool HitFromInside { get; set; }
     [Export] public bool HitBackFaces { get; set; }
 
-    public Node3D StartNodeAttach { get; set; }
-    public Node3D EndNodeAttach { get; set; }
-
     #region Internal Logic
 
     #region Util
@@ -107,7 +105,7 @@ public partial class VerletRopeSimulated : VerletRopePhysical
         _rayCast.HitFromInside = HitFromInside;
 
         _rayCast.ClearExceptions();
-        foreach (var rid in CollisionExceptions)
+        foreach (var rid in _collisionExceptions)
         {
             _rayCast.AddExceptionRid(rid);
         }
@@ -528,5 +526,22 @@ public partial class VerletRopeSimulated : VerletRopePhysical
     {
         _particleData = null;
         SimulationParticles = 0;
+    }
+
+    public void ClearExceptions()
+    {
+        _collisionExceptions.Clear();
+    }
+
+    public void RegisterExceptionRid(Rid rid, bool toInclude)
+    {
+        if (toInclude)
+        {
+            _collisionExceptions.Add(rid);
+        }
+        else
+        {
+            _collisionExceptions.Remove(rid);
+        }
     }
 }

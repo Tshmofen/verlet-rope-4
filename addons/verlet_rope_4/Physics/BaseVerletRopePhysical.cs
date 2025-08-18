@@ -1,5 +1,4 @@
 ﻿using Godot;
-using System.Collections.Generic;
 using VerletRope4.Data;
 using VerletRope4.Rendering;
 using VerletRope4.Utility;
@@ -7,13 +6,14 @@ using VerletRope4.Utility;
 namespace VerletRope4.Physics;
 
 [Tool]
-public abstract partial class VerletRopePhysical : Node3D, ISerializationListener
+public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationListener
 {
-    protected readonly List<Rid> CollisionExceptions = [];
     private Vector3[] _editorVertexPositions = [];
     private VerletRopeMesh _ropeMesh;
 
     protected VerletRopeMesh RopeMesh => _ropeMesh ??= this.FindOrCreateChild<VerletRopeMesh>();
+    protected Node3D StartNodeAttach { get; set; }
+    protected Node3D EndNodeAttach { get; set; }
     
     // Properties have the same default values as on `RopeMesh`
     [ExportGroup("Visuals")]
@@ -23,23 +23,6 @@ public abstract partial class VerletRopePhysical : Node3D, ISerializationListene
     [Export] public bool UseVisibleOnScreenNotifier { get; set; } = true;
     [Export] public bool UseDebugParticles { get; set; } = false;
     [Export] public Material MaterialOverride { get; set; }
-
-    public virtual void ClearExceptions()
-    {
-        CollisionExceptions.Clear();
-    }
-
-    public virtual void RegisterExceptionRid(Rid rid, bool toInclude)
-    {
-        if (toInclude)
-        {
-            CollisionExceptions.Add(rid);
-        }
-        else
-        {
-            CollisionExceptions.Remove(rid);
-        }
-    }
 
     public virtual void CreateRope()
     {
@@ -54,6 +37,12 @@ public abstract partial class VerletRopePhysical : Node3D, ISerializationListene
     public virtual void DestroyRope() { }
 
     public abstract void CreateJoint();
+
+    public void SetAttachments(Node3D startNode, Node3D endNode)
+    {
+        StartNodeAttach = startNode;
+        EndNodeAttach = endNode;
+    }
 
     #region Editor
 
