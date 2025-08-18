@@ -184,11 +184,11 @@ MaterialOverride = SubResource("StandardMaterial3D_s1s6j")
 metadata/_custom_type_script = "uid://c3oxgehluk75x"
 metadata/VerletRopeObject = true
 
-[node name="VerletRopeJoint" type="Node3D" parent="RopeDemos/WindyRopes/VerletRopeWindyAllConnected" node_paths=PackedStringArray("VerletRope", "StartJointCustomLocation", "EndJointCustomLocation")]
+[node name="VerletRopeJoint" type="Node3D" parent="RopeDemos/WindyRopes/VerletRopeWindyAllConnected" node_paths=PackedStringArray("VerletRope", "StartCustomLocation", "EndCustomLocation")]
 script = ExtResource("3_j5lb4")
 VerletRope = NodePath("..")
-StartJointCustomLocation = NodePath("../../PillarFirst/PillarEnd")
-EndJointCustomLocation = NodePath("../../PillarSecond/PillarEnd")
+StartCustomLocation = NodePath("../../PillarFirst/PillarEnd")
+EndCustomLocation = NodePath("../../PillarSecond/PillarEnd")
 
 [node name="VerletRopeWindyOneSide" type="MeshInstance3D" parent="RopeDemos/WindyRopes"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.10822, 2.90247, -2.15629)
@@ -252,11 +252,11 @@ DynamicCollisionMask = 2
 MaterialOverride = SubResource("StandardMaterial3D_u10mr")
 metadata/VerletRopeObject = true
 
-[node name="VerletRopeJoint" type="Node3D" parent="RopeDemos/MovingRopes/VerletRopeCylinder" node_paths=PackedStringArray("VerletRope", "StartBody", "StartJointCustomLocation")]
+[node name="VerletRopeJoint" type="Node3D" parent="RopeDemos/MovingRopes/VerletRopeCylinder" node_paths=PackedStringArray("VerletRope", "StartBody", "StartCustomLocation")]
 script = ExtResource("3_j5lb4")
 VerletRope = NodePath("..")
 StartBody = NodePath("../../MovingCylinder")
-StartJointCustomLocation = NodePath("../../MovingCylinder/CustomRopePosition")
+StartCustomLocation = NodePath("../../MovingCylinder/CustomRopePosition")
 
 [node name="MovingCylinder" type="RigidBody3D" parent="RopeDemos/MovingRopes"]
 transform = Transform3D(1, 0, 0, 0, 2.98023e-08, -1, 0, 1, 2.98023e-08, 0.168297, 2.46518, 5.47205)
@@ -315,13 +315,13 @@ RopeLength = 0.75
 MaterialOverride = SubResource("StandardMaterial3D_onu7k")
 metadata/VerletRopeObject = true
 
-[node name="VerletRopeJoint" type="Node3D" parent="RopeDemos/PhysicsJointRope/VerletRope" node_paths=PackedStringArray("VerletRope", "StartBody", "StartJointCustomLocation", "EndBody", "EndJointCustomLocation")]
+[node name="VerletRopeJoint" type="Node3D" parent="RopeDemos/PhysicsJointRope/VerletRope" node_paths=PackedStringArray("VerletRope", "StartBody", "StartCustomLocation", "EndBody", "EndCustomLocation")]
 script = ExtResource("3_j5lb4")
 VerletRope = NodePath("..")
 StartBody = NodePath("../../MovingBoxStart")
-StartJointCustomLocation = NodePath("../../MovingBoxStart/CustomConnection")
+StartCustomLocation = NodePath("../../MovingBoxStart/CustomConnection")
 EndBody = NodePath("../../MovingBoxEnd")
-EndJointCustomLocation = NodePath("../../MovingBoxEnd/CustomConnection")
+EndCustomLocation = NodePath("../../MovingBoxEnd/CustomConnection")
 JointMaxDistance = 1.0
 metadata/VerletRopeObject = true
 

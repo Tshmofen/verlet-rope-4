@@ -18,12 +18,12 @@ public partial class VerletRopeSimulatedJoint : BaseVerletRopeJoint
 
     [ExportSubgroup("Rope Start")]
     [Export] public override  PhysicsBody3D StartBody { get; set; }
-    [Export] public override  Node3D StartJointCustomLocation{ get; set; }
+    [Export] public override  Node3D StartCustomLocation{ get; set; }
     [Export] public bool IgnoreStartBodyCollision { get; set; } = true;
     
     [ExportSubgroup("Rope End")]
     [Export] public override  PhysicsBody3D EndBody { get; set; }
-    [Export] public override Node3D EndJointCustomLocation{ get; set; }
+    [Export] public override Node3D EndCustomLocation{ get; set; }
     [Export] public bool IgnoreEndBodyCollision { get; set; } = true;
 
     [ExportSubgroup("Distance Joint Settings")]
@@ -62,8 +62,8 @@ public partial class VerletRopeSimulatedJoint : BaseVerletRopeJoint
         _distanceJoint.MaxDistance = JointMaxDistance;
         _distanceJoint.BodyA = StartBody;
         _distanceJoint.BodyB = EndBody;
-        _distanceJoint.CustomLocationA = StartJointCustomLocation;
-        _distanceJoint.CustomLocationB = EndJointCustomLocation;
+        _distanceJoint.CustomLocationA = StartCustomLocation;
+        _distanceJoint.CustomLocationB = EndCustomLocation;
         _distanceJoint.ForceEasing = JointForceEasing;
         _distanceJoint.MaxForce = JointMaxForce;
     }
@@ -83,8 +83,8 @@ public partial class VerletRopeSimulatedJoint : BaseVerletRopeJoint
         }
 
         VerletRope.SetAttachments(
-            StartJointCustomLocation ?? StartBody, 
-            EndJointCustomLocation ?? EndBody
+            StartCustomLocation ?? StartBody, 
+            EndCustomLocation ?? EndBody
         );
 
         if (EndBody != null)

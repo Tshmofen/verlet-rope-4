@@ -5,10 +5,10 @@ namespace VerletRope4.Physics.Joints;
 public abstract partial class BaseVerletRopeJoint : Node3D, ISerializationListener
 {
     public abstract PhysicsBody3D StartBody { get; set; }
-    public abstract Node3D StartJointCustomLocation{ get; set; }
+    public abstract Node3D StartCustomLocation{ get; set; }
 
     public abstract PhysicsBody3D EndBody { get; set; }
-    public abstract Node3D EndJointCustomLocation{ get; set; }
+    public abstract Node3D EndCustomLocation{ get; set; }
 
     public abstract void ResetJoint();
 

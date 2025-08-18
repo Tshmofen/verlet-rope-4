@@ -15,11 +15,11 @@ public partial class VerletRopeRigidJoint : BaseVerletRopeJoint
 
     [ExportSubgroup("Rope Start")]
     [Export] public override PhysicsBody3D StartBody { get; set; }
-    [Export] public override  Node3D StartJointCustomLocation{ get; set; }
+    [Export] public override  Node3D StartCustomLocation{ get; set; }
     
     [ExportSubgroup("Rope End")]
     [Export] public override  PhysicsBody3D EndBody { get; set; }
-    [Export] public override  Node3D EndJointCustomLocation{ get; set; }
+    [Export] public override  Node3D EndCustomLocation{ get; set; }
 
     public override void _Ready()
     {
@@ -48,7 +48,7 @@ public partial class VerletRopeRigidJoint : BaseVerletRopeJoint
             }
         }
 
-        VerletRope.SetAttachments(StartJointCustomLocation ?? StartBody, EndJointCustomLocation ?? EndBody);
+        VerletRope.SetAttachments(StartCustomLocation ?? StartBody, EndCustomLocation ?? EndBody);
         VerletRope.CreateRope();
     }
 }
