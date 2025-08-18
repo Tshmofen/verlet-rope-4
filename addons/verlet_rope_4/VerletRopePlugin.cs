@@ -1,10 +1,8 @@
 #if TOOLS
 
 using Godot;
-using VerletRope.Physics;
-using VerletRope.Physics.Joints;
 using VerletRope4.Physics;
-using VerletRope4.UI;
+using VerletRope4.Physics.Joints;
 
 namespace VerletRope4;
 
@@ -23,9 +21,13 @@ public partial class VerletRopePlugin : EditorPlugin
         texture = GD.Load<Texture2D>(VerletRopeRigidBody.IconPath);
         AddCustomType(nameof(VerletRopeRigidBody), nameof(Node3D), script, texture);
 
-        script = GD.Load<Script>(VerletRopeJoint.ScriptPath);
-        texture = GD.Load<Texture2D>(VerletRopeJoint.IconPath);
-        AddCustomType(nameof(VerletRopeJoint), nameof(Node3D), script, texture);
+        script = GD.Load<Script>(VerletRopeSimulatedJoint.ScriptPath);
+        texture = GD.Load<Texture2D>(VerletRopeSimulatedJoint.IconPath);
+        AddCustomType(nameof(VerletRopeSimulatedJoint), nameof(Node3D), script, texture);
+        
+        script = GD.Load<Script>(VerletRopeRigidJoint.ScriptPath);
+        texture = GD.Load<Texture2D>(VerletRopeRigidJoint.IconPath);
+        AddCustomType(nameof(VerletRopeRigidJoint), nameof(Node3D), script, texture);
 
         AddNode3DGizmoPlugin(_gizmoPlugin = new VerletRopeGizmoPlugin());
     }
@@ -33,7 +35,9 @@ public partial class VerletRopePlugin : EditorPlugin
     public override void _ExitTree()
     {
         RemoveCustomType(nameof(VerletRopeSimulated));
-        RemoveCustomType(nameof(VerletRopeJoint));
+        RemoveCustomType(nameof(VerletRopeRigidBody));
+        RemoveCustomType(nameof(VerletRopeSimulatedJoint));
+        RemoveCustomType(nameof(VerletRopeRigidJoint));
         RemoveNode3DGizmoPlugin(_gizmoPlugin);
     }
 }

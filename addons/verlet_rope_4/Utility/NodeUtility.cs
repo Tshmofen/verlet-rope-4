@@ -15,7 +15,7 @@ public static class NodeUtility
             }
         }
 
-        var newTargetChild = new TNode() { Name = node.Name + "Joint"};
+        var newTargetChild = new TNode { Name = node.Name + "Joint"};
         node.CallDeferred(Node.MethodName.AddChild, newTargetChild);
         if (isEditorOwner)
         {

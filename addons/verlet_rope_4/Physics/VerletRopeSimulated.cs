@@ -1,8 +1,8 @@
 using Godot;
 using System.Collections.Generic;
 using System.Linq;
-using VerletRope.Physics;
 using VerletRope4.Data;
+using VerletRope4.Physics.Joints;
 using VerletRope4.Utility;
 
 namespace VerletRope4.Physics;
@@ -490,6 +490,11 @@ public partial class VerletRopeSimulated : VerletRopePhysical
 
         UpdateEditorCollision(_particleData);
         UpdateGizmos();
+    }
+
+    public override void CreateJoint()
+    {
+        this.FindOrCreateChild<VerletRopeSimulatedJoint>(true);
     }
 
     public override void CreateRope()

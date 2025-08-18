@@ -2,16 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using VerletRope4.Data;
+using VerletRope4.Physics.Joints;
 using VerletRope4.Utility;
 
-namespace VerletRope.Physics;
+namespace VerletRope4.Physics;
 
 [Tool]
 public partial class VerletRopeRigidBody : VerletRopePhysical
 {
     public const string ScriptPath = "res://addons/verlet_rope_4/Physics/VerletRopeRigidBody.cs";
     public const string IconPath = "res://addons/verlet_rope_4/icon.svg";
-    
+
+    private static readonly StringName InternalMetaStamp = "verlet_rope_rigid_body";
     private RopeParticleData _particleData;
     private readonly List<RigidBody3D> _segmentBodies = [];
 
@@ -28,6 +30,7 @@ public partial class VerletRopeRigidBody : VerletRopePhysical
     [Export(PropertyHint.Layers3DPhysics)] public uint CollisionLayer { get; set; } = 1;
     [Export(PropertyHint.Layers3DPhysics)] public uint CollisionMask { get; set; } = 1;
     [Export] public bool IsContinuousCollision { get; set; } = false;
+    [Export] public bool ShowCollisionShapeDebug { get; set; } = false;
 
     public Node3D StartNodeAttach { get; set; }
     public Node3D EndNodeAttach { get; set; }
@@ -39,14 +42,17 @@ public partial class VerletRopeRigidBody : VerletRopePhysical
         return RopeLength / SimulationSegments;
     }
 
-    private void ClearSections()
+    private void ClearRopeData()
     {
-        foreach (var body in _segmentBodies)
-        {
-            body.QueueFree();
-        }
-
         _segmentBodies.Clear();
+
+        foreach (var child in GetChildren())
+        {
+            if (child.HasMeta(InternalMetaStamp))
+            {
+                child.QueueFree();
+            }
+        }
     }
 
     #endregion
@@ -80,7 +86,7 @@ public partial class VerletRopeRigidBody : VerletRopePhysical
             if (i == _particleData.Count - 1)
             {
                 // There is one less segment, calculate from actual positions
-                var segmentEndPosition = new Vector3(segmentLength / 2f, 0, 0);
+                var segmentEndPosition = new Vector3(segmentLength, 0, 0);
                 _particleData[i].PositionCurrent = _segmentBodies[i - 1].ToGlobal(segmentEndPosition);
             }
             else
@@ -94,18 +100,20 @@ public partial class VerletRopeRigidBody : VerletRopePhysical
         UpdateGizmos();
     }
 
+    public override void CreateJoint()
+    {
+        this.FindOrCreateChild<VerletRopeRigidJoint>(true);
+    }
+
     public override void CreateRope()
     {
         base.CreateRope();
-        ClearSections();
+        ClearRopeData();
 
         var segmentLength = GetSegmentLength();
         var segmentRotation = new Vector3(0, 0, Mathf.Pi / 2f);
-        var segmentShape = new CapsuleShape3D
-        {
-            Height = segmentLength,
-            Radius = RopeWidth + CollisionWidthMargin
-        };
+        var segmentShape = new CapsuleShape3D { Height = segmentLength, Radius = RopeWidth + CollisionWidthMargin };
+        var segmentMesh = ShowCollisionShapeDebug ? new CapsuleMesh { Height = segmentLength, Radius = RopeWidth + CollisionWidthMargin } : null;
 
         var testA = Vector3.Zero + Vector3.Up * 0.5f;
         var testB = testA + Vector3.Right * 1;
@@ -128,10 +136,22 @@ public partial class VerletRopeRigidBody : VerletRopePhysical
 
             rigidBody.AddChild(new CollisionShape3D
             {
+                Position = new Vector3(segmentLength / 2.0f, 0, 0),
                 Shape = segmentShape,
                 Rotation = segmentRotation
             });
 
+            if (segmentMesh != null)
+            {
+                rigidBody.AddChild(new MeshInstance3D
+                {
+                    Position = new Vector3(segmentLength / 2.0f, 0, 0),
+                    Mesh = segmentMesh,
+                    Rotation = segmentRotation
+                });
+            }
+
+            rigidBody.SetMeta(InternalMetaStamp, true);
             _segmentBodies.Add(rigidBody);
             AddChild(rigidBody);
         }
@@ -166,6 +186,6 @@ public partial class VerletRopeRigidBody : VerletRopePhysical
 
     public override void DestroyRope()
     {
-        ClearSections();
+        ClearRopeData();
     }
 }

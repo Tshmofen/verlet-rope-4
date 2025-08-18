@@ -1,7 +1,6 @@
 ﻿using Godot;
-using VerletRope4;
 
-namespace VerletRope.Physics.Joints;
+namespace VerletRope4.Physics.Joints;
 
 [Tool]
 public partial class CustomDistanceJoint : Node

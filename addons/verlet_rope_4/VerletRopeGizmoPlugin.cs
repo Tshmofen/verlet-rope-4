@@ -1,9 +1,9 @@
 ﻿﻿#if TOOLS
 
 using Godot;
-using VerletRope.Physics;
+using VerletRope4.Physics;
 
-namespace VerletRope4.UI;
+namespace VerletRope4;
 
 [Tool]
 public partial class VerletRopeGizmoPlugin : EditorNode3DGizmoPlugin

@@ -1,11 +1,10 @@
 ﻿using Godot;
 using System.Collections.Generic;
-using VerletRope.Physics.Joints;
 using VerletRope4.Data;
 using VerletRope4.Rendering;
 using VerletRope4.Utility;
 
-namespace VerletRope.Physics;
+namespace VerletRope4.Physics;
 
 [Tool]
 public abstract partial class VerletRopePhysical : Node3D, ISerializationListener
@@ -54,10 +53,7 @@ public abstract partial class VerletRopePhysical : Node3D, ISerializationListene
 
     public virtual void DestroyRope() { }
 
-    public void CreateJoint()
-    {
-        this.FindOrCreateChild<VerletRopeJoint>(true);
-    }
+    public abstract void CreateJoint();
 
     #region Editor
 

@@ -1,13 +1,12 @@
 ﻿using Godot;
-using VerletRope4.Physics;
 using VerletRope4.Utility;
 
-namespace VerletRope.Physics.Joints;
+namespace VerletRope4.Physics.Joints;
 
 [Tool]
-public partial class VerletRopeJoint : Node3D, ISerializationListener
+public partial class VerletRopeRigidJoint : Node3D, ISerializationListener
 {
-    public const string ScriptPath = "res://addons/verlet_rope_4/Physics/Joints/VerletRopeJoint.cs";
+    public const string ScriptPath = "res://addons/verlet_rope_4/Physics/Joints/VerletRopeRigidJoint.cs";
     public const string IconPath = "res://addons/verlet_rope_4/icon.svg";
 
     private CustomDistanceJoint _distanceJoint;

@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://c3oxgehluk75x" path="res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs" id="2_lows4"]
 [ext_resource type="Script" uid="uid://bccao1l5oneap" path="res://demo/MovingBodyDemo.cs" id="2_u10mr"]
 [ext_resource type="Script" uid="uid://d36wx6t8jmjcx" path="res://demo/MovingRopeDemo.cs" id="2_vutyd"]
-[ext_resource type="Script" uid="uid://chq4fc6dgmaln" path="res://addons/verlet_rope_4/Physics/Joints/VerletRopeJoint.cs" id="3_j5lb4"]
+[ext_resource type="Script" uid="uid://ffm7yrjl0bfd" path="res://addons/verlet_rope_4/Physics/Joints/VerletRopeSimulatedJoint.cs" id="3_j5lb4"]
 [ext_resource type="Script" uid="uid://b6d7w4sbrb33r" path="res://addons/verlet_rope_4/Physics/VerletRopeRigidBody.cs" id="5_onu7k"]
 [ext_resource type="Material" uid="uid://o7na8drc2je2" path="res://addons/verlet_rope_4/Materials/rope_default.material" id="6_s1s6j"]
 
@@ -188,7 +188,6 @@ script = ExtResource("3_j5lb4")
 VerletRope = NodePath("..")
 StartJointCustomLocation = NodePath("../../PillarFirst/PillarEnd")
 EndJointCustomLocation = NodePath("../../PillarSecond/PillarEnd")
-metadata/_custom_type_script = "uid://chq4fc6dgmaln"
 
 [node name="VerletRopeWindyOneSide" type="MeshInstance3D" parent="RopeDemos/WindyRopes"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.10822, 2.90247, -2.15629)
@@ -257,7 +256,6 @@ script = ExtResource("3_j5lb4")
 VerletRope = NodePath("..")
 StartBody = NodePath("../../MovingCylinder")
 StartJointCustomLocation = NodePath("../../MovingCylinder/CustomRopePosition")
-metadata/_custom_type_script = "uid://chq4fc6dgmaln"
 
 [node name="MovingCylinder" type="RigidBody3D" parent="RopeDemos/MovingRopes"]
 transform = Transform3D(1, 0, 0, 0, 2.98023e-08, -1, 0, 1, 2.98023e-08, 0.168297, 2.46518, 5.47205)
@@ -324,7 +322,6 @@ StartJointCustomLocation = NodePath("../../MovingBoxStart/CustomConnection")
 EndBody = NodePath("../../MovingBoxEnd")
 EndJointCustomLocation = NodePath("../../MovingBoxEnd/CustomConnection")
 JointMaxDistance = 1.0
-metadata/_custom_type_script = "uid://chq4fc6dgmaln"
 metadata/VerletRopeObject = true
 
 [node name="MovingBoxStart" type="RigidBody3D" parent="RopeDemos/PhysicsJointRope"]
@@ -425,9 +422,10 @@ shape = SubResource("BoxShape3D_s1s6j")
 [node name="RigidRope" type="Node3D" parent="RopeDemos"]
 
 [node name="VerletRopeRigidBody" type="Node3D" parent="RopeDemos/RigidRope"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.8828, 2.55537, 3.61579)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.06735, 2.55537, 3.61579)
 script = ExtResource("5_onu7k")
 CollisionMask = 7
+ShowCollisionShapeDebug = true
 UseVisibleOnScreenNotifier = false
 MaterialOverride = ExtResource("6_s1s6j")
 metadata/_custom_type_script = "uid://b6d7w4sbrb33r"
