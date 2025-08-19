@@ -5,7 +5,7 @@ namespace VerletRope4.Utility;
 
 public static class NodeUtility
 {
-    public static TNode FindOrCreateChild<TNode>(this Node node, bool isEditorOwner = false) where TNode : Node, new()
+    public static TNode FindOrCreateChild<TNode>(this Node node, string editorName = null) where TNode : Node, new()
     {
         foreach (var child in node.GetChildren())
         {
@@ -14,13 +14,17 @@ public static class NodeUtility
                 return targetChild;
             }
         }
-
-        var newTargetChild = new TNode { Name = node.Name + "Joint"};
-        node.CallDeferred(Node.MethodName.AddChild, newTargetChild);
-        if (isEditorOwner)
+        
+        var newTargetChild = new TNode();
+        Callable.From(() =>
         {
-            newTargetChild.CallDeferred(Node.MethodName.SetOwner, node.GetTree().EditedSceneRoot);
-        }
+            node.AddChild(newTargetChild);
+            if (!string.IsNullOrEmpty(editorName))
+            {
+                newTargetChild.Owner = node.GetTree().EditedSceneRoot;
+                newTargetChild.Name = editorName;
+            }
+        }).CallDeferred();
 
         return newTargetChild;
     }
@@ -35,4 +39,14 @@ public static class NodeUtility
         var selectedNodes = EditorInterface.Singleton.GetSelection().GetSelectedNodes();
         return selectedNodes.Any(n => n == node);
     }
+
+    public static void SetSubtreeOwner(this Node node, Node owner)
+    {
+        node.Owner = owner;
+
+        foreach (var child in node.GetChildren())
+        {
+            SetSubtreeOwner(child, owner);
+        }
+    } 
 }

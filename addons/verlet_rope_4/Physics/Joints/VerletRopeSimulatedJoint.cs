@@ -40,7 +40,7 @@ public partial class VerletRopeSimulatedJoint : BaseVerletRopeJoint
     {
         VerletRope?.SetAttachments(null, null);
         VerletRope?.ClearExceptions();
-        VerletRope?.CreateRope();
+        VerletRope?.CallDeferred(VerletRopeSimulated.MethodName.CreateRope);
     }
 
     private void ConfigureDistanceJoint()
@@ -82,8 +82,8 @@ public partial class VerletRopeSimulatedJoint : BaseVerletRopeJoint
         {
             VerletRope?.RegisterExceptionRid(StartBody.GetRid(), IgnoreStartBodyCollision);
         }
-
-        VerletRope?.CreateRope();
+        
+        VerletRope?.CallDeferred(VerletRopeSimulated.MethodName.CreateRope);
     }
 
     public override string[] _GetConfigurationWarnings()

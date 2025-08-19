@@ -68,8 +68,6 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
     [Export] public bool HitFromInside { get; set; }
     [Export] public bool HitBackFaces { get; set; }
 
-    #region Internal Logic
-
     #region Util
 
     private float GetAverageSegmentLength()
@@ -123,6 +121,8 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
     }
 
     #endregion
+    
+    #region Internal Logic
 
     #region Constraints
 
@@ -446,8 +446,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
             return;
         }
 
-        var isEditor = Engine.IsEditorHint();
-        if (isEditor && _particleData == null)
+        if (_particleData == null)
         {
             CreateRope();
         }
@@ -492,7 +491,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
 
     public override void CreateJoint()
     {
-        this.FindOrCreateChild<VerletRopeSimulatedJoint>(true);
+        this.FindOrCreateChild<VerletRopeSimulatedJoint>("JointSimulated");
     }
 
     public override void CreateRope()
