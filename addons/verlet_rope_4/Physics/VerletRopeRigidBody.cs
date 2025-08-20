@@ -1,6 +1,5 @@
 ﻿using Godot;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using VerletRope4.Data;
 using VerletRope4.Physics.Joints;
 using VerletRope4.Utility;
@@ -40,6 +39,22 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
         return RopeLength / SimulationSegments;
     }
 
+    private Vector3 GetRotation(Vector3 direction)
+    {
+        if (direction == Vector3.Zero)
+        {
+            return Vector3.Zero;
+        }
+
+        var norm = direction.Normalized();
+        var pitch = -Mathf.Asin(norm.Y);
+        var yaw = Mathf.Abs(norm.X) > Mathf.Epsilon || Mathf.Abs(norm.Z) > Mathf.Epsilon
+            ? -Mathf.Atan2(norm.X, norm.Z)
+            : 0;
+
+        return new Vector3(pitch, yaw, 0); // Roll (Z) cannot be derived from only direction
+    }
+
     #endregion
 
     #region Physics Spawn
@@ -47,7 +62,7 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
     private void SpawnSegmentBodies()
     {
         var segmentLength = GetSegmentLength();
-        var segmentRotation = new Vector3(0, 0, Mathf.Pi / 2f);
+        var segmentPosition = new Vector3(0, segmentLength / 2.0f, 0);
         var segmentShape = new CapsuleShape3D { Height = segmentLength, Radius = RopeWidth + CollisionWidthMargin };
         var segmentMesh = ShowCollisionShapeDebug ? new CapsuleMesh { Height = segmentLength, Radius = RopeWidth + CollisionWidthMargin } : null;
 
@@ -59,8 +74,6 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
             : startPosition + Vector3.Right * segmentLength * (SimulationSegments + 1);
 
         var positions = SegmentPlaceUtility.ConnectPoints(startPosition, endPosition, Vector3.Forward, segmentLength, SimulationSegments);
-        DebugDraw3D.DrawLine(ToGlobal(startPosition + Vector3.Up * 0.3f), ToGlobal(endPosition + Vector3.Up * 0.3f), duration: 10, color: Colors.Blue);
-
         for (var i = 0; i < SimulationSegments; i++)
         {
             var body = new RigidBody3D
@@ -73,46 +86,48 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
 
             body.AddChild(new CollisionShape3D
             {
-                Position = new Vector3(segmentLength / 2.0f, 0, 0),
-                Shape = segmentShape,
-                Rotation = segmentRotation
+                Position = segmentPosition,
+                Shape = segmentShape
             });
 
             if (segmentMesh != null)
             {
                 body.AddChild(new MeshInstance3D
                 {
-                    Position = new Vector3(segmentLength / 2.0f, 0, 0),
-                    Mesh = segmentMesh,
-                    Rotation = segmentRotation
+                    Position = segmentPosition,
+                    Mesh = segmentMesh
                 });
             }
 
-            DebugDraw3D.DrawArrow(ToGlobal(positions[i] + Vector3.Up * 0.3f), ToGlobal(positions[i + 1] + Vector3.Up * 0.3f), duration: 10f);
-            //rigidBody.RotateY(Mathf.Pi / 2);
             body.SetMeta(InternalMetaStamp, true);
             _segmentBodies.Add(body);
             AddChild(body);
         }
 
-        for (var i = 0; i < SimulationSegments; i++)
+        for (var i = 0; i < _segmentBodies.Count; i++)
         {
             var body = _segmentBodies[i];
-            var direction = positions[i + 1] - positions[i];
+            body.LookAt(ToGlobal(positions[i + 1]));
+            body.Rotation = new Vector3(
+                body.Rotation.X - Mathf.Pi / 2,
+                body.Rotation.Y,
+                body.Rotation.Z
+            );
         }
     }
 
     private void PinSegmentBodies()
     {
         var segmentLength = GetSegmentLength();
+        var pinPosition = new Vector3(0, segmentLength, 0);
 
         if (StartNodeAttach != null || IsStartSegmentPinned)
         {
             _segmentBodies[0].AddChild(new PinJoint3D
             {
                 Position = Vector3.Zero,
-                NodeA = StartNodeAttach is PhysicsBody3D ? StartNodeAttach.GetPath() : null,
-                NodeB = _segmentBodies[0].GetPath()
+                NodeA = _segmentBodies[0].GetPath(),
+                NodeB = StartNodeAttach is PhysicsBody3D ? StartNodeAttach.GetPath() : null
             });
         }
 
@@ -123,7 +138,7 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
 
             currentBody.AddChild(new PinJoint3D
             {
-                Position = Vector3.Right * segmentLength,
+                Position = pinPosition,
                 NodeA = currentBody.GetPath(),
                 NodeB = nextBody.GetPath()
             });
@@ -133,8 +148,8 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
         {
             _segmentBodies[^1].AddChild(new PinJoint3D
             {
-                Position = Vector3.Right * segmentLength,
-                NodeA = _segmentBodies[0].GetPath(),
+                Position = pinPosition,
+                NodeA = _segmentBodies[^1].GetPath(),
                 NodeB = EndNodeAttach is PhysicsBody3D ? EndNodeAttach.GetPath() : null
             });
         }
@@ -175,10 +190,11 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
         if (_segmentBodies.Count > 0)
         {
             var segmentLength = GetSegmentLength();
+            var endPosition = new Vector3(0, segmentLength, 0);
             for (var i = 0; i < _particleData!.Count; i++)
             {
                 _particleData[i].PositionCurrent = (i == _particleData.Count - 1) // One less segment than particles, handle separately
-                    ? _segmentBodies[i - 1].ToGlobal(new Vector3(segmentLength, 0, 0))
+                    ? _segmentBodies[i - 1].ToGlobal(endPosition)
                     : _segmentBodies[i].GlobalPosition;
             }
         }
