@@ -13,7 +13,7 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
     public const string IconPath = "res://addons/verlet_rope_4/icon.svg";
 
     private static readonly StringName InternalMetaStamp = "verlet_rope_rigid_body";
-    private readonly List<RigidBody3D> _segmentBodies = [];
+    private List<RigidBody3D> _segmentBodies;
     private RopeParticleData _particleData;
 
     [ExportToolButton("Reset Rope")] public Callable ResetRopeButton => Callable.From(CreateRope);
@@ -59,8 +59,9 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
 
     #region Physics Spawn
 
-    private void SpawnSegmentBodies()
+    private List<RigidBody3D> SpawnSegmentBodies(Node target)
     {
+        var segmentBodies = new List<RigidBody3D>();
         var segmentLength = GetSegmentLength();
         var segmentPosition = new Vector3(0, segmentLength / 2.0f, 0);
         var segmentShape = new CapsuleShape3D { Height = segmentLength, Radius = RopeWidth + CollisionWidthMargin };
@@ -100,41 +101,39 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
             }
 
             body.SetMeta(InternalMetaStamp, true);
-            _segmentBodies.Add(body);
-            AddChild(body);
+            segmentBodies.Add(body);
+            target.AddChild(body);
         }
 
-        for (var i = 0; i < _segmentBodies.Count; i++)
+        for (var i = 0; i < segmentBodies.Count; i++)
         {
-            var body = _segmentBodies[i];
+            var body = segmentBodies[i];
             body.LookAt(ToGlobal(positions[i + 1]));
-            body.Rotation = new Vector3(
-                body.Rotation.X - Mathf.Pi / 2,
-                body.Rotation.Y,
-                body.Rotation.Z
-            );
+            body.RotateObjectLocal(Vector3.Right, -Mathf.Pi / 2);
         }
+
+        return segmentBodies;
     }
 
-    private void PinSegmentBodies()
+    private void PinSegmentBodies(List<RigidBody3D> segmentBodies)
     {
         var segmentLength = GetSegmentLength();
         var pinPosition = new Vector3(0, segmentLength, 0);
 
         if (StartNodeAttach != null || IsStartSegmentPinned)
         {
-            _segmentBodies[0].AddChild(new PinJoint3D
+            segmentBodies[0].AddChild(new PinJoint3D
             {
                 Position = Vector3.Zero,
-                NodeA = _segmentBodies[0].GetPath(),
+                NodeA = segmentBodies[0].GetPath(),
                 NodeB = StartNodeAttach is PhysicsBody3D ? StartNodeAttach.GetPath() : null
             });
         }
 
-        for (var i = 0; i < _segmentBodies.Count - 1; i++)
+        for (var i = 0; i < segmentBodies.Count - 1; i++)
         {
-            var currentBody = _segmentBodies[i];
-            var nextBody = _segmentBodies[i + 1];
+            var currentBody = segmentBodies[i];
+            var nextBody = segmentBodies[i + 1];
 
             currentBody.AddChild(new PinJoint3D
             {
@@ -146,21 +145,21 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
 
         if (EndNodeAttach != null)
         {
-            _segmentBodies[^1].AddChild(new PinJoint3D
+            segmentBodies[^1].AddChild(new PinJoint3D
             {
                 Position = pinPosition,
-                NodeA = _segmentBodies[^1].GetPath(),
+                NodeA = segmentBodies[^1].GetPath(),
                 NodeB = EndNodeAttach is PhysicsBody3D ? EndNodeAttach.GetPath() : null
             });
         }
     }
 
-    private void GenerateParticleData()
+    private RopeParticleData GenerateParticleData(List<RigidBody3D> segmentBodies)
     {
-        var particlePositions = _segmentBodies.ConvertAll(b => b.GlobalPosition);
+        var particlePositions = segmentBodies.ConvertAll(b => b.GlobalPosition);
         var finalPointPosition = new Vector3(GetSegmentLength() * _segmentBodies.Count, 0, 0);
         particlePositions.Add(ToGlobal(finalPointPosition));
-        _particleData = RopeParticleData.GenerateParticleData(particlePositions);
+        return RopeParticleData.GenerateParticleData(particlePositions);
     }
 
     #endregion
@@ -182,12 +181,12 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
         }
 
         ProcessMode = ProcessModeEnum.Inherit;
-        if (_particleData == null)
+        if (_particleData == null || _segmentBodies == null)
         {
             CreateRope();
         }
 
-        if (_segmentBodies.Count > 0)
+        if (_segmentBodies!.Count > 0)
         {
             var segmentLength = GetSegmentLength();
             var endPosition = new Vector3(0, segmentLength, 0);
@@ -209,16 +208,14 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
         var groupNode = new Node3D
         {
             Name = $"Bodies_{Name}",
-            Position = Position
+            Position = Position,
+            Rotation = Rotation
         };
-
-        foreach (var body in _segmentBodies)
-        {
-            var node = body.Duplicate();
-            groupNode.AddChild(node);
-        }
-
         AddSibling(groupNode);
+
+        var cloneBodies = SpawnSegmentBodies(groupNode);
+        PinSegmentBodies(cloneBodies);
+
         groupNode.SetSubtreeOwner(GetTree().EditedSceneRoot);
     }
 
@@ -231,14 +228,14 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
     {
         DestroyRope();
         base.CreateRope();
-        SpawnSegmentBodies();
-        PinSegmentBodies();
-        GenerateParticleData();
+        _segmentBodies = SpawnSegmentBodies(this);
+        PinSegmentBodies(_segmentBodies);
+        _particleData = GenerateParticleData(_segmentBodies);
     }
 
     public override void DestroyRope()
     {
-        _segmentBodies.Clear();
+        _segmentBodies = null;
 
         foreach (var child in GetChildren())
         {

@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3 uid="uid://bota3ppynjsu1"]
+[gd_scene load_steps=40 format=3 uid="uid://bota3ppynjsu1"]
 
 [ext_resource type="Script" uid="uid://c3oxgehluk75x" path="res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs" id="2_lows4"]
 [ext_resource type="Script" uid="uid://bccao1l5oneap" path="res://demo/MovingBodyDemo.cs" id="2_u10mr"]
@@ -118,7 +118,10 @@ size = Vector3(0.1, 1.2, 3)
 size = Vector3(0.1, 1.2, 3)
 
 [sub_resource type="BoxMesh" id="BoxMesh_s1s6j"]
-size = Vector3(0.1, 0.1, 0.1)
+size = Vector3(0.2, 0.2, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_oeqrt"]
+size = Vector3(0.2, 0.2, 0.2)
 
 [node name="Demo" type="Node3D"]
 
@@ -427,21 +430,25 @@ shape = SubResource("BoxShape3D_s1s6j")
 [node name="RigidRope" type="Node3D" parent="RopeDemos"]
 
 [node name="VerletRopeRigidBody" type="Node3D" parent="RopeDemos/RigidRope"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.06735, 2.55537, 3.61579)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.82879, 3.28835, 3.6061)
 script = ExtResource("5_onu7k")
 CollisionMask = 7
+ShowCollisionShapeDebug = true
 UseVisibleOnScreenNotifier = false
 MaterialOverride = ExtResource("6_s1s6j")
 metadata/_custom_type_script = "uid://b6d7w4sbrb33r"
 
-[node name="JointRigid" type="Node3D" parent="RopeDemos/RigidRope/VerletRopeRigidBody" node_paths=PackedStringArray("VerletRope", "EndCustomLocation")]
+[node name="JointRigid" type="Node3D" parent="RopeDemos/RigidRope/VerletRopeRigidBody" node_paths=PackedStringArray("VerletRope", "EndBody")]
 script = ExtResource("7_s1s6j")
 VerletRope = NodePath("..")
-EndCustomLocation = NodePath("../../EndAttachment")
+EndBody = NodePath("../../EndAttachment")
 
-[node name="EndAttachment" type="Node3D" parent="RopeDemos/RigidRope"]
+[node name="EndAttachment" type="RigidBody3D" parent="RopeDemos/RigidRope"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6998, 2.55537, 3.06489)
 metadata/_edit_group_ = true
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="RopeDemos/RigidRope/EndAttachment"]
 mesh = SubResource("BoxMesh_s1s6j")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RopeDemos/RigidRope/EndAttachment"]
+shape = SubResource("BoxShape3D_oeqrt")
