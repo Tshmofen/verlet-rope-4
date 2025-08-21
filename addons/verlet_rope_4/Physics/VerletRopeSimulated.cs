@@ -29,7 +29,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
     private readonly Dictionary<RigidBody3D, RopeDynamicCollisionData> _dynamicBodies = [];
 
     [ExportToolButton("Reset Rope")] public Callable ResetRopeButton => Callable.From(CreateRope);
-    [ExportToolButton("Add Joint")] public Callable AddJointButton => Callable.From(CreateJoint);
+    [ExportToolButton("Add Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
     
     [ExportGroup("Simulation")]
     [Export(PropertyHint.Range, "3,100")] public int SimulationParticles { get; set; } = 10;
@@ -419,6 +419,19 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
 
     #endregion
 
+    #region Editor
+
+    private void CreateJointAction()
+    {
+        CommitEditorAction("Verlet Rope - Create Simulated Joint", (undoRedo, actionId) =>
+        {
+            undoRedo.AddDoMethod(this, MethodName.CreateJoint, actionId, true);
+            undoRedo.AddUndoMethod(this, MethodName.CreateJoint, actionId, false);
+        });
+    }
+
+    #endregion
+
     public override void _Ready()
     {
         base._Ready();
@@ -482,16 +495,25 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
         ApplyConstraints(simulationDeltaF);
         RopeMesh.DrawRopeParticles(_particleData);
 
-        EmitSignal(SignalName.SimulationStep, _simulationDelta);
+        EmitSignalSimulationStep(_simulationDelta);
         _simulationDelta = 0;
 
         UpdateEditorCollision(_particleData);
         UpdateGizmos();
     }
 
-    public override void CreateJoint()
+    public override void CreateJoint(int actionId = 0, bool toCreate = true)
     {
-        this.FindOrCreateChild<VerletRopeSimulatedJoint>("JointSimulated");
+        var metaName = GetActionMeta("create_simulated_joint");
+
+        if (!toCreate)
+        {
+            this.RemoveChildByMeta(metaName, actionId);
+            return;
+        }
+
+        var joint = this.CreateChild<VerletRopeSimulatedJoint>("JointSimulated");
+        joint.SetMeta(metaName, actionId);
     }
 
     public override void CreateRope()

@@ -353,7 +353,7 @@ shape = SubResource("BoxShape3D_onu7k")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.152623, 0, 0)
 
 [node name="MovingBoxEnd" type="RigidBody3D" parent="RopeDemos/PhysicsJointRope"]
-transform = Transform3D(1, 0, 0, 0, 2.98023e-08, -1, 0, 1, 2.98023e-08, -1.36173, 0.210121, 2.22341)
+transform = Transform3D(1, 0, 0, 0, 2.98023e-08, -1, 0, 1, 2.98023e-08, -1.29765, 0.210121, 2.34069)
 collision_layer = 3
 collision_mask = 7
 metadata/_edit_group_ = true

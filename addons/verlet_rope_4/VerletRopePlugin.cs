@@ -10,7 +10,6 @@ namespace VerletRope4;
 public partial class VerletRopePlugin : EditorPlugin
 {
     private VerletRopeGizmoPlugin _gizmoPlugin;
-    private static VerletRopePlugin _instance;
 
     public override void _EnterTree()
     {
@@ -31,7 +30,6 @@ public partial class VerletRopePlugin : EditorPlugin
         AddCustomType(nameof(VerletRopeRigidJoint), nameof(Node), script, texture);
 
         AddNode3DGizmoPlugin(_gizmoPlugin = new VerletRopeGizmoPlugin());
-        _instance = this;
     }
 
     public override void _ExitTree()
@@ -41,10 +39,18 @@ public partial class VerletRopePlugin : EditorPlugin
         RemoveCustomType(nameof(VerletRopeSimulatedJoint));
         RemoveCustomType(nameof(VerletRopeRigidJoint));
         RemoveNode3DGizmoPlugin(_gizmoPlugin);
-        _instance = null;
     }
 
-    public static EditorUndoRedoManager GetGlobalUndoRedo() => _instance.GetUndoRedo();
+    public override bool _Handles(GodotObject @object)
+    {
+        if (@object is not BaseVerletRopePhysical rope)
+        {
+            return false;
+        }
+
+        rope.AssociateUndoRedoManager(GetUndoRedo());
+        return true;
+    }
 }
 
 #endif

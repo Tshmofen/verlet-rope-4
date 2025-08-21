@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using Godot;
 using VerletRope4.Data;
 using VerletRope4.Rendering;
@@ -10,6 +9,7 @@ namespace VerletRope4.Physics;
 [Tool]
 public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationListener
 {
+    private EditorUndoRedoManager _undoRedoManager;
     private Vector3[] _editorVertexPositions = [];
     private VerletRopeMesh _ropeMesh;
 
@@ -42,7 +42,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
 
     public virtual void DestroyRope() { }
 
-    public abstract void CreateJoint();
+    public abstract void CreateJoint(int actionId = 0, bool toCreate = true);
 
     public void SetAttachments(PhysicsBody3D startBody, Node3D startLocation, PhysicsBody3D endBody, Node3D endLocation)
     {
@@ -53,10 +53,29 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     }
 
     #region Editor
+    #if TOOLS
 
-    public void UpdateEditorCollision(RopeParticleData particleData)
+    protected static StringName GetActionMeta(string action)
     {
-        #if TOOLS
+        return $"verlet_rope_physical_{action}";
+    }
+
+    protected void CommitEditorAction(string actionName, Action<EditorUndoRedoManager, int> undoRedoAction)
+    {
+        if (_undoRedoManager == null)
+        {
+            GD.PushWarning($"`{nameof(VerletRopeRigidBody)}` has tried to use `{nameof(_undoRedoManager)}`, but it was not associated with the plugin.");
+            return;
+        }
+
+        var actionId = Random.Shared.Next();
+        _undoRedoManager.CreateAction(actionName);
+        undoRedoAction.Invoke(_undoRedoManager, actionId);
+        _undoRedoManager.CommitAction();
+    }
+    
+    protected void UpdateEditorCollision(RopeParticleData particleData)
+    {
         if (particleData.Count != _editorVertexPositions?.Length)
         {
             _editorVertexPositions = new Vector3[particleData.Count * 2 - 2];
@@ -71,14 +90,19 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         {
             _editorVertexPositions[i] = ToLocal(particleData[(i + 1) / 2].PositionCurrent);
         }
-        #endif
+    }
+
+    public void AssociateUndoRedoManager(EditorUndoRedoManager manager)
+    {
+        _undoRedoManager = manager;
     }
 
     public Vector3[] GetEditorSegments()
     {
         return _editorVertexPositions;
     }
-
+    
+    #endif
     #endregion
 
     #region Script Reload

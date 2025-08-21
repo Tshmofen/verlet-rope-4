@@ -7,6 +7,12 @@ public static class NodeUtility
 {
     public static TNode FindOrCreateChild<TNode>(this Node node, string editorName = null) where TNode : Node, new()
     {
+        var foundChild = FindChild<TNode>(node);
+        return foundChild ?? CreateChild<TNode>(node, editorName);
+    }
+
+    public static TNode FindChild<TNode>(this Node node) where TNode : Node, new()
+    {
         foreach (var child in node.GetChildren())
         {
             if (child is TNode targetChild)
@@ -14,19 +20,38 @@ public static class NodeUtility
                 return targetChild;
             }
         }
-        
+
+        return null;
+    }
+
+    public static TNode CreateChild<TNode>(this Node node, string editorName) where TNode : Node, new()
+    {
         var newTargetChild = new TNode();
-        Callable.From(() =>
+
+        void AssignNode()
         {
             node.AddChild(newTargetChild);
-            if (!string.IsNullOrEmpty(editorName))
+
+            if (string.IsNullOrEmpty(editorName))
             {
-                newTargetChild.Owner = node.GetTree().EditedSceneRoot;
-                newTargetChild.Name = editorName;
+                return;
             }
-        }).CallDeferred();
+
+            newTargetChild.Owner = node.GetTree().EditedSceneRoot;
+            newTargetChild.Name = editorName;
+        }
+        Callable.From(AssignNode).CallDeferred();
 
         return newTargetChild;
+    }
+
+    public static void RemoveChildByMeta(this Node node, StringName metaName, long metaValue)
+    {
+        var matchingNode = node
+            .GetChildren()
+            .Where(c => c.HasMeta(metaName))
+            .FirstOrDefault(c => c.GetMeta(metaName).AsInt64() == metaValue);
+        matchingNode?.QueueFree();
     }
 
     public static bool IsEditorSelected(this Node node)

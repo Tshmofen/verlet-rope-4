@@ -10,7 +10,20 @@ public abstract partial class BaseVerletRopeJoint : Node, ISerializationListener
     public abstract PhysicsBody3D EndBody { get; set; }
     public abstract Node3D EndCustomLocation{ get; set; }
 
-    public abstract void ResetJoint();
+    public virtual void ResetJoint()
+    {
+        UpdateConfigurationWarnings();
+    }
+
+    public override string[] _GetConfigurationWarnings()
+    {
+        if (StartBody == null && StartCustomLocation == null && EndBody == null && EndCustomLocation == null)
+        {
+            return ["No custom bodies specified, joint is doing nothing - consider resetting or removing it."];
+        }
+
+        return [];
+    }
 
     #region Script Reload
 

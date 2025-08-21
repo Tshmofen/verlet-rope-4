@@ -1,7 +1,5 @@
-﻿using System;
-using Godot;
+﻿using Godot;
 using System.Collections.Generic;
-using System.Linq;
 using VerletRope4.Data;
 using VerletRope4.Physics.Joints;
 using VerletRope4.Utility;
@@ -15,12 +13,11 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
     public const string IconPath = "res://addons/verlet_rope_4/icon.svg";
 
     private static readonly StringName InternalMetaStamp = "verlet_rope_rigid_body";
-    private static readonly StringName EditorIdMetaStamp = "verlet_rope_editor_id";
     private List<RigidBody3D> _segmentBodies;
     private RopeParticleData _particleData;
 
     [ExportToolButton("Reset Rope")] public Callable ResetRopeButton => Callable.From(CreateRope);
-    [ExportToolButton("Add Joint")] public Callable AddJointButton => Callable.From(CreateJoint);
+    [ExportToolButton("Add Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
     [ExportToolButton("Clone Rigid Bodies")] public Callable CloneBodiesButton => Callable.From(CloneRigidBodiesAction);
 
     [ExportGroup("Simulation")]
@@ -151,6 +148,28 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
 
     #endregion
 
+    #region Editor
+
+    private void CloneRigidBodiesAction()
+    {
+        CommitEditorAction("Verlet Rope - Clone Rigid Bodies", (undoRedo, actionId) =>
+        {
+            undoRedo.AddDoMethod(this, MethodName.CloneRigidBodies, actionId, true);
+            undoRedo.AddUndoMethod(this, MethodName.CloneRigidBodies, actionId, false);
+        });
+    }
+
+    private void CreateJointAction()
+    {
+        CommitEditorAction("Verlet Rope - Create Rigid Joint", (undoRedo, actionId) =>
+        {
+            undoRedo.AddDoMethod(this, MethodName.CreateJoint, actionId, true);
+            undoRedo.AddUndoMethod(this, MethodName.CreateJoint, actionId, false);
+        });
+    }
+
+    #endregion
+
     public override void _Ready()
     {
         base._Ready();
@@ -190,15 +209,13 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
         UpdateGizmos();
     }
 
-    private void CloneRigidBodiesInternal(long editorId, bool toCreate)
+    public void CloneRigidBodies(int actionId = 0, bool toCreate = true)
     {
+        var metaName = GetActionMeta("clone_rigid_bodies");
+
         if (!toCreate)
         {
-            var matchingNode = GetParent()
-                .GetChildren()
-                .Where(c => c.HasMeta(EditorIdMetaStamp))
-                .FirstOrDefault(c => c.GetMeta(EditorIdMetaStamp).AsInt64() == editorId);
-            matchingNode?.QueueFree();
+            GetParent().RemoveChildByMeta(metaName, actionId);
             return;
         }
 
@@ -208,7 +225,7 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
             Position = Position,
             Rotation = Rotation
         };
-        groupNode.SetMeta(EditorIdMetaStamp, editorId);
+        groupNode.SetMeta(metaName, actionId);
         AddSibling(groupNode);
 
         var cloneBodies = SpawnSegmentBodies(groupNode);
@@ -217,19 +234,18 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
         groupNode.SetSubtreeOwner(GetTree().EditedSceneRoot);
     }
 
-    public void CloneRigidBodiesAction()
+    public override void CreateJoint(int actionId = 0, bool toCreate = true)
     {
-        var undoRedo = VerletRopePlugin.GetGlobalUndoRedo();
-        var actionId = Random.Shared.NextInt64();
-        undoRedo.CreateAction("Rigid Bodies Clone");
-        undoRedo.AddDoMethod(this, MethodName.CloneRigidBodiesInternal, actionId, true);
-        undoRedo.AddUndoMethod(this, MethodName.CloneRigidBodiesInternal, actionId, false);
-        undoRedo.CommitAction();
-    }
+        var metaName = GetActionMeta("create_rigid_joint");
 
-    public override void CreateJoint()
-    {
-        this.FindOrCreateChild<VerletRopeRigidJoint>("JointRigid");
+        if (!toCreate)
+        {
+            this.RemoveChildByMeta(metaName, actionId);
+            return;
+        }
+
+        var joint = this.CreateChild<VerletRopeRigidJoint>("JointRigid");
+        joint.SetMeta(metaName, actionId);
     }
 
     public override void CreateRope()

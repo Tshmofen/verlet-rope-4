@@ -1,4 +1,5 @@
-﻿using Godot;
+﻿using System.Linq;
+using Godot;
 using VerletRope4.Utility;
 
 namespace VerletRope4.Physics.Joints;
@@ -64,6 +65,7 @@ public partial class VerletRopeSimulatedJoint : BaseVerletRopeJoint
 
     public override void ResetJoint()
     {
+        base.ResetJoint();
         ConfigureDistanceJoint();
         UpdateConfigurationWarnings();
 
@@ -85,12 +87,16 @@ public partial class VerletRopeSimulatedJoint : BaseVerletRopeJoint
 
     public override string[] _GetConfigurationWarnings()
     {
+        var baseWarnings = base._GetConfigurationWarnings();
+
         if (JointMaxDistance > 0 && (StartBody is null || EndBody is null))
         {
-            return [$"{nameof(JointMaxDistance)} is configured but either `{nameof(StartBody)}` or `{nameof(EndBody)}` is not accessible for physical connection."];
+            return baseWarnings
+                .Union([$"{nameof(JointMaxDistance)} is configured but either `{nameof(StartBody)}` or `{nameof(EndBody)}` is not accessible for physical connection."])
+                .ToArray();
         }
 
-        return [];
+        return baseWarnings;
     }
 
     #region Script Reload

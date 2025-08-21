@@ -34,6 +34,7 @@ public partial class VerletRopeRigidJoint : BaseVerletRopeJoint
 
     public override void ResetJoint()
     {
+        base.ResetJoint();
         VerletRope ??= GetParent() as VerletRopeRigidBody;
         VerletRope?.SetAttachments(StartBody, StartCustomLocation, EndBody, EndCustomLocation);
         VerletRope?.CallDeferred(VerletRopeRigidBody.MethodName.CreateRope);
