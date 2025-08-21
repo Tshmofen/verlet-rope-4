@@ -468,12 +468,12 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
         }
         
         ref var start = ref _particleData![0];
-        start.PositionCurrent = StartNodeAttach?.GlobalPosition ?? GlobalPosition;
+        start.PositionCurrent = StartNode?.GlobalPosition ?? GlobalPosition;
         
         ref var end = ref _particleData![_particleData.Count - 1];
-        if (end.IsAttached && EndNodeAttach != null)
+        if (end.IsAttached && EndNode != null)
         {
-            end.PositionCurrent = EndNodeAttach.GlobalPosition;
+            end.PositionCurrent = EndNode.GlobalPosition;
         }
 
         var simulationDeltaF = (float)_simulationDelta;
@@ -500,15 +500,15 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
 
         var acceleration = Gravity * GravityScale;
         var segmentLength = GetAverageSegmentLength();
-        var startLocation = StartNodeAttach?.GlobalPosition ?? GlobalPosition;
-        var endLocation = EndNodeAttach?.GlobalPosition ?? startLocation;
+        var startLocation = StartNode?.GlobalPosition ?? GlobalPosition;
+        var endLocation = EndNode?.GlobalPosition ?? startLocation;
         _particleData = RopeParticleData.GenerateParticleData(startLocation, endLocation, acceleration, SimulationParticles, segmentLength);
 
         ref var start = ref _particleData[0];
         ref var end = ref _particleData[_particleData.Count - 1];
 
         start.IsAttached = true;
-        end.IsAttached = EndNodeAttach != null;
+        end.IsAttached = EndNode != null;
         end.PositionPrevious = endLocation;
         end.PositionCurrent = endLocation;
 

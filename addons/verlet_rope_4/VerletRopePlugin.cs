@@ -10,6 +10,7 @@ namespace VerletRope4;
 public partial class VerletRopePlugin : EditorPlugin
 {
     private VerletRopeGizmoPlugin _gizmoPlugin;
+    private static VerletRopePlugin _instance;
 
     public override void _EnterTree()
     {
@@ -23,13 +24,14 @@ public partial class VerletRopePlugin : EditorPlugin
 
         script = GD.Load<Script>(VerletRopeSimulatedJoint.ScriptPath);
         texture = GD.Load<Texture2D>(VerletRopeSimulatedJoint.IconPath);
-        AddCustomType(nameof(VerletRopeSimulatedJoint), nameof(Node3D), script, texture);
+        AddCustomType(nameof(VerletRopeSimulatedJoint), nameof(Node), script, texture);
         
         script = GD.Load<Script>(VerletRopeRigidJoint.ScriptPath);
         texture = GD.Load<Texture2D>(VerletRopeRigidJoint.IconPath);
-        AddCustomType(nameof(VerletRopeRigidJoint), nameof(Node3D), script, texture);
+        AddCustomType(nameof(VerletRopeRigidJoint), nameof(Node), script, texture);
 
         AddNode3DGizmoPlugin(_gizmoPlugin = new VerletRopeGizmoPlugin());
+        _instance = this;
     }
 
     public override void _ExitTree()
@@ -39,7 +41,10 @@ public partial class VerletRopePlugin : EditorPlugin
         RemoveCustomType(nameof(VerletRopeSimulatedJoint));
         RemoveCustomType(nameof(VerletRopeRigidJoint));
         RemoveNode3DGizmoPlugin(_gizmoPlugin);
+        _instance = null;
     }
+
+    public static EditorUndoRedoManager GetGlobalUndoRedo() => _instance.GetUndoRedo();
 }
 
 #endif

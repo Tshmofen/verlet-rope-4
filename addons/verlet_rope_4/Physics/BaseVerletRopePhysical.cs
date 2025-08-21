@@ -1,4 +1,6 @@
-﻿using Godot;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Godot;
 using VerletRope4.Data;
 using VerletRope4.Rendering;
 using VerletRope4.Utility;
@@ -12,8 +14,12 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     private VerletRopeMesh _ropeMesh;
 
     protected VerletRopeMesh RopeMesh => _ropeMesh ??= this.FindOrCreateChild<VerletRopeMesh>();
-    protected Node3D StartNodeAttach { get; set; }
-    protected Node3D EndNodeAttach { get; set; }
+
+    protected PhysicsBody3D StartBody { get; set; }
+    protected Node3D StartNode { get; set; }
+
+    protected PhysicsBody3D EndBody { get; set; }
+    protected Node3D EndNode { get; set; }
     
     // Properties have the same default values as on `RopeMesh`
     [ExportGroup("Visuals")]
@@ -38,10 +44,12 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
 
     public abstract void CreateJoint();
 
-    public void SetAttachments(Node3D startNode, Node3D endNode)
+    public void SetAttachments(PhysicsBody3D startBody, Node3D startLocation, PhysicsBody3D endBody, Node3D endLocation)
     {
-        StartNodeAttach = startNode;
-        EndNodeAttach = endNode;
+        StartBody = startBody;
+        StartNode = startLocation ?? startBody;
+        EndBody = endBody;
+        EndNode = endLocation ?? endBody;
     }
 
     #region Editor
@@ -51,12 +59,17 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         #if TOOLS
         if (particleData.Count != _editorVertexPositions?.Length)
         {
-            _editorVertexPositions = new Vector3[particleData.Count];
+            _editorVertexPositions = new Vector3[particleData.Count * 2 - 2];
         }
 
-        for (var i = 0; i < particleData.Count; i++)
+        if (_editorVertexPositions.Length == 0)
         {
-            _editorVertexPositions[i] = ToLocal(particleData[i].PositionCurrent);
+            return;
+        }
+
+        for (var i = 0; i < _editorVertexPositions.Length; i++)
+        {
+            _editorVertexPositions[i] = ToLocal(particleData[(i + 1) / 2].PositionCurrent);
         }
         #endif
     }

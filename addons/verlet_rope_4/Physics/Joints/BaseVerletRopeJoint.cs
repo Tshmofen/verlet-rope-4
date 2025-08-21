@@ -2,7 +2,7 @@
 
 namespace VerletRope4.Physics.Joints;
 
-public abstract partial class BaseVerletRopeJoint : Node3D, ISerializationListener
+public abstract partial class BaseVerletRopeJoint : Node, ISerializationListener
 {
     public abstract PhysicsBody3D StartBody { get; set; }
     public abstract Node3D StartCustomLocation{ get; set; }

@@ -1,5 +1,7 @@
-﻿using Godot;
+﻿using System;
+using Godot;
 using System.Collections.Generic;
+using System.Linq;
 using VerletRope4.Data;
 using VerletRope4.Physics.Joints;
 using VerletRope4.Utility;
@@ -13,12 +15,13 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
     public const string IconPath = "res://addons/verlet_rope_4/icon.svg";
 
     private static readonly StringName InternalMetaStamp = "verlet_rope_rigid_body";
+    private static readonly StringName EditorIdMetaStamp = "verlet_rope_editor_id";
     private List<RigidBody3D> _segmentBodies;
     private RopeParticleData _particleData;
 
     [ExportToolButton("Reset Rope")] public Callable ResetRopeButton => Callable.From(CreateRope);
     [ExportToolButton("Add Joint")] public Callable AddJointButton => Callable.From(CreateJoint);
-    [ExportToolButton("Clone Rigid Bodies")] public Callable CloneBodiesButton => Callable.From(CloneRigidBodies);
+    [ExportToolButton("Clone Rigid Bodies")] public Callable CloneBodiesButton => Callable.From(CloneRigidBodiesAction);
 
     [ExportGroup("Simulation")]
     [Export(PropertyHint.Range, "1,100")] public int SimulationSegments { get; set; } = 10;
@@ -39,22 +42,6 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
         return RopeLength / SimulationSegments;
     }
 
-    private Vector3 GetRotation(Vector3 direction)
-    {
-        if (direction == Vector3.Zero)
-        {
-            return Vector3.Zero;
-        }
-
-        var norm = direction.Normalized();
-        var pitch = -Mathf.Asin(norm.Y);
-        var yaw = Mathf.Abs(norm.X) > Mathf.Epsilon || Mathf.Abs(norm.Z) > Mathf.Epsilon
-            ? -Mathf.Atan2(norm.X, norm.Z)
-            : 0;
-
-        return new Vector3(pitch, yaw, 0); // Roll (Z) cannot be derived from only direction
-    }
-
     #endregion
 
     #region Physics Spawn
@@ -67,11 +54,11 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
         var segmentShape = new CapsuleShape3D { Height = segmentLength, Radius = RopeWidth + CollisionWidthMargin };
         var segmentMesh = ShowCollisionShapeDebug ? new CapsuleMesh { Height = segmentLength, Radius = RopeWidth + CollisionWidthMargin } : null;
 
-        var startPosition = StartNodeAttach != null
-            ? ToLocal(StartNodeAttach.GlobalPosition)
+        var startPosition = StartNode != null
+            ? ToLocal(StartNode.GlobalPosition)
             : Vector3.Zero;
-        var endPosition = EndNodeAttach != null
-            ? ToLocal(EndNodeAttach.GlobalPosition)
+        var endPosition = EndNode != null
+            ? ToLocal(EndNode.GlobalPosition)
             : startPosition + Vector3.Right * segmentLength * (SimulationSegments + 1);
 
         var positions = SegmentPlaceUtility.ConnectPoints(startPosition, endPosition, Vector3.Forward, segmentLength, SimulationSegments);
@@ -120,13 +107,13 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
         var segmentLength = GetSegmentLength();
         var pinPosition = new Vector3(0, segmentLength, 0);
 
-        if (StartNodeAttach != null || IsStartSegmentPinned)
+        if (StartNode != null || IsStartSegmentPinned)
         {
             segmentBodies[0].AddChild(new PinJoint3D
             {
                 Position = Vector3.Zero,
-                NodeA = segmentBodies[0].GetPath(),
-                NodeB = StartNodeAttach is PhysicsBody3D ? StartNodeAttach.GetPath() : null
+                NodeA = StartBody?.GetPath(),
+                NodeB = segmentBodies[0].GetPath()
             });
         }
 
@@ -143,13 +130,13 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
             });
         }
 
-        if (EndNodeAttach != null)
+        if (EndNode != null)
         {
             segmentBodies[^1].AddChild(new PinJoint3D
             {
                 Position = pinPosition,
                 NodeA = segmentBodies[^1].GetPath(),
-                NodeB = EndNodeAttach is PhysicsBody3D ? EndNodeAttach.GetPath() : null
+                NodeB = EndBody?.GetPath()
             });
         }
     }
@@ -203,20 +190,41 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
         UpdateGizmos();
     }
 
-    public void CloneRigidBodies()
+    private void CloneRigidBodiesInternal(long editorId, bool toCreate)
     {
+        if (!toCreate)
+        {
+            var matchingNode = GetParent()
+                .GetChildren()
+                .Where(c => c.HasMeta(EditorIdMetaStamp))
+                .FirstOrDefault(c => c.GetMeta(EditorIdMetaStamp).AsInt64() == editorId);
+            matchingNode?.QueueFree();
+            return;
+        }
+
         var groupNode = new Node3D
         {
             Name = $"Bodies_{Name}",
             Position = Position,
             Rotation = Rotation
         };
+        groupNode.SetMeta(EditorIdMetaStamp, editorId);
         AddSibling(groupNode);
 
         var cloneBodies = SpawnSegmentBodies(groupNode);
         PinSegmentBodies(cloneBodies);
 
         groupNode.SetSubtreeOwner(GetTree().EditedSceneRoot);
+    }
+
+    public void CloneRigidBodiesAction()
+    {
+        var undoRedo = VerletRopePlugin.GetGlobalUndoRedo();
+        var actionId = Random.Shared.NextInt64();
+        undoRedo.CreateAction("Rigid Bodies Clone");
+        undoRedo.AddDoMethod(this, MethodName.CloneRigidBodiesInternal, actionId, true);
+        undoRedo.AddUndoMethod(this, MethodName.CloneRigidBodiesInternal, actionId, false);
+        undoRedo.CommitAction();
     }
 
     public override void CreateJoint()

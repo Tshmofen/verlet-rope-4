@@ -38,7 +38,7 @@ public partial class VerletRopeSimulatedJoint : BaseVerletRopeJoint
 
     public override void _ExitTree()
     {
-        VerletRope?.SetAttachments(null, null);
+        VerletRope?.SetAttachments(null, null, null, null);
         VerletRope?.ClearExceptions();
         VerletRope?.CallDeferred(VerletRopeSimulated.MethodName.CreateRope);
     }
@@ -68,10 +68,7 @@ public partial class VerletRopeSimulatedJoint : BaseVerletRopeJoint
         UpdateConfigurationWarnings();
 
         VerletRope ??= GetParent() as VerletRopeSimulated;
-        VerletRope?.SetAttachments(
-            StartCustomLocation ?? StartBody, 
-            EndCustomLocation ?? EndBody
-        );
+        VerletRope?.SetAttachments(StartBody, StartCustomLocation, EndBody,EndCustomLocation);
 
         if (EndBody != null)
         {

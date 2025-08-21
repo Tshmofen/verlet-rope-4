@@ -118,10 +118,10 @@ size = Vector3(0.1, 1.2, 3)
 size = Vector3(0.1, 1.2, 3)
 
 [sub_resource type="BoxMesh" id="BoxMesh_s1s6j"]
-size = Vector3(0.2, 0.2, 0.2)
+size = Vector3(0.3, 0.3, 0.3)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_oeqrt"]
-size = Vector3(0.2, 0.2, 0.2)
+size = Vector3(0.3, 0.3, 0.3)
 
 [node name="Demo" type="Node3D"]
 
@@ -191,7 +191,7 @@ MaterialOverride = SubResource("StandardMaterial3D_s1s6j")
 metadata/_custom_type_script = "uid://c3oxgehluk75x"
 metadata/VerletRopeObject = true
 
-[node name="VerletRopeJoint" type="Node3D" parent="RopeDemos/WindyRopes/VerletRopeWindyAllConnected" node_paths=PackedStringArray("VerletRope", "StartCustomLocation", "EndCustomLocation")]
+[node name="VerletRopeJoint" type="Node" parent="RopeDemos/WindyRopes/VerletRopeWindyAllConnected" node_paths=PackedStringArray("VerletRope", "StartCustomLocation", "EndCustomLocation")]
 script = ExtResource("3_j5lb4")
 VerletRope = NodePath("..")
 StartCustomLocation = NodePath("../../PillarFirst/PillarEnd")
@@ -259,7 +259,7 @@ DynamicCollisionMask = 2
 MaterialOverride = SubResource("StandardMaterial3D_u10mr")
 metadata/VerletRopeObject = true
 
-[node name="VerletRopeJoint" type="Node3D" parent="RopeDemos/MovingRopes/VerletRopeCylinder" node_paths=PackedStringArray("VerletRope", "StartBody", "StartCustomLocation")]
+[node name="VerletRopeJoint" type="Node" parent="RopeDemos/MovingRopes/VerletRopeCylinder" node_paths=PackedStringArray("VerletRope", "StartBody", "StartCustomLocation")]
 script = ExtResource("3_j5lb4")
 VerletRope = NodePath("..")
 StartBody = NodePath("../../MovingCylinder")
@@ -322,7 +322,7 @@ RopeLength = 0.75
 MaterialOverride = SubResource("StandardMaterial3D_onu7k")
 metadata/VerletRopeObject = true
 
-[node name="VerletRopeJoint" type="Node3D" parent="RopeDemos/PhysicsJointRope/VerletRope" node_paths=PackedStringArray("VerletRope", "StartBody", "StartCustomLocation", "EndBody", "EndCustomLocation")]
+[node name="VerletRopeJoint" type="Node" parent="RopeDemos/PhysicsJointRope/VerletRope" node_paths=PackedStringArray("VerletRope", "StartBody", "StartCustomLocation", "EndBody", "EndCustomLocation")]
 script = ExtResource("3_j5lb4")
 VerletRope = NodePath("..")
 StartBody = NodePath("../../MovingBoxStart")
@@ -430,21 +430,21 @@ shape = SubResource("BoxShape3D_s1s6j")
 [node name="RigidRope" type="Node3D" parent="RopeDemos"]
 
 [node name="VerletRopeRigidBody" type="Node3D" parent="RopeDemos/RigidRope"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.82879, 3.28835, 3.6061)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.82879, 3.9938, 3.6061)
 script = ExtResource("5_onu7k")
 CollisionMask = 7
-ShowCollisionShapeDebug = true
 UseVisibleOnScreenNotifier = false
 MaterialOverride = ExtResource("6_s1s6j")
 metadata/_custom_type_script = "uid://b6d7w4sbrb33r"
 
-[node name="JointRigid" type="Node3D" parent="RopeDemos/RigidRope/VerletRopeRigidBody" node_paths=PackedStringArray("VerletRope", "EndBody")]
+[node name="JointRigid" type="Node" parent="RopeDemos/RigidRope/VerletRopeRigidBody" node_paths=PackedStringArray("VerletRope", "EndBody", "EndCustomLocation")]
 script = ExtResource("7_s1s6j")
 VerletRope = NodePath("..")
 EndBody = NodePath("../../EndAttachment")
+EndCustomLocation = NodePath("../../EndAttachment/CustomAttachment")
 
 [node name="EndAttachment" type="RigidBody3D" parent="RopeDemos/RigidRope"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6998, 2.55537, 3.06489)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.93392, 2.90761, 3.06489)
 metadata/_edit_group_ = true
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="RopeDemos/RigidRope/EndAttachment"]
@@ -452,3 +452,6 @@ mesh = SubResource("BoxMesh_s1s6j")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="RopeDemos/RigidRope/EndAttachment"]
 shape = SubResource("BoxShape3D_oeqrt")
+
+[node name="CustomAttachment" type="Node3D" parent="RopeDemos/RigidRope/EndAttachment"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.141444, 0, 0)
