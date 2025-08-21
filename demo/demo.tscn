@@ -1,11 +1,17 @@
-[gd_scene load_steps=40 format=3 uid="uid://bota3ppynjsu1"]
+[gd_scene load_steps=32 format=3 uid="uid://bota3ppynjsu1"]
 
+[ext_resource type="PackedScene" uid="uid://cqnic6frw022r" path="res://demo/objects/ground.tscn" id="1_ykvhj"]
 [ext_resource type="Script" uid="uid://c3oxgehluk75x" path="res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs" id="2_lows4"]
-[ext_resource type="Script" uid="uid://bccao1l5oneap" path="res://demo/MovingBodyDemo.cs" id="2_u10mr"]
-[ext_resource type="Script" uid="uid://d36wx6t8jmjcx" path="res://demo/MovingRopeDemo.cs" id="2_vutyd"]
+[ext_resource type="Script" uid="uid://bccao1l5oneap" path="res://demo/scripts/MovingBodyDemo.cs" id="2_u10mr"]
+[ext_resource type="Script" uid="uid://d36wx6t8jmjcx" path="res://demo/scripts/MovingRopeDemo.cs" id="2_vutyd"]
 [ext_resource type="Script" uid="uid://ffm7yrjl0bfd" path="res://addons/verlet_rope_4/Physics/Joints/VerletRopeSimulatedJoint.cs" id="3_j5lb4"]
+[ext_resource type="PackedScene" uid="uid://d3xb1b1stk8rm" path="res://demo/objects/obstacle_cylinder.tscn" id="5_1rqa4"]
 [ext_resource type="Script" uid="uid://b6d7w4sbrb33r" path="res://addons/verlet_rope_4/Physics/VerletRopeRigidBody.cs" id="5_onu7k"]
+[ext_resource type="PackedScene" uid="uid://2ob0knp0cjht" path="res://demo/objects/moving_cylinder.tscn" id="6_xm42s"]
 [ext_resource type="Script" uid="uid://djx76jteldpjs" path="res://addons/verlet_rope_4/Physics/Joints/VerletRopeRigidJoint.cs" id="7_s1s6j"]
+[ext_resource type="PackedScene" uid="uid://blrqcmax3ddjm" path="res://demo/objects/moving_box.tscn" id="7_tdg64"]
+[ext_resource type="PackedScene" uid="uid://cxvtuenfotsv0" path="res://demo/objects/enclosure.tscn" id="9_1rqa4"]
+[ext_resource type="PackedScene" uid="uid://x5fpe8w6qchm" path="res://demo/objects/moving_box_small.tscn" id="12_xm42s"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_3bmw0"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -19,15 +25,6 @@ background_mode = 2
 sky = SubResource("Sky_buv6g")
 tonemap_mode = 2
 glow_enabled = true
-
-[sub_resource type="BoxMesh" id="BoxMesh_dar0o"]
-size = Vector3(20, 0.2, 20)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j5lb4"]
-albedo_color = Color(0.197937, 0.197937, 0.197937, 1)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_u10mr"]
-size = Vector3(20, 0.2, 20)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pbhg3"]
 albedo_color = Color(0.529412, 0.12549, 0.133333, 1)
@@ -57,19 +54,6 @@ metadata/verlet_rope_internal_stamp = 2203704180163
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_oeqrt"]
 albedo_color = Color(0.419608, 0.345098, 1, 1)
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_j5lb4"]
-top_radius = 1.5
-bottom_radius = 1.5
-height = 3.0
-radial_segments = 32
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dar0o"]
-albedo_color = Color(0.513726, 0.0470588, 0.0470588, 1)
-
-[sub_resource type="CylinderShape3D" id="CylinderShape3D_u10mr"]
-height = 3.0
-radius = 1.5
-
 [sub_resource type="ImmediateMesh" id="ImmediateMesh_oeqrt"]
 resource_local_to_scene = true
 metadata/verlet_rope_internal_stamp = 2203788066248
@@ -77,13 +61,6 @@ metadata/verlet_rope_internal_stamp = 2203788066248
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u10mr"]
 cull_mode = 2
 albedo_color = Color(0, 0.909527, 0.380237, 1)
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_dar0o"]
-height = 3.0
-radial_segments = 32
-
-[sub_resource type="CylinderShape3D" id="CylinderShape3D_j5lb4"]
-height = 3.0
 
 [sub_resource type="ImmediateMesh" id="ImmediateMesh_ykvhj"]
 resource_local_to_scene = true
@@ -101,29 +78,12 @@ metadata/verlet_rope_internal_stamp = 2203922283984
 cull_mode = 2
 albedo_color = Color(0.789868, 0.610247, 0, 1)
 
-[sub_resource type="BoxMesh" id="BoxMesh_j5lb4"]
-size = Vector3(0.4, 0.4, 0.4)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_onu7k"]
-size = Vector3(0.4, 0.4, 0.4)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_onvmd"]
-size = Vector3(0.4, 0.4, 0.4)
-
-[sub_resource type="BoxMesh" id="BoxMesh_u10mr"]
-size = Vector3(0.1, 1.2, 3)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_s1s6j"]
-size = Vector3(0.1, 1.2, 3)
-
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1rqa4"]
 albedo_color = Color(0.582917, 0, 0.0906055, 1)
 
-[sub_resource type="BoxMesh" id="BoxMesh_s1s6j"]
-size = Vector3(0.3, 0.3, 0.3)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_oeqrt"]
-size = Vector3(0.3, 0.3, 0.3)
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_xm42s"]
+radius = 0.06
+height = 0.3
 
 [node name="Demo" type="Node3D"]
 
@@ -141,17 +101,9 @@ light_color = Color(0.976471, 0.956863, 0.976471, 1)
 light_energy = 1.5
 shadow_enabled = true
 
-[node name="Ground" type="StaticBody3D" parent="."]
+[node name="Ground" parent="." instance=ExtResource("1_ykvhj")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
-metadata/_edit_group_ = true
 metadata/_edit_lock_ = true
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
-mesh = SubResource("BoxMesh_dar0o")
-surface_material_override/0 = SubResource("StandardMaterial3D_j5lb4")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
-shape = SubResource("BoxShape3D_u10mr")
 
 [node name="RopeDemos" type="Node3D" parent="."]
 
@@ -232,20 +184,11 @@ PathTime = 7.0
 PathMaxSpeed = 1.5
 TransitionType = 7
 
-[node name="StaticCylinder" type="StaticBody3D" parent="RopeDemos/MovingRopes"]
-transform = Transform3D(1, 0, 0, 0, 2.98023e-08, -1, 0, 1, 2.98023e-08, 2.91087, -0.692623, 5.47205)
-metadata/_edit_group_ = true
+[node name="ObstacleCylinder" parent="RopeDemos/MovingRopes" instance=ExtResource("5_1rqa4")]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 2.91087, -0.692623, 5.47205)
 metadata/_edit_lock_ = true
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="RopeDemos/MovingRopes/StaticCylinder"]
-mesh = SubResource("CylinderMesh_j5lb4")
-skeleton = NodePath("../..")
-surface_material_override/0 = SubResource("StandardMaterial3D_dar0o")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="RopeDemos/MovingRopes/StaticCylinder"]
-shape = SubResource("CylinderShape3D_u10mr")
-
-[node name="VerletRopeCylinder" type="MeshInstance3D" parent="RopeDemos/MovingRopes"]
+[node name="VerletRopeMoving" type="MeshInstance3D" parent="RopeDemos/MovingRopes"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0684641, 2.46518, 3.91434)
 mesh = SubResource("ImmediateMesh_oeqrt")
 skeleton = NodePath("../MovingCylinder")
@@ -261,32 +204,16 @@ DynamicCollisionMask = 2
 MaterialOverride = SubResource("StandardMaterial3D_u10mr")
 metadata/VerletRopeObject = true
 
-[node name="VerletRopeJoint" type="Node" parent="RopeDemos/MovingRopes/VerletRopeCylinder" node_paths=PackedStringArray("VerletRope", "StartBody", "StartCustomLocation")]
+[node name="VerletRopeJoint" type="Node" parent="RopeDemos/MovingRopes/VerletRopeMoving" node_paths=PackedStringArray("VerletRope", "StartCustomLocation")]
 script = ExtResource("3_j5lb4")
 VerletRope = NodePath("..")
-StartBody = NodePath("../../MovingCylinder")
 StartCustomLocation = NodePath("../../MovingCylinder/CustomRopePosition")
 
-[node name="MovingCylinder" type="RigidBody3D" parent="RopeDemos/MovingRopes"]
-transform = Transform3D(1, 0, 0, 0, 2.98023e-08, -1, 0, 1, 2.98023e-08, 0.168297, 2.46518, 5.47205)
-collision_layer = 2
-axis_lock_linear_y = true
-axis_lock_linear_z = true
-axis_lock_angular_x = true
-axis_lock_angular_y = true
-axis_lock_angular_z = true
-continuous_cd = true
-metadata/_edit_group_ = true
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="RopeDemos/MovingRopes/MovingCylinder"]
-mesh = SubResource("CylinderMesh_dar0o")
-skeleton = NodePath("../..")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="RopeDemos/MovingRopes/MovingCylinder"]
-shape = SubResource("CylinderShape3D_j5lb4")
+[node name="MovingCylinder" parent="RopeDemos/MovingRopes" instance=ExtResource("6_xm42s")]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0.168297, 2.46518, 5.47205)
 
 [node name="CustomRopePosition" type="Node3D" parent="RopeDemos/MovingRopes/MovingCylinder"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.42, 0.425)
+transform = Transform3D(1, 0, 0, 0, 1, 7.35137e-08, 0, -7.35137e-08, 1, 0, -1.42, 0.425)
 
 [node name="VerletRopeStatic" type="MeshInstance3D" parent="RopeDemos/MovingRopes"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.19783, 3.9411, 5.50704)
@@ -334,105 +261,26 @@ EndCustomLocation = NodePath("../../MovingBoxEnd/CustomConnection")
 JointMaxDistance = 1.0
 metadata/VerletRopeObject = true
 
-[node name="MovingBoxStart" type="RigidBody3D" parent="RopeDemos/PhysicsJointRope"]
-transform = Transform3D(1, 0, 0, 0, 2.98023e-08, -1, 0, 1, 2.98023e-08, -2.32936, 0.133589, 2.83518)
-collision_layer = 3
-collision_mask = 7
+[node name="MovingBoxStart" parent="RopeDemos/PhysicsJointRope" instance=ExtResource("7_tdg64")]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, -2.32936, 0.133589, 2.83518)
 script = ExtResource("2_u10mr")
-MovementForce = 15.0
-metadata/_edit_group_ = true
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="RopeDemos/PhysicsJointRope/MovingBoxStart"]
-mesh = SubResource("BoxMesh_j5lb4")
-skeleton = NodePath("../../../MovingRopes")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="RopeDemos/PhysicsJointRope/MovingBoxStart"]
-shape = SubResource("BoxShape3D_onu7k")
 
 [node name="CustomConnection" type="Node3D" parent="RopeDemos/PhysicsJointRope/MovingBoxStart"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.152623, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 7.35137e-08, 0, -7.35137e-08, 1, 0.152623, 9.53674e-07, 1.49012e-08)
 
-[node name="MovingBoxEnd" type="RigidBody3D" parent="RopeDemos/PhysicsJointRope"]
-transform = Transform3D(1, 0, 0, 0, 2.98023e-08, -1, 0, 1, 2.98023e-08, -1.29765, 0.210121, 2.34069)
-collision_layer = 3
-collision_mask = 7
-metadata/_edit_group_ = true
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="RopeDemos/PhysicsJointRope/MovingBoxEnd"]
-mesh = SubResource("BoxMesh_j5lb4")
-skeleton = NodePath("../../../MovingRopes")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="RopeDemos/PhysicsJointRope/MovingBoxEnd"]
-shape = SubResource("BoxShape3D_onvmd")
+[node name="MovingBoxEnd" parent="RopeDemos/PhysicsJointRope" instance=ExtResource("7_tdg64")]
+transform = Transform3D(-0.627732, -0.77843, 3.40262e-08, 0, -4.37114e-08, -1, 0.77843, -0.627732, 2.7439e-08, -1.39007, 0.133589, 2.33152)
 
 [node name="CustomConnection" type="Node3D" parent="RopeDemos/PhysicsJointRope/MovingBoxEnd"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.159365, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 7.35137e-08, 0, -7.35137e-08, 1, 0.152623, 9.53674e-07, 1.49012e-08)
 
-[node name="Enclosure" type="Node3D" parent="RopeDemos/PhysicsJointRope"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.80393, 0.298381, -1.45005)
-metadata/_edit_group_ = true
-metadata/_edit_lock_ = true
-
-[node name="Fence" type="StaticBody3D" parent="RopeDemos/PhysicsJointRope/Enclosure"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.35, 0.25, 4.174)
-collision_layer = 4
-collision_mask = 0
-metadata/_edit_group_ = true
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="RopeDemos/PhysicsJointRope/Enclosure/Fence"]
-transparency = 0.9
-mesh = SubResource("BoxMesh_u10mr")
-skeleton = NodePath("../..")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="RopeDemos/PhysicsJointRope/Enclosure/Fence"]
-shape = SubResource("BoxShape3D_s1s6j")
-
-[node name="Fence3" type="StaticBody3D" parent="RopeDemos/PhysicsJointRope/Enclosure"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.45, 0.25, 4.174)
-collision_layer = 4
-collision_mask = 0
-metadata/_edit_group_ = true
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="RopeDemos/PhysicsJointRope/Enclosure/Fence3"]
-transparency = 0.9
-mesh = SubResource("BoxMesh_u10mr")
-skeleton = NodePath("../..")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="RopeDemos/PhysicsJointRope/Enclosure/Fence3"]
-shape = SubResource("BoxShape3D_s1s6j")
-
-[node name="Fence2" type="StaticBody3D" parent="RopeDemos/PhysicsJointRope/Enclosure"]
-transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -5.9, 0.25, 2.7)
-collision_layer = 4
-collision_mask = 0
-metadata/_edit_group_ = true
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="RopeDemos/PhysicsJointRope/Enclosure/Fence2"]
-transparency = 0.9
-mesh = SubResource("BoxMesh_u10mr")
-skeleton = NodePath("../..")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="RopeDemos/PhysicsJointRope/Enclosure/Fence2"]
-shape = SubResource("BoxShape3D_s1s6j")
-
-[node name="Fence4" type="StaticBody3D" parent="RopeDemos/PhysicsJointRope/Enclosure"]
-transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -5.9, 0.25, 5.7)
-collision_layer = 4
-collision_mask = 0
-metadata/_edit_group_ = true
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="RopeDemos/PhysicsJointRope/Enclosure/Fence4"]
-transparency = 0.9
-mesh = SubResource("BoxMesh_u10mr")
-skeleton = NodePath("../..")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="RopeDemos/PhysicsJointRope/Enclosure/Fence4"]
-shape = SubResource("BoxShape3D_s1s6j")
+[node name="Enclosure" parent="RopeDemos/PhysicsJointRope" instance=ExtResource("9_1rqa4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.19183, 0.298381, 2.29841)
 
 [node name="RigidRope" type="Node3D" parent="RopeDemos"]
 
 [node name="VerletRopeRigidBody" type="Node3D" parent="RopeDemos/RigidRope"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.14333, 3.37304, 6.69648)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.51038, 3.37304, 6.89077)
 script = ExtResource("5_onu7k")
 CollisionLayer = 7
 CollisionMask = 7
@@ -443,20 +291,168 @@ metadata/_custom_type_script = "uid://b6d7w4sbrb33r"
 [node name="JointRigid" type="Node" parent="RopeDemos/RigidRope/VerletRopeRigidBody" node_paths=PackedStringArray("VerletRope", "EndBody", "EndCustomLocation")]
 script = ExtResource("7_s1s6j")
 VerletRope = NodePath("..")
-EndBody = NodePath("../EndAttachment")
-EndCustomLocation = NodePath("../EndAttachment/CustomAttachment")
+EndBody = NodePath("../MovingBoxSmall")
+EndCustomLocation = NodePath("../MovingBoxSmall/CustomAttachment")
 
-[node name="EndAttachment" type="RigidBody3D" parent="RopeDemos/RigidRope/VerletRopeRigidBody"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.89487, 1.2309, -0.54121)
+[node name="MovingBoxSmall" parent="RopeDemos/RigidRope/VerletRopeRigidBody" instance=ExtResource("12_xm42s")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.69509, 0.330583, -0.864124)
+
+[node name="CustomAttachment" type="Node3D" parent="RopeDemos/RigidRope/VerletRopeRigidBody/MovingBoxSmall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.141444, 0, 0)
+
+[node name="Bodies_VerletRopeRigidBody" type="Node3D" parent="RopeDemos/RigidRope"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.51038, 3.37304, 6.89077)
+metadata/verlet_rope_physical_clone_rigid_bodies = 777744146
+
+[node name="@RigidBody3D@66537" type="RigidBody3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody"]
+transform = Transform3D(0.38813, 0.683947, 0.617715, 0, -0.670261, 0.742126, 0.921605, -0.288041, -0.260148, 0, 0, 0)
 collision_layer = 7
 collision_mask = 7
-metadata/_edit_group_ = true
+metadata/verlet_rope_rigid_body = true
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="RopeDemos/RigidRope/VerletRopeRigidBody/EndAttachment"]
-mesh = SubResource("BoxMesh_s1s6j")
+[node name="@CollisionShape3D@66536" type="CollisionShape3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66537"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+shape = SubResource("CapsuleShape3D_xm42s")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="RopeDemos/RigidRope/VerletRopeRigidBody/EndAttachment"]
-shape = SubResource("BoxShape3D_oeqrt")
+[node name="@PinJoint3D@66556" type="PinJoint3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66537"]
+node_b = NodePath("/root/@EditorNode@21302/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Demo/RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66537")
 
-[node name="CustomAttachment" type="Node3D" parent="RopeDemos/RigidRope/VerletRopeRigidBody/EndAttachment"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.141444, 0, 0)
+[node name="@PinJoint3D@66557" type="PinJoint3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66537"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+node_a = NodePath("/root/@EditorNode@21302/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Demo/RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66537")
+node_b = NodePath("/root/@EditorNode@21302/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Demo/RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66539")
+
+[node name="@RigidBody3D@66539" type="RigidBody3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody"]
+transform = Transform3D(0.633487, 0.351819, -0.689142, 0, 0.890649, 0.454692, 0.773753, -0.288041, 0.564215, 0.205184, -0.201078, -0.0864124)
+collision_layer = 7
+collision_mask = 7
+metadata/verlet_rope_rigid_body = true
+
+[node name="@CollisionShape3D@66538" type="CollisionShape3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66539"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+shape = SubResource("CapsuleShape3D_xm42s")
+
+[node name="@PinJoint3D@66558" type="PinJoint3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66539"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+node_a = NodePath("/root/@EditorNode@21302/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Demo/RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66539")
+node_b = NodePath("/root/@EditorNode@21302/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Demo/RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66541")
+
+[node name="@RigidBody3D@66541" type="RigidBody3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody"]
+transform = Transform3D(0.38813, 0.683947, 0.617715, 0, -0.670261, 0.742126, 0.921605, -0.288041, -0.260148, 0.31073, 0.0661166, -0.172825)
+collision_layer = 7
+collision_mask = 7
+metadata/verlet_rope_rigid_body = true
+
+[node name="@CollisionShape3D@66540" type="CollisionShape3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66541"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+shape = SubResource("CapsuleShape3D_xm42s")
+
+[node name="@PinJoint3D@66559" type="PinJoint3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66541"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+node_a = NodePath("/root/@EditorNode@21302/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Demo/RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66541")
+node_b = NodePath("/root/@EditorNode@21302/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Demo/RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66543")
+
+[node name="@RigidBody3D@66543" type="RigidBody3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody"]
+transform = Transform3D(0.633488, 0.351819, -0.689142, 0, 0.890649, 0.454691, 0.773753, -0.288041, 0.564215, 0.515914, -0.134962, -0.259237)
+collision_layer = 7
+collision_mask = 7
+metadata/verlet_rope_rigid_body = true
+
+[node name="@CollisionShape3D@66542" type="CollisionShape3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66543"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+shape = SubResource("CapsuleShape3D_xm42s")
+
+[node name="@PinJoint3D@66560" type="PinJoint3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66543"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+node_a = NodePath("/root/@EditorNode@21302/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Demo/RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66543")
+node_b = NodePath("/root/@EditorNode@21302/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Demo/RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66545")
+
+[node name="@RigidBody3D@66545" type="RigidBody3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody"]
+transform = Transform3D(0.38813, 0.683947, 0.617715, 0, -0.670261, 0.742126, 0.921605, -0.288041, -0.260148, 0.621459, 0.132233, -0.34565)
+collision_layer = 7
+collision_mask = 7
+metadata/verlet_rope_rigid_body = true
+
+[node name="@CollisionShape3D@66544" type="CollisionShape3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66545"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+shape = SubResource("CapsuleShape3D_xm42s")
+
+[node name="@PinJoint3D@66561" type="PinJoint3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66545"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+node_a = NodePath("/root/@EditorNode@21302/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Demo/RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66545")
+node_b = NodePath("/root/@EditorNode@21302/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Demo/RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66547")
+
+[node name="@RigidBody3D@66547" type="RigidBody3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody"]
+transform = Transform3D(0.633486, 0.351819, -0.689144, 0, 0.890649, 0.454691, 0.773754, -0.28804, 0.564214, 0.826643, -0.068845, -0.432062)
+collision_layer = 7
+collision_mask = 7
+metadata/verlet_rope_rigid_body = true
+
+[node name="@CollisionShape3D@66546" type="CollisionShape3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66547"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+shape = SubResource("CapsuleShape3D_xm42s")
+
+[node name="@PinJoint3D@66562" type="PinJoint3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66547"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+node_a = NodePath("/root/@EditorNode@21302/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Demo/RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66547")
+node_b = NodePath("/root/@EditorNode@21302/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Demo/RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66549")
+
+[node name="@RigidBody3D@66549" type="RigidBody3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody"]
+transform = Transform3D(0.38813, 0.683947, 0.617715, 0, -0.670261, 0.742126, 0.921605, -0.288041, -0.260148, 0.932189, 0.19835, -0.518474)
+collision_layer = 7
+collision_mask = 7
+metadata/verlet_rope_rigid_body = true
+
+[node name="@CollisionShape3D@66548" type="CollisionShape3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66549"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+shape = SubResource("CapsuleShape3D_xm42s")
+
+[node name="@PinJoint3D@66563" type="PinJoint3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66549"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+node_a = NodePath("/root/@EditorNode@21302/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Demo/RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66549")
+node_b = NodePath("/root/@EditorNode@21302/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Demo/RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66551")
+
+[node name="@RigidBody3D@66551" type="RigidBody3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody"]
+transform = Transform3D(0.633488, 0.351819, -0.689142, 0, 0.890649, 0.454691, 0.773753, -0.288041, 0.564215, 1.13737, -0.00272846, -0.604887)
+collision_layer = 7
+collision_mask = 7
+metadata/verlet_rope_rigid_body = true
+
+[node name="@CollisionShape3D@66550" type="CollisionShape3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66551"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+shape = SubResource("CapsuleShape3D_xm42s")
+
+[node name="@PinJoint3D@66564" type="PinJoint3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66551"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+node_a = NodePath("/root/@EditorNode@21302/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Demo/RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66551")
+node_b = NodePath("/root/@EditorNode@21302/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Demo/RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66553")
+
+[node name="@RigidBody3D@66553" type="RigidBody3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody"]
+transform = Transform3D(0.38813, 0.683947, 0.617715, 0, -0.670261, 0.742126, 0.921605, -0.288041, -0.260148, 1.24292, 0.264466, -0.691299)
+collision_layer = 7
+collision_mask = 7
+metadata/verlet_rope_rigid_body = true
+
+[node name="@CollisionShape3D@66552" type="CollisionShape3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66553"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+shape = SubResource("CapsuleShape3D_xm42s")
+
+[node name="@PinJoint3D@66565" type="PinJoint3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66553"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+node_a = NodePath("/root/@EditorNode@21302/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Demo/RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66553")
+node_b = NodePath("/root/@EditorNode@21302/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Demo/RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66555")
+
+[node name="@RigidBody3D@66555" type="RigidBody3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody"]
+transform = Transform3D(0.633488, 0.351818, -0.689142, 0, 0.890649, 0.454691, 0.773752, -0.288041, 0.564216, 1.4481, 0.0633881, -0.777711)
+collision_layer = 7
+collision_mask = 7
+metadata/verlet_rope_rigid_body = true
+
+[node name="@CollisionShape3D@66554" type="CollisionShape3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66555"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+shape = SubResource("CapsuleShape3D_xm42s")
+
+[node name="@PinJoint3D@66566" type="PinJoint3D" parent="RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66555"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+node_a = NodePath("/root/@EditorNode@21302/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Demo/RopeDemos/RigidRope/Bodies_VerletRopeRigidBody/@RigidBody3D@66555")
+node_b = NodePath("/root/@EditorNode@21302/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Demo/RopeDemos/RigidRope/VerletRopeRigidBody/MovingBoxSmall")

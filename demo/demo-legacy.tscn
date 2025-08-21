@@ -1,8 +1,8 @@
 [gd_scene load_steps=16 format=3 uid="uid://d0647cepiojoa"]
 
-[ext_resource type="Material" uid="uid://o7na8drc2je2" path="res://addons/verlet_rope_4/materials/rope_default.material" id="1_xy6g0"]
+[ext_resource type="Material" uid="uid://o7na8drc2je2" path="res://addons/verlet_rope_4/Materials/rope_default.material" id="1_xy6g0"]
 [ext_resource type="Script" uid="uid://v22nt3dj3ewl" path="res://addons/verlet_rope_4/VerletRope.cs" id="2_lows4"]
-[ext_resource type="Script" uid="uid://d36wx6t8jmjcx" path="res://demo/MovingRopeDemo.cs" id="2_vutyd"]
+[ext_resource type="Script" uid="uid://d36wx6t8jmjcx" path="res://demo/scripts/MovingRopeDemo.cs" id="2_vutyd"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_3bmw0"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)

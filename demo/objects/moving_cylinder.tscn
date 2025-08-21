@@ -1,0 +1,25 @@
+[gd_scene load_steps=3 format=3 uid="uid://2ob0knp0cjht"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_dar0o"]
+height = 3.0
+radial_segments = 32
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_j5lb4"]
+height = 3.0
+
+[node name="MovingCylinder" type="RigidBody3D"]
+transform = Transform3D(1, 0, 0, 0, 2.98023e-08, -1, 0, 1, 2.98023e-08, 0, 0, 0)
+collision_layer = 2
+axis_lock_linear_y = true
+axis_lock_linear_z = true
+axis_lock_angular_x = true
+axis_lock_angular_y = true
+axis_lock_angular_z = true
+continuous_cd = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("CylinderMesh_dar0o")
+skeleton = NodePath("../..")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CylinderShape3D_j5lb4")
