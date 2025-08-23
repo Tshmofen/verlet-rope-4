@@ -16,9 +16,9 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
     private List<RigidBody3D> _segmentBodies;
     private RopeParticleData _particleData;
 
-    [ExportToolButton("Reset Rope")] public Callable ResetRopeButton => Callable.From(CreateRope);
-    [ExportToolButton("Add Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
+    [ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(CreateRope);
     [ExportToolButton("Clone Rigid Bodies")] public Callable CloneBodiesButton => Callable.From(CloneRigidBodiesAction);
+    [ExportToolButton("Add Rigid Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
 
     [ExportGroup("Simulation")]
     [Export(PropertyHint.Range, "1,100")] public int SimulationSegments { get; set; } = 10;

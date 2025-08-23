@@ -12,7 +12,7 @@ public partial class VerletRopeSimulatedJoint : BaseVerletRopeJoint
 
     private CustomDistanceJoint _distanceJoint;
 
-    [ExportToolButton("Reset Joint")] public Callable ResetJointButton => Callable.From(ResetJoint);
+    [ExportToolButton("Reset Joint (Apply Changes)")] public Callable ResetJointButton => Callable.From(ResetJoint);
     
     [ExportCategory("Attachment Settings")]
     [Export] public VerletRopeSimulated VerletRope { get; set; }

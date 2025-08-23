@@ -283,7 +283,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.51038, 3.37304, 6.89077)
 script = ExtResource("5_onu7k")
 CollisionLayer = 7
 CollisionMask = 7
-UseVisibleOnScreenNotifier = false
 MaterialOverride = SubResource("StandardMaterial3D_1rqa4")
 metadata/_custom_type_script = "uid://b6d7w4sbrb33r"
 

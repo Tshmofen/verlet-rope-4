@@ -8,7 +8,7 @@ public partial class VerletRopeRigidJoint : BaseVerletRopeJoint
     public const string ScriptPath = "res://addons/verlet_rope_4/Physics/Joints/VerletRopeRigidJoint.cs";
     public const string IconPath = "res://addons/verlet_rope_4/icon.svg";
 
-    [ExportToolButton("Reset Joint")] public Callable ResetJointButton => Callable.From(ResetJoint);
+    [ExportToolButton("Reset Joint (Apply Changes)")] public Callable ResetJointButton => Callable.From(ResetJoint);
     
     [ExportCategory("Attachment Settings")]
     [Export] public VerletRopeRigidBody VerletRope { get; set; }
