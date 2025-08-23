@@ -19,18 +19,23 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
     [ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(CreateRope);
     [ExportToolButton("Clone Rigid Bodies")] public Callable CloneBodiesButton => Callable.From(CloneRigidBodiesAction);
     [ExportToolButton("Add Rigid Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
-
+    
+    /// <summary> Determines amount of separate <see cref="RigidBody3D"/> segments that will constitute the rope. </summary>
     [ExportGroup("Simulation")]
     [Export(PropertyHint.Range, "1,100")] public int SimulationSegments { get; set; } = 10;
+    /// <summary> Determines if <see cref="PinJoint3D"/> is created at the start of the first segment. </summary>
     [Export] public bool IsStartSegmentPinned { get; set; } = true;
-
+    
+    /// <summary> Adjusts the radius of rope segment collision. Final collision width equals to <see cref="BaseVerletRopePhysical.RopeWidth"/> with added <see cref="CollisionWidthMargin"/>. </summary>
     [ExportGroup("Collision")]
     [Export] public float CollisionWidthMargin { get; set; } = -0.01f;
     [Export(PropertyHint.Layers3DPhysics)] public uint CollisionLayer { get; set; } = 1;
     [Export(PropertyHint.Layers3DPhysics)] public uint CollisionMask { get; set; } = 1;
     [Export] public bool IsContinuousCollision { get; set; } = false;
+    /// <summary> Renders meshes with the same shape and size as <see cref="CollisionShape3D"/> used in segment generation. </summary>
     [Export] public bool ShowCollisionShapeDebug { get; set; } = false;
 
+    /// <summary> Determines overall <see cref="RigidBody3D.Mass"/> of the rope, each segment will have weight equal to <see cref="RigidBody3D.Mass"/> divided by <see cref="SimulationSegments"/> count. </summary>
     [ExportGroup("Physics")]
     [ExportSubgroup("Segments")]
     [Export(PropertyHint.Range, "0.001,10000")] public float TotalRopeMass { get; set; } = 10.0f;
@@ -40,9 +45,12 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
     [Export(PropertyHint.Range, "0.000,100")] public float LinearDamp { get; set; } = 0.0f;
     [Export] public RigidBody3D.DampMode AngularDampMode { get; set; } = RigidBody3D.DampMode.Combine;
     [Export(PropertyHint.Range, "0.000,100")] public float AngularDamp { get; set; } = 0.0f;
+    /// <summary> Determines <see cref="PinJoint3D.Param.Bias"/> for each separate joint <see cref="PinJoint3D"/>. Only works with default Physics engine. </summary>
     [ExportSubgroup("Joints")]
     [Export(PropertyHint.Range,"0.01,0.99,0.01")] public float PinBias { get; set; } = 0.3f;
+    /// <summary> Determines <see cref="PinJoint3D.Param.Damping"/> for each separate joint <see cref="PinJoint3D"/>. Only works with default Physics engine. </summary>
     [Export(PropertyHint.Range,"0.01,8,0.01")] public float PinDamping { get; set; } = 1.0f;
+    /// <summary> Determines <see cref="PinJoint3D.Param.ImpulseClamp"/> for each separate joint <see cref="PinJoint3D"/>. Only works with default Physics engine. </summary>
     [Export(PropertyHint.Range,"0.0,64,0.05")] public float PinImpulseClamp { get; set; } = 0.0f;
 
     #region Util
@@ -120,40 +128,46 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
 
     private void PinSegmentBodies(List<RigidBody3D> segmentBodies)
     {
-        var segmentLength = GetSegmentLength();
-        var pinPosition = new Vector3(0, segmentLength, 0);
+        PinJoint3D SetPinParameters(PinJoint3D pin)
+        {
+            pin.SetParam(PinJoint3D.Param.Bias, PinBias);
+            pin.SetParam(PinJoint3D.Param.Damping, PinDamping);
+            pin.SetParam(PinJoint3D.Param.ImpulseClamp, PinImpulseClamp);
+            return pin;
+        }
 
         if (StartNode != null || IsStartSegmentPinned)
         {
-            segmentBodies[0].AddChild(new PinJoint3D
+            segmentBodies[0].AddChild(SetPinParameters(new PinJoint3D
             {
                 Position = Vector3.Zero,
                 NodeA = StartBody?.GetPath(),
                 NodeB = segmentBodies[0].GetPath()
-            });
+            }));
         }
-
+        
+        var jointPosition = new Vector3(0, GetSegmentLength(), 0);
         for (var i = 0; i < segmentBodies.Count - 1; i++)
         {
             var currentBody = segmentBodies[i];
             var nextBody = segmentBodies[i + 1];
 
-            currentBody.AddChild(new PinJoint3D
+            currentBody.AddChild(SetPinParameters(new PinJoint3D
             {
-                Position = pinPosition,
+                Position = jointPosition,
                 NodeA = currentBody.GetPath(),
                 NodeB = nextBody.GetPath()
-            });
+            }));
         }
 
         if (EndNode != null)
         {
-            segmentBodies[^1].AddChild(new PinJoint3D
+            segmentBodies[^1].AddChild(SetPinParameters(new PinJoint3D
             {
-                Position = pinPosition,
+                Position = jointPosition,
                 NodeA = segmentBodies[^1].GetPath(),
                 NodeB = EndBody?.GetPath()
-            });
+            }));
         }
     }
 

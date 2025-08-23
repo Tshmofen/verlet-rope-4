@@ -16,20 +16,29 @@ public partial class VerletRopeSimulatedJoint : BaseVerletRopeJoint
     
     [ExportCategory("Attachment Settings")]
     [Export] public VerletRopeSimulated VerletRope { get; set; }
-
+    
+    /// <inheritdoc/>
     [ExportSubgroup("Rope Start")]
     [Export] public override  PhysicsBody3D StartBody { get; set; }
+    /// <inheritdoc/>
     [Export] public override  Node3D StartCustomLocation{ get; set; }
+    /// <summary> When enabled rope will not collide with the connected <see cref="StartBody"/> </summary>
     [Export] public bool IgnoreStartBodyCollision { get; set; } = true;
     
-    [ExportSubgroup("Rope End")]
+    /// <inheritdoc/>
+    [ExportSubgroup("Rope End")] 
     [Export] public override  PhysicsBody3D EndBody { get; set; }
+    /// <inheritdoc/>
     [Export] public override Node3D EndCustomLocation{ get; set; }
+    /// <summary> When enabled rope will not collide with the connected <see cref="EndBody"/> </summary>
     [Export] public bool IgnoreEndBodyCollision { get; set; } = true;
 
+    /// <inheritdoc cref="CustomDistanceJoint.MaxDistance"/>
     [ExportSubgroup("Distance Joint Settings")]
     [Export(PropertyHint.Range, "0, 10000")] public float JointMaxDistance { get; set; } = 0;
+    /// <inheritdoc cref="CustomDistanceJoint.MaxForce"/>
     [Export(PropertyHint.Range, "0, 10000")] public float JointMaxForce { get; set; } = 50f;
+    /// <inheritdoc cref="CustomDistanceJoint.ForceEasing"/>
     [Export(PropertyHint.ExpEasing)] public float JointForceEasing { get; set; } = 0.9f;
 
     public override void _Ready()

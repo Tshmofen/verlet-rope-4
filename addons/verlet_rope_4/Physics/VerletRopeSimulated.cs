@@ -31,22 +31,35 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
     [ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(CreateRope);
     [ExportToolButton("Add Simulated Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
     
+    /// <summary> Determines amount of separate particles used is simulations, total segments amount is <see cref="SimulationParticles"/> minus 1. </summary>
     [ExportGroup("Simulation")]
     [Export(PropertyHint.Range, "3,100")] public int SimulationParticles { get; set; } = 10;
+    /// <summary> Determines target update rate for calculations (e.g. 30 updates per second) - but never exceeds physics tick rate. when value is set to 0 - the rope is updated every frame. </summary>
     [Export(PropertyHint.Range, "0,1000")] public int SimulationRate { get; set; } = 0;
     [Export(PropertyHint.Range, "0.2, 1.5")] public float Stiffness { get; set; } = 0.9f;
     [Export] public int StiffnessIterations { get; set; } = 2;
+    /// <summary> How much frames (at 1/60 delta rate) are precalculated on rope creation to make it begin at more natural state. </summary>
     [Export] public int PreprocessIterations { get; set; } = 5;
+    /// <summary> Determines if simulation is disabled when the rope is not on the screen. If <see cref="VerletRopeSimulatedJoint"/> is used to connect bodies, it might be better to disable this option to prevent de-syncs.</summary>
     [Export] public bool IsDisabledWhenInvisible { get; set; } = true;
+    /// <summary>
+    /// Determines how rope is being simulated.
+    /// <para><see cref="RopeSimulationBehavior.None"/> - Rope is disabled;</para>
+    /// <para><see cref="RopeSimulationBehavior.Game"/> - Only simulated in the game;</para>
+    /// <para><see cref="RopeSimulationBehavior.Editor"/> - Rope is simulated in both game and editor;</para>
+    /// <para><see cref="RopeSimulationBehavior.Selected"/> - Rope is simulated in game and only simulated in editor when selected.</para>
+    /// </summary>
     [Export] public RopeSimulationBehavior SimulationBehavior { get; set; } = RopeSimulationBehavior.Selected;
 
     [ExportGroup("Gravity")]
     [Export] public bool ApplyGravity { get; set; } = true;
     [Export] public Vector3 Gravity { get; set; } = Vector3.Down * 9.8f;
     [Export] public float GravityScale { get; set; } = 1.0f;
-
+    
+    /// <summary> Determines if wind force simulation is enabled, for it to work <see cref="WindNoise"/> must also be assigned. </summary>
     [ExportGroup("Wind")]
     [Export] public bool ApplyWind { get; set; } = false;
+    /// <summary> Determines base force and direction of the wind. </summary>
     [Export] public Vector3 WindDirection { get; set; } = new(40.0f, 0.0f, 0.0f);
     [Export] public FastNoiseLite WindNoise { get; set; } = null;
     [Export(PropertyHint.Range,"-1.00,1.00")] public float WindForceMax { get; set; } = 1.0f;
@@ -55,18 +68,32 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
     [ExportGroup("Damping")]
     [Export] public bool ApplyDamping { get; set; } = true;
     [Export(PropertyHint.Range, "0, 10000")] public float DampingFactor { get; set; } = 1f;
-
+    
+    /// <summary>
+    /// Determines how rope collisions are being tracked.
+    /// <para><see cref="RopeCollisionType.StaticOnly"/> - Rope only collides with static objects specified in <see cref="StaticCollisionMask"/>, any <see cref="RigidBody3D"/> from this layer might not be handled correctly;</para>
+    /// <para><see cref="RopeCollisionType.DynamicOnly"/> - Rope only collides with dynamic objects specified in <see cref="DynamicCollisionMask"/>, <see cref="RigidBody3D"/> in the rope area will be tracked
+    /// and their velocity interpolated for correct dynamic collision handling, is more performance heavy compared to static tracking.</para>
+    /// <para><see cref="RopeCollisionType.All"/> - Both variants of collision tracking is enabled, see their description above.</para>
+    /// </summary>
     [ExportGroup("Collision")]
-    [Export] public RopeCollisionType RopeCollisionType { get; set; } = RopeCollisionType.StaticOnly;
+    [Export] public RopeCollisionType RopeCollisionType { get; set; } = RopeCollisionType.StaticOnly;    
+    /// <summary>
+    /// Determines how rope collisions behaves physically.
+    /// <para><see cref="RopeCollisionBehavior.None"/> - Rope collisions are disabled, most performant option.</para>
+    /// <para><see cref="RopeCollisionBehavior.SlideStretch"/> - When rope particle collides, they stretch up to <see cref="SlideCollisionStretch"/> value,
+    /// then slide along the collision normal up to <see cref="IgnoreCollisionStretch"/> value, afterward the collision is considered unavoidable and is ignored. </para>
+    /// </summary>
     [Export] public RopeCollisionBehavior RopeCollisionBehavior { get; set; } = RopeCollisionBehavior.None;
     [Export(PropertyHint.Range, "1,20")] public float SlideCollisionStretch { get; set; } = 1.05f;
     [Export(PropertyHint.Range, "1,20")] public float IgnoreCollisionStretch { get; set; } = 5f;
     [Export(PropertyHint.Range, "1,256")] public int MaxDynamicCollisions { get; set; } = 4;
+    /// <summary> Determines the margin around the rope's <see cref="Aabb"/> to track incoming dynamic bodies. </summary>
     [Export(PropertyHint.Range, "0.1,100")] public float DynamicCollisionTrackingMargin { get; set; } = 1;
     [Export(PropertyHint.Layers3DPhysics)] public uint StaticCollisionMask { get; set; } = 1;
     [Export(PropertyHint.Layers3DPhysics)] public uint DynamicCollisionMask { get; set; } = 1;
-    [Export] public bool HitFromInside { get; set; }
-    [Export] public bool HitBackFaces { get; set; }
+    [Export] public bool RayCastHitFromInside { get; set; }
+    [Export] public bool RayCastHitBackFaces { get; set; }
 
     #region Util
 
@@ -99,8 +126,8 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
         _rayCast.CollisionMask = collisionMask;
         _rayCast.GlobalPosition = from;
         _rayCast.TargetPosition = direction;
-        _rayCast.HitBackFaces = HitBackFaces;
-        _rayCast.HitFromInside = HitFromInside;
+        _rayCast.HitBackFaces = RayCastHitBackFaces;
+        _rayCast.HitFromInside = RayCastHitFromInside;
 
         _rayCast.ClearExceptions();
         foreach (var rid in _collisionExceptions)
@@ -548,12 +575,14 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
         _particleData = null;
         SimulationParticles = 0;
     }
-
+    
+    /// <summary> Clears physics <see cref="Rid"/> that are currently ignored for collisions. </summary>
     public void ClearExceptions()
     {
         _collisionExceptions.Clear();
     }
 
+    /// <summary> Registers physics <see cref="Rid"/> for collision ignore. Use to exclude joined bodies from collision simulation. </summary>
     public void RegisterExceptionRid(Rid rid, bool toInclude)
     {
         if (toInclude)

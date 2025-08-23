@@ -13,12 +13,16 @@ public partial class VerletRopeRigidJoint : BaseVerletRopeJoint
     [ExportCategory("Attachment Settings")]
     [Export] public VerletRopeRigidBody VerletRope { get; set; }
 
+    /// <inheritdoc/>
     [ExportSubgroup("Rope Start")]
     [Export] public override PhysicsBody3D StartBody { get; set; }
+    /// <inheritdoc/>
     [Export] public override  Node3D StartCustomLocation{ get; set; }
     
+    /// <inheritdoc/>
     [ExportSubgroup("Rope End")]
     [Export] public override  PhysicsBody3D EndBody { get; set; }
+    /// <inheritdoc/>
     [Export] public override  Node3D EndCustomLocation{ get; set; }
 
     public override void _Ready()

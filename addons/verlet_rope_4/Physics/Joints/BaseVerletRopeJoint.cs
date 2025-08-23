@@ -4,10 +4,22 @@ namespace VerletRope4.Physics.Joints;
 
 public abstract partial class BaseVerletRopeJoint : Node, ISerializationListener
 {
+    /// <summary> A body that will be joined to the start of the Rope - by default <see cref="Node3D.GlobalPosition"/> is used as connection point. </summary>
     public abstract PhysicsBody3D StartBody { get; set; }
-    public abstract Node3D StartCustomLocation{ get; set; }
 
+    /// <summary>
+    /// A custom location for the start of the Rope. If <see cref="StartBody"/> is specified,
+    /// used as custom joint location for physics calculations - otherwise behaves as simple start particle <see cref="Node3D.GlobalPosition"/> constraint.
+    /// </summary>
+    public abstract Node3D StartCustomLocation { get; set; }
+    
+    /// <summary> A body that will be joined to the end of the Rope - by default <see cref="Node3D.GlobalPosition"/> is used as connection point. </summary>
     public abstract PhysicsBody3D EndBody { get; set; }
+
+    /// <summary>
+    /// A custom location for the end of the Rope. If <see cref="EndBody"/> is specified,
+    /// used as custom joint location for physics calculations - otherwise behaves as simple start particle <see cref="Node3D.GlobalPosition"/> constraint.
+    /// </summary>
     public abstract Node3D EndCustomLocation{ get; set; }
 
     public virtual void ResetJoint()
