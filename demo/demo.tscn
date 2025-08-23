@@ -230,6 +230,22 @@ RopeLength = 5.0
 MaterialOverride = SubResource("StandardMaterial3D_ykvhj")
 metadata/VerletRopeObject = true
 
+[node name="VerletRopeStatic2" type="MeshInstance3D" parent="RopeDemos/MovingRopes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.63653, 3.9411, 5.50704)
+mesh = SubResource("ImmediateMesh_ykvhj")
+script = ExtResource("2_lows4")
+SimulationParticles = 30
+SimulationBehavior = 2
+WindDirection = Vector3(20, 0, 0)
+WindForceMin = 0.0
+RopeCollisionType = 2
+RopeCollisionBehavior = 1
+StaticCollisionMask = 3
+DynamicCollisionMask = 2
+RopeLength = 5.0
+MaterialOverride = SubResource("StandardMaterial3D_ykvhj")
+metadata/VerletRopeObject = true
+
 [node name="PhysicsJointRope" type="Node3D" parent="RopeDemos"]
 transform = Transform3D(0.974421, 0, 0.22473, 0, 1, 0, -0.22473, 0, 0.974421, -0.493877, 0, 3.55581)
 

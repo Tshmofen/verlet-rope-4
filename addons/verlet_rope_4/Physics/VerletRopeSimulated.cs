@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using VerletRope4.Data;
 using VerletRope4.Physics.Joints;
+using VerletRope4.Physics.Presets;
 using VerletRope4.Utility;
 
 namespace VerletRope4.Physics;
@@ -94,6 +95,11 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
     [Export(PropertyHint.Layers3DPhysics)] public uint DynamicCollisionMask { get; set; } = 1;
     [Export] public bool RayCastHitFromInside { get; set; }
     [Export] public bool RayCastHitBackFaces { get; set; }
+
+    [ExportGroup("Presets")]
+    [ExportToolButton("Preset - Standard")] public Callable PresetStandardButton => Callable.From(
+        () => CommitEditorAction("Verlet Rope Simulated - Set Standard Preset", (undoRedo, actionId) => VerletRopeSimulatedPreset.SetStandardValues(this, undoRedo, actionId))
+    );
 
     #region Util
 
