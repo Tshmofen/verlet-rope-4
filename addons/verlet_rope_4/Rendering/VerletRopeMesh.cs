@@ -31,7 +31,7 @@ public partial class VerletRopeMesh : MeshInstance3D
         set { _useVisibleOnScreenNotifier = value; UpdateConfigurationWarnings(); }
     }
 
-    public bool IsRopeVisible { get; private set; } = true;
+    public bool IsRopeVisible => _visibleNotifier?.IsOnScreen() ?? true;
 
     #region Util
 
@@ -263,9 +263,6 @@ public partial class VerletRopeMesh : MeshInstance3D
         if (UseVisibleOnScreenNotifier && !Engine.IsEditorHint())
         {
             AddChild(_visibleNotifier = new VisibleOnScreenNotifier3D());
-            _visibleNotifier.ScreenEntered += () => IsRopeVisible = true;
-            _visibleNotifier.ScreenExited += () => IsRopeVisible = false;
-            IsRopeVisible = _visibleNotifier.IsOnScreen();
         }
 
         MaterialOverride ??= GD.Load<StandardMaterial3D>(DefaultMaterialPath);

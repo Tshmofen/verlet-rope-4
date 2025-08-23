@@ -22,7 +22,6 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
 
     [ExportGroup("Simulation")]
     [Export(PropertyHint.Range, "1,100")] public int SimulationSegments { get; set; } = 10;
-    [Export] public bool IsDisabledWhenInvisible { get; set; } = true;
     [Export] public bool IsStartSegmentPinned { get; set; } = true;
 
     [ExportGroup("Collision")]
@@ -31,6 +30,20 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
     [Export(PropertyHint.Layers3DPhysics)] public uint CollisionMask { get; set; } = 1;
     [Export] public bool IsContinuousCollision { get; set; } = false;
     [Export] public bool ShowCollisionShapeDebug { get; set; } = false;
+
+    [ExportGroup("Physics")]
+    [ExportSubgroup("Segments")]
+    [Export(PropertyHint.Range, "0.001,10000")] public float TotalRopeMass { get; set; } = 10.0f;
+    [Export(PropertyHint.Range, "-8.000,8")] public float GravityScale { get; set; } = 1.0f;
+    [Export] public PhysicsMaterial PhysicsMaterialOverride { get; set; }
+    [Export] public RigidBody3D.DampMode LinearDampMode { get; set; } = RigidBody3D.DampMode.Combine;
+    [Export(PropertyHint.Range, "0.000,100")] public float LinearDamp { get; set; } = 0.0f;
+    [Export] public RigidBody3D.DampMode AngularDampMode { get; set; } = RigidBody3D.DampMode.Combine;
+    [Export(PropertyHint.Range, "0.000,100")] public float AngularDamp { get; set; } = 0.0f;
+    [ExportSubgroup("Joints")]
+    [Export(PropertyHint.Range,"0.01,0.99,0.01")] public float PinBias { get; set; } = 0.3f;
+    [Export(PropertyHint.Range,"0.01,8,0.01")] public float PinDamping { get; set; } = 1.0f;
+    [Export(PropertyHint.Range,"0.0,64,0.05")] public float PinImpulseClamp { get; set; } = 0.0f;
 
     #region Util
 
@@ -66,7 +79,13 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
                 Position = positions[i],
                 CollisionMask = CollisionMask,
                 CollisionLayer = CollisionLayer,
-                ContinuousCd = IsContinuousCollision
+                ContinuousCd = IsContinuousCollision,
+                Mass = TotalRopeMass / SimulationSegments,
+                PhysicsMaterialOverride = PhysicsMaterialOverride,
+                LinearDamp = LinearDamp,
+                LinearDampMode = LinearDampMode,
+                AngularDamp = AngularDamp,
+                AngularDampMode = AngularDampMode
             };
 
             body.AddChild(new CollisionShape3D
@@ -180,13 +199,6 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
     {
         base._PhysicsProcess(delta);
 
-        if (IsDisabledWhenInvisible && !RopeMesh.IsRopeVisible)
-        {
-            ProcessMode = ProcessModeEnum.Disabled;
-            return;
-        }
-
-        ProcessMode = ProcessModeEnum.Inherit;
         if (_particleData == null || _segmentBodies == null)
         {
             CreateRope();
