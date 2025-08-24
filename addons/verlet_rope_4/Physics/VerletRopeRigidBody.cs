@@ -16,9 +16,11 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
     private List<RigidBody3D> _segmentBodies;
     private RopeParticleData _particleData;
 
+    #if TOOLS
     [ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(CreateRope);
     [ExportToolButton("Clone Rigid Bodies")] public Callable CloneBodiesButton => Callable.From(CloneRigidBodiesAction);
     [ExportToolButton("Add Rigid Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
+    #endif
     
     /// <summary> Determines amount of separate <see cref="RigidBody3D"/> segments that will constitute the rope. </summary>
     [ExportGroup("Simulation")]
@@ -184,6 +186,7 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
 
     #endregion
 
+    #if TOOLS
     #region Editor
 
     private void CloneRigidBodiesAction()
@@ -205,6 +208,7 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
     }
 
     #endregion
+    #endif
 
     public override void _Ready()
     {
@@ -235,8 +239,11 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
         }
 
         RopeMesh.DrawRopeParticles(_particleData);
+
+        #if TOOLS
         UpdateEditorCollision(_particleData);
         UpdateGizmos();
+        #endif
     }
 
     public void CloneRigidBodies(int actionId = 0, bool toCreate = true)

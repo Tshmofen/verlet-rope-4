@@ -5,6 +5,8 @@ namespace VerletRope4.Physics.Presets;
 
 public static class VerletRopeSimulatedPreset
 {
+    #if TOOLS
+
     public static void SetBaseWindValues(VerletRopeSimulated verletRope, EditorUndoRedoManager undoRedo, int actionId)
     {
         undoRedo.AddDoProperty(verletRope, VerletRopeSimulated.PropertyName.ApplyWind, true);
@@ -55,4 +57,6 @@ public static class VerletRopeSimulatedPreset
         undoRedo.AddUndoProperty(verletRope, VerletRopeSimulated.PropertyName.DynamicCollisionTrackingMargin, verletRope.DynamicCollisionTrackingMargin);
         undoRedo.AddUndoMethod(verletRope, VerletRopeSimulated.MethodName.CreateRope);
     }
+
+    #endif
 }

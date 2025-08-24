@@ -9,7 +9,10 @@ namespace VerletRope4.Physics;
 [Tool]
 public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationListener
 {
+    #if TOOLS
     private EditorUndoRedoManager _undoRedoManager;
+    #endif
+
     private Vector3[] _editorVertexPositions = [];
     private VerletRopeMesh _ropeMesh;
 
@@ -57,14 +60,14 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         EndBody = endBody;
         EndNode = endLocation ?? endBody;
     }
-    
-    #if TOOLS
-    #region Editor
 
     protected static StringName GetActionMeta(string action)
     {
         return $"verlet_rope_physical_{action}";
     }
+    
+    #if TOOLS
+    #region Editor
 
     protected void CommitEditorAction(string actionName, Action<EditorUndoRedoManager, int> undoRedoAction)
     {

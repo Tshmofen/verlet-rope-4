@@ -29,8 +29,10 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
     private PhysicsShapeQueryParameters3D _collisionShapeParameters;
     private readonly Dictionary<RigidBody3D, RopeDynamicCollisionData> _dynamicBodies = [];
 
+    #if TOOLS
     [ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(CreateRope);
     [ExportToolButton("Add Simulated Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
+    #endif
     
     /// <summary> Determines amount of separate particles used is simulations, total segments amount is <see cref="SimulationParticles"/> minus 1. </summary>
     [ExportGroup("Simulation")]
@@ -96,6 +98,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
     [Export] public bool RayCastHitFromInside { get; set; }
     [Export] public bool RayCastHitBackFaces { get; set; }
 
+    #if TOOLS
     [ExportGroup("Quick Presets")]
     [ExportToolButton("Preset - Base Wind")] public Callable PresetBaseWindButton => Callable.From(
         () => CommitEditorAction("Verlet Rope Simulated - Base Wind Preset", (undoRedo, actionId) => VerletRopeSimulatedPreset.SetBaseWindValues(this, undoRedo, actionId))
@@ -106,6 +109,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
     [ExportToolButton("Preset - All Collisions")] public Callable PresetBaseAllCollisionsButton => Callable.From(
         () => CommitEditorAction("Verlet Rope Simulated - Base All Collisions Preset", (undoRedo, actionId) => VerletRopeSimulatedPreset.SetBaseAllCollisionsValues(this, undoRedo, actionId))
     );
+    #endif
 
 
     #region Util
@@ -459,6 +463,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
 
     #endregion
 
+    #if TOOLS
     #region Editor
 
     private void CreateJointAction()
@@ -471,6 +476,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
     }
 
     #endregion
+    #endif
 
     public override void _Ready()
     {
@@ -538,8 +544,10 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
         EmitSignalSimulationStep(_simulationDelta);
         _simulationDelta = 0;
 
+        #if TOOLS
         UpdateEditorCollision(_particleData);
         UpdateGizmos();
+        #endif
     }
 
     public override void CreateJoint(int actionId = 0, bool toCreate = true)
