@@ -96,10 +96,17 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
     [Export] public bool RayCastHitFromInside { get; set; }
     [Export] public bool RayCastHitBackFaces { get; set; }
 
-    [ExportGroup("Presets")]
-    [ExportToolButton("Preset - Standard")] public Callable PresetStandardButton => Callable.From(
-        () => CommitEditorAction("Verlet Rope Simulated - Set Standard Preset", (undoRedo, actionId) => VerletRopeSimulatedPreset.SetStandardValues(this, undoRedo, actionId))
+    [ExportGroup("Quick Presets")]
+    [ExportToolButton("Preset - Base Wind")] public Callable PresetBaseWindButton => Callable.From(
+        () => CommitEditorAction("Verlet Rope Simulated - Base Wind Preset", (undoRedo, actionId) => VerletRopeSimulatedPreset.SetBaseWindValues(this, undoRedo, actionId))
     );
+    [ExportToolButton("Preset - Floating Rope")] public Callable PresetFloatingRopeButton => Callable.From(
+        () => CommitEditorAction("Verlet Rope Simulated - Base Floating Preset", (undoRedo, actionId) => VerletRopeSimulatedPreset.SetFloatingValues(this, undoRedo, actionId))
+    );
+    [ExportToolButton("Preset - All Collisions")] public Callable PresetBaseAllCollisionsButton => Callable.From(
+        () => CommitEditorAction("Verlet Rope Simulated - Base All Collisions Preset", (undoRedo, actionId) => VerletRopeSimulatedPreset.SetBaseAllCollisionsValues(this, undoRedo, actionId))
+    );
+
 
     #region Util
 

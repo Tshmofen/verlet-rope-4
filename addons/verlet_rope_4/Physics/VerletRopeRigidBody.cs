@@ -23,8 +23,6 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
     /// <summary> Determines amount of separate <see cref="RigidBody3D"/> segments that will constitute the rope. </summary>
     [ExportGroup("Simulation")]
     [Export(PropertyHint.Range, "1,100")] public int SimulationSegments { get; set; } = 10;
-    /// <summary> Determines if <see cref="PinJoint3D"/> is created at the start of the first segment. </summary>
-    [Export] public bool IsStartSegmentPinned { get; set; } = true;
     
     /// <summary> Adjusts the radius of rope segment collision. Final collision width equals to <see cref="BaseVerletRopePhysical.RopeWidth"/> with added <see cref="CollisionWidthMargin"/>. </summary>
     [ExportGroup("Collision")]
@@ -41,12 +39,17 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
     [Export(PropertyHint.Range, "0.001,10000")] public float TotalRopeMass { get; set; } = 10.0f;
     [Export(PropertyHint.Range, "-8.000,8")] public float GravityScale { get; set; } = 1.0f;
     [Export] public PhysicsMaterial PhysicsMaterialOverride { get; set; }
+    /// <summary> Sets the linear <see cref="RigidBody3D.DampMode"/> value for each segment, if value is zero - uses <c>Default Linear Damp</c> from project settings. </summary>
     [Export] public RigidBody3D.DampMode LinearDampMode { get; set; } = RigidBody3D.DampMode.Combine;
     [Export(PropertyHint.Range, "0.000,100")] public float LinearDamp { get; set; } = 0.0f;
     [Export] public RigidBody3D.DampMode AngularDampMode { get; set; } = RigidBody3D.DampMode.Combine;
+    /// <summary> Sets the angular <see cref="RigidBody3D.DampMode"/> value for each segment, if value is zero - uses <c>Default Angular Damp</c> from project settings. </summary>
     [Export(PropertyHint.Range, "0.000,100")] public float AngularDamp { get; set; } = 0.0f;
-    /// <summary> Determines <see cref="PinJoint3D.Param.Bias"/> for each separate joint <see cref="PinJoint3D"/>. Only works with default Physics engine. </summary>
+
+    /// <summary> Determines if <see cref="PinJoint3D"/> is created at the start of the first segment. </summary>
     [ExportSubgroup("Joints")]
+    [Export] public bool IsStartPinned { get; set; } = true;
+    /// <summary> Determines <see cref="PinJoint3D.Param.Bias"/> for each separate joint <see cref="PinJoint3D"/>. Only works with default Physics engine. </summary>
     [Export(PropertyHint.Range,"0.01,0.99,0.01")] public float PinBias { get; set; } = 0.3f;
     /// <summary> Determines <see cref="PinJoint3D.Param.Damping"/> for each separate joint <see cref="PinJoint3D"/>. Only works with default Physics engine. </summary>
     [Export(PropertyHint.Range,"0.01,8,0.01")] public float PinDamping { get; set; } = 1.0f;
@@ -136,7 +139,7 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
             return pin;
         }
 
-        if (StartNode != null || IsStartSegmentPinned)
+        if (StartNode != null || IsStartPinned)
         {
             segmentBodies[0].AddChild(SetPinParameters(new PinJoint3D
             {
