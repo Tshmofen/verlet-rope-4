@@ -121,7 +121,7 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
 
         for (var i = 0; i < segmentBodies.Count; i++)
         {
-            var body = segmentBodies[i];
+            var body = segmentBodies[i]; 
             body.LookAt(ToGlobal(positions[i + 1]));
             body.RotateObjectLocal(Vector3.Right, -Mathf.Pi / 2);
         }
@@ -219,9 +219,10 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
         if (_particleData == null || _segmentBodies == null)
         {
             CreateRope();
+            return;
         }
 
-        if (_segmentBodies!.Count > 0)
+        if (_segmentBodies.Count > 0)
         {
             var segmentLength = GetSegmentLength();
             var endPosition = new Vector3(0, segmentLength, 0);
@@ -280,6 +281,13 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
     public override void CreateRope()
     {
         DestroyRope();
+
+        if (!IsInsideTree())
+        {
+            // Only possible to create inside tree, as physics rely on actual paths
+            return;
+        }
+
         base.CreateRope();
         _segmentBodies = SpawnSegmentBodies(this);
         PinSegmentBodies(_segmentBodies);
