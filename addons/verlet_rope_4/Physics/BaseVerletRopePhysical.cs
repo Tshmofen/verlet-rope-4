@@ -22,12 +22,18 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     protected Node3D EndNode { get; set; }
     
     // Properties have the same default values as on `RopeMesh`
+    /// <inheritdoc cref="VerletRopeMesh.RopeLength"/>
     [ExportGroup("Visuals")]
     [Export] public float RopeLength { get; set; } = 3.0f;
+    /// <inheritdoc cref="VerletRopeMesh.RopeWidth"/>
     [Export] public float RopeWidth { get; set; } = 0.07f;
+    /// <inheritdoc cref="VerletRopeMesh.SubdivisionLodDistance"/>
     [Export] public float SubdivisionLodDistance { get; set; } = 15.0f;
+    /// <inheritdoc cref="VerletRopeMesh.UseVisibleOnScreenNotifier"/>
     [Export] public bool UseVisibleOnScreenNotifier { get; set; } = true;
+    /// <inheritdoc cref="VerletRopeMesh.UseDebugParticles"/>
     [Export] public bool UseDebugParticles { get; set; } = false;
+    /// <inheritdoc cref="VerletRopeMesh.MaterialOverride"/>
     [Export] public Material MaterialOverride { get; set; }
 
     public virtual void CreateRope()
@@ -51,9 +57,9 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         EndBody = endBody;
         EndNode = endLocation ?? endBody;
     }
-
-    #region Editor
+    
     #if TOOLS
+    #region Editor
 
     protected static StringName GetActionMeta(string action)
     {
@@ -102,8 +108,8 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         return _editorVertexPositions;
     }
     
-    #endif
     #endregion
+    #endif
 
     #region Script Reload
 

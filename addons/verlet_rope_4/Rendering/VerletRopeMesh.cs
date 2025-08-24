@@ -20,17 +20,23 @@ public partial class VerletRopeMesh : MeshInstance3D
     private Camera3D _camera;
     private double _simulationDelta;
     
+    /// <summary> Determines total target length of the rope, it is just a base value and actual length might be different depending on physics and configured behavior. </summary>
     [ExportGroup("Visuals")]
     [Export] public float RopeLength { get; set; } = 3.0f;
+    /// <summary> Determines visual width of the rope, does not affect rope behavior. </summary>
     [Export] public float RopeWidth { get; set; } = 0.07f;
+    /// <summary> If distance to particle is greater than <see cref="SubdivisionLodDistance"/>, the corresponding segment is not subdivided for rendering. </summary>
     [Export] public float SubdivisionLodDistance { get; set; } = 15.0f;
+    /// <summary> Draws orientation axis-es from actual particle positions when enabled. </summary>
     [Export] public bool UseDebugParticles { get; set; } = false;
+    /// <summary> Creates a child <see cref="VisibleOnScreenNotifier3D"/> when enabled. Is only triggered on <see cref="_Ready"/> calls. </summary>
     [Export] public bool UseVisibleOnScreenNotifier
     {
         get => _useVisibleOnScreenNotifier; 
         set { _useVisibleOnScreenNotifier = value; UpdateConfigurationWarnings(); }
     }
-
+    
+    /// <summary> If <see cref="VisibleOnScreenNotifier3D"/> is being used, returns if rope is actually visible - otherwise always returns <b>true</b>. </summary>
     public bool IsRopeVisible => _visibleNotifier?.IsOnScreen() ?? true;
 
     #region Util
@@ -104,14 +110,12 @@ public partial class VerletRopeMesh : MeshInstance3D
     private float GetDrawSubdivisionStep(RopeParticleData particles, Vector3 cameraPosition, int particleIndex)
     {
         var camDistParticle = cameraPosition - particles[particleIndex].PositionCurrent;
-
         if (camDistParticle.LengthSquared() > SubdivisionLodDistance * SubdivisionLodDistance)
         {
             return 1.0f;
         }
 
         var tangentDots = particles[particleIndex].Tangent.Dot(particles[particleIndex + 1].Tangent);
-
         return
             tangentDots >= Cos5Deg ? 1.0f :
             tangentDots >= Cos15Deg ? 0.5f :
