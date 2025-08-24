@@ -120,7 +120,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
 
     public void OnAfterDeserialize()
     {
-        CreateRope();
+        CallDeferred(MethodName.CreateRope);
     }
 
     #endregion
