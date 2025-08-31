@@ -9,10 +9,13 @@ using VerletRope4.Utility;
 namespace VerletRope4.Physics;
 
 [Tool]
-public partial class VerletRopeSimulated : BaseVerletRopePhysical
+public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExported
 {
-    public const string ScriptPath = "res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs";
-    public const string IconPath = "res://addons/verlet_rope_4/icon.svg";
+    public static string ScriptPath => "res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs";
+    public static string IconPath => "res://addons/verlet_rope_4/icon_rope_simulated.svg";
+    public static string ExportedBase => nameof(Node3D);
+    public static string ExportedType => nameof(VerletRopeSimulated);
+
     [Signal] public delegate void SimulationStepEventHandler(double delta);
 
     private const float StaticCollisionCheckLength = 0.005f;
@@ -45,15 +48,9 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
     [Export] public int StiffnessIterations { get; set; } = 2;
     /// <summary> How much frames (at 1/60 delta rate) are precalculated on rope creation to make it begin at more natural state. </summary>
     [Export] public int PreprocessIterations { get; set; } = 5;
-    /// <summary> Determines if simulation is disabled when the rope is not on the screen. If <see cref="VerletRopeSimulatedJoint"/> is used to connect bodies, it might be better to disable this option to prevent de-syncs. </summary>
+    /// <summary> Determines if simulation is disabled when the rope is not on the screen. If <see cref="VerletJointSimulated"/> is used to connect bodies, it might be better to disable this option to prevent de-syncs. </summary>
     [Export] public bool IsDisabledWhenInvisible { get; set; } = true;
-    /// <summary>
-    /// Determines how rope is being simulated.
-    /// <para><see cref="RopeSimulationBehavior.None"/> - Rope is disabled;</para>
-    /// <para><see cref="RopeSimulationBehavior.Game"/> - Only simulated in the game;</para>
-    /// <para><see cref="RopeSimulationBehavior.Editor"/> - Rope is simulated in both game and editor;</para>
-    /// <para><see cref="RopeSimulationBehavior.Selected"/> - Rope is simulated in game and only simulated in editor when selected.</para>
-    /// </summary>
+    /// <inheritdoc cref="Data.RopeSimulationBehavior"/>
     [Export] public RopeSimulationBehavior SimulationBehavior { get; set; } = RopeSimulationBehavior.Selected;
 
     [ExportGroup("Gravity")]
@@ -74,21 +71,10 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
     [Export] public bool ApplyDamping { get; set; } = true;
     [Export(PropertyHint.Range, "0, 10000")] public float DampingFactor { get; set; } = 1f;
     
-    /// <summary>
-    /// Determines how rope collisions are being tracked.
-    /// <para><see cref="RopeCollisionType.StaticOnly"/> - Rope only collides with static objects specified in <see cref="StaticCollisionMask"/>, any <see cref="RigidBody3D"/> from this layer might not be handled correctly;</para>
-    /// <para><see cref="RopeCollisionType.DynamicOnly"/> - Rope only collides with dynamic objects specified in <see cref="DynamicCollisionMask"/>, any <see cref="RigidBody3D"/> in the rope area will be tracked
-    /// and their velocity interpolated for correct dynamic collision handling, is more performance heavy compared to static tracking;</para>
-    /// <para><see cref="RopeCollisionType.All"/> - Both variants of collision tracking is enabled, see their descriptions above.</para>
-    /// </summary>
+    /// <inheritdoc cref="Data.RopeCollisionType"/>>
     [ExportGroup("Collision")]
     [Export] public RopeCollisionType RopeCollisionType { get; set; } = RopeCollisionType.StaticOnly;    
-    /// <summary>
-    /// Determines how rope collisions behaves physically.
-    /// <para><see cref="RopeCollisionBehavior.None"/> - Rope collisions are disabled, most performant option.</para>
-    /// <para><see cref="RopeCollisionBehavior.SlideStretch"/> - When rope particle collides, they stretch up to <see cref="SlideCollisionStretch"/> value,
-    /// then slide along the collision normal up to <see cref="IgnoreCollisionStretch"/> value, afterward the collision is considered unavoidable and is ignored. </para>
-    /// </summary>
+    /// <inheritdoc cref="Data.RopeCollisionBehavior"/>>
     [Export] public RopeCollisionBehavior RopeCollisionBehavior { get; set; } = RopeCollisionBehavior.None;
     [Export(PropertyHint.Range, "1,20")] public float SlideCollisionStretch { get; set; } = 1.05f;
     [Export(PropertyHint.Range, "1,20")] public float IgnoreCollisionStretch { get; set; } = 5f;
@@ -562,7 +548,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
             return;
         }
 
-        var joint = this.CreateChild<VerletRopeSimulatedJoint>("JointSimulated");
+        var joint = this.CreateChild<VerletJointSimulated>("JointSimulated");
         joint.SetMeta(metaName, actionId);
     }
 

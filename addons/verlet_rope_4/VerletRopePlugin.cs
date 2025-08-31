@@ -3,6 +3,7 @@
 using Godot;
 using VerletRope4.Physics;
 using VerletRope4.Physics.Joints;
+using VerletRope4.Rendering;
 
 namespace VerletRope4;
 
@@ -11,33 +12,38 @@ public partial class VerletRopePlugin : EditorPlugin
 {
     private VerletRopeGizmoPlugin _gizmoPlugin;
 
+    private void AddVerletType(string exportType, string exportBase, string scriptPath, string iconPath)
+    {
+        var script = GD.Load<Script>(scriptPath);
+        var texture = GD.Load<Texture2D>(iconPath);
+        AddCustomType(exportType, exportBase, script, texture);
+    }
+
     public override void _EnterTree()
     {
-        var script = GD.Load<Script>(VerletRopeSimulated.ScriptPath);
-        var texture = GD.Load<Texture2D>(VerletRopeSimulated.IconPath);
-        AddCustomType(nameof(VerletRopeSimulated), nameof(Node3D), script, texture);
+        AddVerletType(VerletRopeSimulated.ExportedType, VerletRopeSimulated.ExportedBase, VerletRopeSimulated.ScriptPath, VerletRopeSimulated.IconPath);
+        AddVerletType(VerletJointSimulated.ExportedType, VerletJointSimulated.ExportedBase, VerletJointSimulated.ScriptPath, VerletJointSimulated.IconPath);
 
-        script = GD.Load<Script>(VerletRopeRigidBody.ScriptPath);
-        texture = GD.Load<Texture2D>(VerletRopeRigidBody.IconPath);
-        AddCustomType(nameof(VerletRopeRigidBody), nameof(Node3D), script, texture);
+        AddVerletType(VerletRopeRigid.ExportedType, VerletRopeRigid.ExportedBase, VerletRopeRigid.ScriptPath, VerletRopeRigid.IconPath);
+        AddVerletType(VerletJointRigid.ExportedType, VerletJointRigid.ExportedBase, VerletJointRigid.ScriptPath, VerletJointRigid.IconPath);
 
-        script = GD.Load<Script>(VerletRopeSimulatedJoint.ScriptPath);
-        texture = GD.Load<Texture2D>(VerletRopeSimulatedJoint.IconPath);
-        AddCustomType(nameof(VerletRopeSimulatedJoint), nameof(Node), script, texture);
-        
-        script = GD.Load<Script>(VerletRopeRigidJoint.ScriptPath);
-        texture = GD.Load<Texture2D>(VerletRopeRigidJoint.IconPath);
-        AddCustomType(nameof(VerletRopeRigidJoint), nameof(Node), script, texture);
+        AddVerletType(DistanceForceJoint.ExportedType, DistanceForceJoint.ExportedBase, DistanceForceJoint.ScriptPath, DistanceForceJoint.IconPath);
+        AddVerletType(VerletRopeMesh.ExportedType, VerletRopeMesh.ExportedBase, VerletRopeMesh.ScriptPath, VerletRopeMesh.IconPath);
 
         AddNode3DGizmoPlugin(_gizmoPlugin = new VerletRopeGizmoPlugin());
     }
 
     public override void _ExitTree()
     {
-        RemoveCustomType(nameof(VerletRopeSimulated));
-        RemoveCustomType(nameof(VerletRopeRigidBody));
-        RemoveCustomType(nameof(VerletRopeSimulatedJoint));
-        RemoveCustomType(nameof(VerletRopeRigidJoint));
+        RemoveCustomType(VerletRopeSimulated.ExportedType);
+        RemoveCustomType(VerletJointSimulated.ExportedType);
+
+        RemoveCustomType(VerletRopeRigid.ExportedType);
+        RemoveCustomType(VerletJointRigid.ExportedType);
+
+        RemoveCustomType(DistanceForceJoint.ExportedType);
+        RemoveCustomType(VerletRopeMesh.ExportedType);
+
         RemoveNode3DGizmoPlugin(_gizmoPlugin);
     }
 

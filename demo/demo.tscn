@@ -5,11 +5,11 @@
 [ext_resource type="Script" uid="uid://c3oxgehluk75x" path="res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs" id="2_lows4"]
 [ext_resource type="Script" uid="uid://bccao1l5oneap" path="res://demo/scripts/MovingBodyDemo.cs" id="2_u10mr"]
 [ext_resource type="Script" uid="uid://d36wx6t8jmjcx" path="res://demo/scripts/MovingRopeDemo.cs" id="2_vutyd"]
-[ext_resource type="Script" uid="uid://ffm7yrjl0bfd" path="res://addons/verlet_rope_4/Physics/Joints/VerletRopeSimulatedJoint.cs" id="3_j5lb4"]
+[ext_resource type="Script" uid="uid://cvxw3h20i7vjf" path="res://addons/verlet_rope_4/Physics/Joints/VerletJointSimulated.cs" id="3_j5lb4"]
 [ext_resource type="PackedScene" uid="uid://d3xb1b1stk8rm" path="res://demo/objects/obstacle_cylinder.tscn" id="5_1rqa4"]
-[ext_resource type="Script" uid="uid://b6d7w4sbrb33r" path="res://addons/verlet_rope_4/Physics/VerletRopeRigidBody.cs" id="5_onu7k"]
+[ext_resource type="Script" uid="uid://dja12uyulc7ee" path="res://addons/verlet_rope_4/Physics/VerletRopeRigid.cs" id="5_onu7k"]
 [ext_resource type="PackedScene" uid="uid://2ob0knp0cjht" path="res://demo/objects/moving_cylinder.tscn" id="6_xm42s"]
-[ext_resource type="Script" uid="uid://djx76jteldpjs" path="res://addons/verlet_rope_4/Physics/Joints/VerletRopeRigidJoint.cs" id="7_s1s6j"]
+[ext_resource type="Script" uid="uid://cuw8dk3lkvm2n" path="res://addons/verlet_rope_4/Physics/Joints/VerletJointRigid.cs" id="7_s1s6j"]
 [ext_resource type="PackedScene" uid="uid://blrqcmax3ddjm" path="res://demo/objects/moving_box.tscn" id="7_tdg64"]
 [ext_resource type="Script" uid="uid://bpkliplhsl25q" path="res://addons/verlet_rope_4/Rendering/VerletRopeMesh.cs" id="8_nk31j"]
 [ext_resource type="PackedScene" uid="uid://cxvtuenfotsv0" path="res://demo/objects/enclosure.tscn" id="9_1rqa4"]
@@ -54,7 +54,7 @@ albedo_color = Color(0.789868, 0.610247, 0, 1)
 
 [sub_resource type="ImmediateMesh" id="ImmediateMesh_nk31j"]
 resource_local_to_scene = true
-metadata/verlet_rope_internal_stamp = 2211958570508
+metadata/verlet_rope_internal_stamp = 2780790078997
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1rqa4"]
 albedo_color = Color(0.582917, 0, 0.0906055, 1)
@@ -247,22 +247,21 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.19183, 0.298381, 2.29841)
 
 [node name="RigidRope" type="Node3D" parent="RopeDemos"]
 
-[node name="VerletRopeRigidBody" type="Node3D" parent="RopeDemos/RigidRope"]
+[node name="VerletRopeRigid" type="Node3D" parent="RopeDemos/RigidRope"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.51038, 3.37304, 6.89077)
 script = ExtResource("5_onu7k")
 CollisionLayer = 7
 CollisionMask = 7
 MaterialOverride = SubResource("StandardMaterial3D_1rqa4")
-metadata/_custom_type_script = "uid://b6d7w4sbrb33r"
 
-[node name="JointRigid" type="Node" parent="RopeDemos/RigidRope/VerletRopeRigidBody" node_paths=PackedStringArray("VerletRope", "EndBody", "EndCustomLocation")]
+[node name="JointRigid" type="Node" parent="RopeDemos/RigidRope/VerletRopeRigid" node_paths=PackedStringArray("VerletRope", "EndBody", "EndCustomLocation")]
 script = ExtResource("7_s1s6j")
 VerletRope = NodePath("..")
 EndBody = NodePath("../MovingBoxSmall")
 EndCustomLocation = NodePath("../MovingBoxSmall/CustomAttachment")
 
-[node name="MovingBoxSmall" parent="RopeDemos/RigidRope/VerletRopeRigidBody" instance=ExtResource("12_xm42s")]
+[node name="MovingBoxSmall" parent="RopeDemos/RigidRope/VerletRopeRigid" instance=ExtResource("12_xm42s")]
 transform = Transform3D(0.947506, 0, 0.319737, 0, 1, 0, -0.319737, 0, 0.947506, 1.70422, 0.321674, -0.925304)
 
-[node name="CustomAttachment" type="Node3D" parent="RopeDemos/RigidRope/VerletRopeRigidBody/MovingBoxSmall"]
+[node name="CustomAttachment" type="Node3D" parent="RopeDemos/RigidRope/VerletRopeRigid/MovingBoxSmall"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.141444, 0, 0)

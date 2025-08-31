@@ -73,7 +73,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     {
         if (_undoRedoManager == null)
         {
-            GD.PushWarning($"`{nameof(VerletRopeRigidBody)}` has tried to use `{nameof(_undoRedoManager)}`, but it was not associated with the plugin.");
+            GD.PushWarning($"`{nameof(VerletRopeRigid)}` has tried to use `{nameof(_undoRedoManager)}`, but it was not associated with the plugin.");
             return;
         }
 
