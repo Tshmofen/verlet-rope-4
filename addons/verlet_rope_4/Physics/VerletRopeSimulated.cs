@@ -39,11 +39,13 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
     [Export(PropertyHint.Range, "3,100")] public int SimulationParticles { get; set; } = 10;
     /// <summary> Determines target update rate for calculations (e.g. 30 updates per second) - but never exceeds physics tick rate. when value is set to 0 - the rope is updated every frame. </summary>
     [Export(PropertyHint.Range, "0,1000")] public int SimulationRate { get; set; } = 0;
+    /// <summary> Akin to elasticity - it controls how much the verlet constraint corrects the rope to the expected positions. </summary>
     [Export(PropertyHint.Range, "0.2, 1.5")] public float Stiffness { get; set; } = 0.9f;
+    /// <summary> Number of stiffing cycles per frame, higher values gives more accurate simulation for lengthy ropes with many simulation particles </summary>
     [Export] public int StiffnessIterations { get; set; } = 2;
     /// <summary> How much frames (at 1/60 delta rate) are precalculated on rope creation to make it begin at more natural state. </summary>
     [Export] public int PreprocessIterations { get; set; } = 5;
-    /// <summary> Determines if simulation is disabled when the rope is not on the screen. If <see cref="VerletRopeSimulatedJoint"/> is used to connect bodies, it might be better to disable this option to prevent de-syncs.</summary>
+    /// <summary> Determines if simulation is disabled when the rope is not on the screen. If <see cref="VerletRopeSimulatedJoint"/> is used to connect bodies, it might be better to disable this option to prevent de-syncs. </summary>
     [Export] public bool IsDisabledWhenInvisible { get; set; } = true;
     /// <summary>
     /// Determines how rope is being simulated.
@@ -65,8 +67,8 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
     /// <summary> Determines base force and direction of the wind. </summary>
     [Export] public Vector3 WindDirection { get; set; } = new(40.0f, 0.0f, 0.0f);
     [Export] public FastNoiseLite WindNoise { get; set; } = null;
-    [Export(PropertyHint.Range,"-1.00,1.00")] public float WindForceMax { get; set; } = 1.0f;
-    [Export(PropertyHint.Range,"-1.00,1.00")] public float WindForceMin { get; set; } = 0.05f;
+    [Export(PropertyHint.Range,"-1.00,1.00")] public float WindNoiseMax { get; set; } = 1.0f;
+    [Export(PropertyHint.Range,"-1.00,1.00")] public float WindNoiseMin { get; set; } = 0.05f;
 
     [ExportGroup("Damping")]
     [Export] public bool ApplyDamping { get; set; } = true;
@@ -75,9 +77,9 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
     /// <summary>
     /// Determines how rope collisions are being tracked.
     /// <para><see cref="RopeCollisionType.StaticOnly"/> - Rope only collides with static objects specified in <see cref="StaticCollisionMask"/>, any <see cref="RigidBody3D"/> from this layer might not be handled correctly;</para>
-    /// <para><see cref="RopeCollisionType.DynamicOnly"/> - Rope only collides with dynamic objects specified in <see cref="DynamicCollisionMask"/>, <see cref="RigidBody3D"/> in the rope area will be tracked
-    /// and their velocity interpolated for correct dynamic collision handling, is more performance heavy compared to static tracking.</para>
-    /// <para><see cref="RopeCollisionType.All"/> - Both variants of collision tracking is enabled, see their description above.</para>
+    /// <para><see cref="RopeCollisionType.DynamicOnly"/> - Rope only collides with dynamic objects specified in <see cref="DynamicCollisionMask"/>, any <see cref="RigidBody3D"/> in the rope area will be tracked
+    /// and their velocity interpolated for correct dynamic collision handling, is more performance heavy compared to static tracking;</para>
+    /// <para><see cref="RopeCollisionType.All"/> - Both variants of collision tracking is enabled, see their descriptions above.</para>
     /// </summary>
     [ExportGroup("Collision")]
     [Export] public RopeCollisionType RopeCollisionType { get; set; } = RopeCollisionType.StaticOnly;    
@@ -398,11 +400,11 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical
                 totalAcceleration += Gravity * GravityScale;
             }
 
-            if (ApplyWind)
+            if (ApplyWind && WindNoise != null)
             {
                 var timedPosition = particle.PositionCurrent + currentTimeChange;
-                var windForce = WindNoise?.GetNoise3D(timedPosition.X, timedPosition.Y, timedPosition.Z) ?? WindForceMax;
-                totalAcceleration += WindDirection * Mathf.Clamp(windForce, WindForceMin, WindForceMax);
+                var windForce = WindNoise.GetNoise3D(timedPosition.X, timedPosition.Y, timedPosition.Z);
+                totalAcceleration += WindDirection * Mathf.Clamp(windForce, WindNoiseMin, WindNoiseMax);
             }
 
             if (ApplyDamping)

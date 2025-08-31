@@ -27,7 +27,8 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
     [Export(PropertyHint.Range, "1,100")] public int SimulationSegments { get; set; } = 10;
     
     /// <summary> Adjusts the radius of rope segment collision. Final collision width equals to <see cref="BaseVerletRopePhysical.RopeWidth"/> with added <see cref="CollisionWidthMargin"/>. </summary>
-    [ExportGroup("Collision")]
+    [ExportGroup("Physics")]
+    [ExportSubgroup("Collision")]
     [Export] public float CollisionWidthMargin { get; set; } = -0.01f;
     [Export(PropertyHint.Layers3DPhysics)] public uint CollisionLayer { get; set; } = 1;
     [Export(PropertyHint.Layers3DPhysics)] public uint CollisionMask { get; set; } = 1;
@@ -35,8 +36,7 @@ public partial class VerletRopeRigidBody : BaseVerletRopePhysical
     /// <summary> Renders meshes with the same shape and size as <see cref="CollisionShape3D"/> used in segment generation. </summary>
     [Export] public bool ShowCollisionShapeDebug { get; set; } = false;
 
-    /// <summary> Determines overall <see cref="RigidBody3D.Mass"/> of the rope, each segment will have weight equal to <see cref="RigidBody3D.Mass"/> divided by <see cref="SimulationSegments"/> count. </summary>
-    [ExportGroup("Physics")]
+    /// <summary> Determines overall <see cref="RigidBody3D.Mass"/> of the rope, each segment will have weight equal to <see cref="TotalRopeMass"/> divided by <see cref="SimulationSegments"/> count. </summary>
     [ExportSubgroup("Segments")]
     [Export(PropertyHint.Range, "0.001,10000")] public float TotalRopeMass { get; set; } = 10.0f;
     [Export(PropertyHint.Range, "-8.000,8")] public float GravityScale { get; set; } = 1.0f;

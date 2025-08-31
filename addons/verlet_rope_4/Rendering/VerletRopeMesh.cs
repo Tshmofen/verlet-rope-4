@@ -27,14 +27,14 @@ public partial class VerletRopeMesh : MeshInstance3D
     [Export] public float RopeWidth { get; set; } = 0.07f;
     /// <summary> If distance to particle is greater than <see cref="SubdivisionLodDistance"/>, the corresponding segment is not subdivided for rendering. </summary>
     [Export] public float SubdivisionLodDistance { get; set; } = 15.0f;
-    /// <summary> Draws orientation axis-es from actual particle positions when enabled. </summary>
-    [Export] public bool UseDebugParticles { get; set; } = false;
     /// <summary> Creates a child <see cref="VisibleOnScreenNotifier3D"/> when enabled. Is only triggered on <see cref="_Ready"/> calls. </summary>
     [Export] public bool UseVisibleOnScreenNotifier
     {
         get => _useVisibleOnScreenNotifier; 
         set { _useVisibleOnScreenNotifier = value; UpdateConfigurationWarnings(); }
     }
+    /// <summary> Draws orientation axis from every actual particle position when enabled. </summary>
+    [Export] public bool UseDebugParticles { get; set; } = false;
     
     /// <summary> If <see cref="VisibleOnScreenNotifier3D"/> is being used, returns if rope is actually visible - otherwise always returns <b>true</b>. </summary>
     public bool IsRopeVisible => _visibleNotifier?.IsOnScreen() ?? true;

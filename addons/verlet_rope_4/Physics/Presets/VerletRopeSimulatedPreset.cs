@@ -11,15 +11,15 @@ public static class VerletRopeSimulatedPreset
     {
         undoRedo.AddDoProperty(verletRope, VerletRopeSimulated.PropertyName.ApplyWind, true);
         undoRedo.AddDoProperty(verletRope, VerletRopeSimulated.PropertyName.WindDirection, Vector3.Back * 100.0f);
-        undoRedo.AddDoProperty(verletRope, VerletRopeSimulated.PropertyName.WindForceMin, 0.05f);
-        undoRedo.AddDoProperty(verletRope, VerletRopeSimulated.PropertyName.WindForceMax, 1.0f);
+        undoRedo.AddDoProperty(verletRope, VerletRopeSimulated.PropertyName.WindNoiseMin, 0.05f);
+        undoRedo.AddDoProperty(verletRope, VerletRopeSimulated.PropertyName.WindNoiseMax, 1.0f);
         undoRedo.AddDoProperty(verletRope, VerletRopeSimulated.PropertyName.WindNoise, new FastNoiseLite { Frequency = 0.03f });
         undoRedo.AddDoMethod(verletRope, VerletRopeSimulated.MethodName.CreateRope);
         
         undoRedo.AddUndoProperty(verletRope, VerletRopeSimulated.PropertyName.ApplyWind, verletRope.ApplyWind);
         undoRedo.AddUndoProperty(verletRope, VerletRopeSimulated.PropertyName.WindDirection, verletRope.WindDirection);
-        undoRedo.AddUndoProperty(verletRope, VerletRopeSimulated.PropertyName.WindForceMin, verletRope.WindForceMin);
-        undoRedo.AddUndoProperty(verletRope, VerletRopeSimulated.PropertyName.WindForceMax, verletRope.WindForceMax);
+        undoRedo.AddUndoProperty(verletRope, VerletRopeSimulated.PropertyName.WindNoiseMin, verletRope.WindNoiseMin);
+        undoRedo.AddUndoProperty(verletRope, VerletRopeSimulated.PropertyName.WindNoiseMax, verletRope.WindNoiseMax);
         undoRedo.AddUndoProperty(verletRope, VerletRopeSimulated.PropertyName.WindNoise, verletRope.WindNoise);
         undoRedo.AddUndoMethod(verletRope, VerletRopeSimulated.MethodName.CreateRope);
     }

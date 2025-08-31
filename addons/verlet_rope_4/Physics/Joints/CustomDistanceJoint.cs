@@ -2,26 +2,25 @@
 
 namespace VerletRope4.Physics.Joints;
 
-[Tool]
 public partial class CustomDistanceJoint : Node
 {
-    /// <summary> Physical body to connect the joint, by default <see cref="Node3D.GlobalPosition"/> is used as connection point. If is instance of <see cref="RigidBody3D"/>, the joint force will be applied to it. </summary>
+    /// <summary> Physical body used in joint calculations, by default <see cref="Node3D.GlobalPosition"/> is used as connection point. If is instance of <see cref="RigidBody3D"/>, the joint force will be applied to it. </summary>
     [ExportCategory("Connection Settings")]
     [Export] public PhysicsBody3D BodyA { get; set; }
     /// <summary> A custom location for <see cref="BodyA"/> joint, used in distance calculations. </summary>
     [Export] public Node3D CustomLocationA { get; set; }
     
-    /// <summary> Physical body to connect the joint, by default <see cref="Node3D.GlobalPosition"/> is used as connection point. If is instance of <see cref="RigidBody3D"/>, the joint force will be applied to it. </summary>
+    /// <summary> Physical body used in joint calculations, by default <see cref="Node3D.GlobalPosition"/> is used as connection point. If is instance of <see cref="RigidBody3D"/>, the joint force will be applied to it. </summary>
     [Export] public PhysicsBody3D BodyB { get; set; }
     /// <summary> A custom location for <see cref="BodyB"/> joint, used in distance calculations. </summary>
     [Export] public Node3D CustomLocationB { get; set; }
     
-    /// <summary> The distance before joint force is start being applied. </summary>
+    /// <summary> The distance before joint force is start being applied. When is set to zero - constraint is not applied. </summary>
     [ExportCategory("Movement Settings")]
     [Export] public float MaxDistance { get; set; } = 1f;
-    /// <summary> Max force that can be applied between connected bodies. </summary>
+    /// <summary> Max physical force that can be applied between connected bodies to reduce the distance between them below specified max value. </summary>
     [Export] public float MaxForce { get; set; } = 100;
-    /// <summary> Force easing once it's being applied, is only relevant while force is less than <see cref="MaxForce"/> and determines how fast it's rising depending on distance. </summary>
+    /// <summary> Determines force easing once it's applied, is only relevant while force is less than <see cref="MaxForce"/> and determines how fast it's rising depending on the distance. </summary>
     [Export(PropertyHint.ExpEasing)] public float ForceEasing { get; set; } = 1.0f;
 
     private static void ApplyPullForce(PhysicsBody3D body, Node3D customLocation, Vector3 pullForce)

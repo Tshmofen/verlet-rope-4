@@ -14,6 +14,7 @@ public partial class VerletRopeSimulatedJoint : BaseVerletRopeJoint
 
     [ExportToolButton("Reset Joint (Apply Changes)")] public Callable ResetJointButton => Callable.From(ResetJoint);
     
+    /// <summary> A `VerletRopeSimulated` node instance to which join constraints will be applied to. Automatically assigns current parent if it is of needed type and the value is currently unset. </summary>
     [ExportCategory("Attachment Settings")]
     [Export] public VerletRopeSimulated VerletRope { get; set; }
     
@@ -22,7 +23,7 @@ public partial class VerletRopeSimulatedJoint : BaseVerletRopeJoint
     [Export] public override  PhysicsBody3D StartBody { get; set; }
     /// <inheritdoc/>
     [Export] public override  Node3D StartCustomLocation{ get; set; }
-    /// <summary> When enabled rope will not collide with the connected <see cref="StartBody"/> </summary>
+    /// <summary> Determines whether rope will collide with the connected <see cref="StartBody"/>. </summary>
     [Export] public bool IgnoreStartBodyCollision { get; set; } = true;
     
     /// <inheritdoc/>
@@ -30,11 +31,11 @@ public partial class VerletRopeSimulatedJoint : BaseVerletRopeJoint
     [Export] public override  PhysicsBody3D EndBody { get; set; }
     /// <inheritdoc/>
     [Export] public override Node3D EndCustomLocation{ get; set; }
-    /// <summary> When enabled rope will not collide with the connected <see cref="EndBody"/> </summary>
+    /// <summary> Determines whether rope will collide with the connected  <see cref="EndBody"/>. </summary>
     [Export] public bool IgnoreEndBodyCollision { get; set; } = true;
 
     /// <inheritdoc cref="CustomDistanceJoint.MaxDistance"/>
-    [ExportSubgroup("Distance Joint Settings")]
+    [ExportSubgroup("Distance Joint")]
     [Export(PropertyHint.Range, "0, 10000")] public float JointMaxDistance { get; set; } = 0;
     /// <inheritdoc cref="CustomDistanceJoint.MaxForce"/>
     [Export(PropertyHint.Range, "0, 10000")] public float JointMaxForce { get; set; } = 50f;
