@@ -29,4 +29,4 @@ enabled=PackedStringArray("res://addons/verlet_rope_4/plugin.cfg")
 
 [physics]
 
-common/physics_ticks_per_second=75
+common/physics_interpolation=true
