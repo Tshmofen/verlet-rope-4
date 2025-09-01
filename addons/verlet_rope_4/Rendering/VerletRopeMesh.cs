@@ -8,7 +8,7 @@ namespace VerletRope4.Rendering;
 public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
 {
     public static string ScriptPath => "res://addons/verlet_rope_4/Rendering/VerletRopeMesh.cs";
-    public static string IconPath => "res://addons/verlet_rope_4/icon_rope_mesh.svg";
+    public static string IconPath => "res://addons/verlet_rope_4/icons/icon_rope_mesh.svg";
     public static string ExportedBase => nameof(MeshInstance3D);
     public static string ExportedType => nameof(VerletRopeMesh);
 

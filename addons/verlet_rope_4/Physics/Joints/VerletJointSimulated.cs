@@ -8,7 +8,7 @@ namespace VerletRope4.Physics.Joints;
 public partial class VerletJointSimulated : BaseVerletJoint, IVerletExported
 {
     public static string ScriptPath => "res://addons/verlet_rope_4/Physics/Joints/VerletJointSimulated.cs";
-    public static string IconPath => "res://addons/verlet_rope_4/icon_joint_simulated.svg";
+    public static string IconPath => "res://addons/verlet_rope_4/icons/icon_joint_simulated.svg";
     public static string ExportedBase => nameof(Node3D);
     public static string ExportedType => nameof(VerletJointSimulated);
 

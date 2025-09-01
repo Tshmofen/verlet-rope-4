@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://pflcfl42bxai"
-path="res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex"
+uid="uid://drstmjks5kper"
+path="res://.godot/imported/icon_rope_rigid.svg-f84f1cda0181ed17431ca68a79da43c8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://icon.svg"
-dest_files=["res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex"]
+source_file="res://addons/verlet_rope_4/Icons/icon_rope_rigid.svg"
+dest_files=["res://.godot/imported/icon_rope_rigid.svg-f84f1cda0181ed17431ca68a79da43c8.ctex"]
 
 [params]
 
