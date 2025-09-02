@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
-  <ellipse style="fill: rgb(205, 56, 56); fill-opacity: 0.3; fill-rule: nonzero; isolation: isolate; transform-origin: 298.288px 212.019px;" cx="298.288" cy="212.019" rx="201.229" ry="69.656" transform="matrix(0.5, -0.866025, 0.866025, 0.5, -48.288098, 37.980945)"/>
-  <path style="stroke: rgb(205, 56, 56); stroke-width: 60px; transform-box: fill-box; transform-origin: 50% 50%; stroke-linecap: round; fill-opacity: 0.3; fill: none;" d="M 153.532 400.981 C 195.267 400.981 251.461 358.504 251.461 249.157 C 251.461 138.469 300.967 99.02 346.469 99.02"/>
-  <line style="fill: rgb(216, 216, 216); stroke: rgb(205, 56, 56); stroke-width: 60px;" x1="50" y1="481.799" x2="50" y2="18.201"/>
-  <line style="fill: rgb(216, 216, 216); stroke: rgb(205, 56, 56); stroke-width: 60px;" x1="450" y1="481.799" x2="450" y2="18.201"/>
-</svg>

@@ -12,7 +12,7 @@ namespace VerletRope4.Physics;
 public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExported
 {
     public static string ScriptPath => "res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs";
-    public static string IconPath => "res://addons/verlet_rope_4/icons/icon_rope_simulated.svg";
+    public static string IconPath => "res://addons/verlet_rope_4/icons/icon_rope.svg";
     public static string ExportedBase => nameof(Node3D);
     public static string ExportedType => nameof(VerletRopeSimulated);
 

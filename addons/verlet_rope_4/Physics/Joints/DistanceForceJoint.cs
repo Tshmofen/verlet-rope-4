@@ -5,7 +5,7 @@ namespace VerletRope4.Physics.Joints;
 public partial class DistanceForceJoint : Node, IVerletExported
 {
     public static string ScriptPath => "res://addons/verlet_rope_4/Physics/Joints/DistanceForceJoint.cs";
-    public static string IconPath => "res://addons/verlet_rope_4/icons/icon_joint_distance.svg";
+    public static string IconPath => "res://addons/verlet_rope_4/icons/icon_joint.svg";
     public static string ExportedBase => nameof(Node);
     public static string ExportedType => nameof(DistanceForceJoint);
 
