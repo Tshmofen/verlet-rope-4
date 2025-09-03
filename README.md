@@ -26,10 +26,10 @@ This addon allows creation of dynamic and physics-based ropes, specifically offe
 
 ## Examples
 <p align="center">
- <img height=295 src="/images/example_physics_01.gif"/>
- <img height=295 src="/images/example_physics_02.gif"/>
- <img height=295 src="/images/example_physics_03.gif"/>
- <img height=295 src="/images/example_game_01.gif"/>
+ <img height=260 src="/images/example_physics_01.gif"/>
+ <img height=260 src="/images/example_physics_02.gif"/>
+ <img height=260 src="/images/example_physics_03.gif"/>
+ <img height=260 src="/images/example_game_01.gif"/>
 </p>
 
 ## Features
