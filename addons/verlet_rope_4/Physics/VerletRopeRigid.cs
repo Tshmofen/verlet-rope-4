@@ -16,7 +16,6 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
 
     private static readonly StringName InternalMetaStamp = "verlet_rope_rigid_body";
     private List<RigidBody3D> _segmentBodies;
-    private RopeParticleData _particleData;
 
     #if TOOLS
     [ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(CreateRope);
@@ -222,7 +221,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     {
         base._PhysicsProcess(delta);
 
-        if (_particleData == null || _segmentBodies == null)
+        if (ParticleData == null || _segmentBodies == null)
         {
             CreateRope();
             return;
@@ -232,18 +231,18 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
         {
             var segmentLength = GetSegmentLength();
             var endPosition = new Vector3(0, segmentLength, 0);
-            for (var i = 0; i < _particleData!.Count; i++)
+            for (var i = 0; i < ParticleData!.Count; i++)
             {
-                _particleData[i].PositionCurrent = (i == _particleData.Count - 1) // One less segment than particles, handle separately
+                ParticleData[i].PositionCurrent = (i == ParticleData.Count - 1) // One less segment than particles, handle separately
                     ? _segmentBodies[i - 1].ToGlobal(endPosition)
                     : _segmentBodies[i].GlobalPosition;
             }
         }
 
-        RopeMesh.DrawRopeParticles(_particleData);
+        RopeMesh.DrawRopeParticles(ParticleData);
 
         #if TOOLS
-        UpdateEditorCollision(_particleData);
+        UpdateEditorCollision(ParticleData);
         UpdateGizmos();
         #endif
     }
@@ -300,7 +299,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
         base.CreateRope();
         _segmentBodies = SpawnSegmentBodies(this);
         PinSegmentBodies(_segmentBodies);
-        _particleData = GenerateParticleData(_segmentBodies);
+        ParticleData = GenerateParticleData(_segmentBodies);
     }
 
     public override void DestroyRope()

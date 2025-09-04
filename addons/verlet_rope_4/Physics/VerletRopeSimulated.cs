@@ -20,10 +20,10 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
     private const float StaticCollisionCheckLength = 0.005f;
     private const float DynamicCollisionCheckLength = 0.1f;
+    private const float DeltaSkip = 0.5f;
     
     private bool _wasCreated;
     private double _simulationDelta;
-    private RopeParticleData _particleData;
     private readonly List<Rid> _collisionExceptions = [];
 
     private RayCast3D _rayCast;
@@ -104,16 +104,16 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
     private float GetAverageSegmentLength()
     {
-        return RopeMesh.RopeLength / (_particleData?.Count ?? SimulationParticles - 1);
+        return RopeMesh.RopeLength / (ParticleData?.Count ?? SimulationParticles - 1);
     }
 
     private float GetCurrentRopeLength()
     {
         var length = 0f;
 
-        for (var i = 0; i < _particleData.Count - 1; i++)
+        for (var i = 0; i < ParticleData.Count - 1; i++)
         {
-            length += (_particleData[i + 1].PositionCurrent - _particleData[i].PositionCurrent).Length();
+            length += (ParticleData[i + 1].PositionCurrent - ParticleData[i].PositionCurrent).Length();
         }
 
         return length;
@@ -162,24 +162,24 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     {
         for (var iteration = 0; iteration < StiffnessIterations; iteration++)
         {
-            for (var i = 0; i < _particleData.Count - 1; i++)
+            for (var i = 0; i < ParticleData.Count - 1; i++)
             {
-                var segment = _particleData[i + 1].PositionCurrent - _particleData[i].PositionCurrent;
+                var segment = ParticleData[i + 1].PositionCurrent - ParticleData[i].PositionCurrent;
                 var stretch = segment.Length() - GetAverageSegmentLength();
                 var direction = segment.Normalized();
 
-                if (_particleData[i].IsAttached)
+                if (ParticleData[i].IsAttached)
                 {
-                    _particleData[i + 1].PositionCurrent -= direction * stretch * Stiffness;
+                    ParticleData[i + 1].PositionCurrent -= direction * stretch * Stiffness;
                 }
-                else if (_particleData[i + 1].IsAttached)
+                else if (ParticleData[i + 1].IsAttached)
                 {
-                    _particleData[i].PositionCurrent += direction * stretch * Stiffness;
+                    ParticleData[i].PositionCurrent += direction * stretch * Stiffness;
                 }
                 else
                 {
-                    _particleData[i].PositionCurrent += direction * stretch * 0.5f * Stiffness;
-                    _particleData[i + 1].PositionCurrent -= direction * stretch * 0.5f * Stiffness;
+                    ParticleData[i].PositionCurrent += direction * stretch * 0.5f * Stiffness;
+                    ParticleData[i + 1].PositionCurrent -= direction * stretch * 0.5f * Stiffness;
                 }
             }
         }
@@ -307,9 +307,9 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         var segmentCollisionSlideLength = segmentLength * SlideCollisionStretch;
         var segmentCollisionIgnoreLength = segmentLength * IgnoreCollisionStretch;
 
-        for (var i = 0; i < _particleData.Count; i++)
+        for (var i = 0; i < ParticleData.Count; i++)
         {
-            ref var currentPoint = ref _particleData[i];
+            ref var currentPoint = ref ParticleData[i];
             if (currentPoint.IsAttached)
             {
                 continue;
@@ -318,7 +318,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
             var currentSegmentLength = 0f;
             if (i > 0)
             {
-                ref var previousPoint = ref _particleData[i - 1];
+                ref var previousPoint = ref ParticleData[i - 1];
                 currentSegmentLength = (previousPoint.PositionCurrent - currentPoint.PositionCurrent).Length();
             }
 
@@ -358,9 +358,9 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
     private void VerletProcess(float delta)
     {
-        for (var i = 0; i < _particleData.Count; i++)
+        for (var i = 0; i < ParticleData.Count; i++)
         {
-            ref var p = ref _particleData[i];
+            ref var p = ref ParticleData[i];
 
             if (p.IsAttached)
             {
@@ -376,9 +376,9 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     private void ApplyForces()
     {
         var currentTimeChange = Vector3.One * Time.GetTicksMsec() / 1000f;
-        for (var i = 0; i < _particleData.Count; i++)
+        for (var i = 0; i < ParticleData.Count; i++)
         {
-            ref var particle = ref _particleData[i];
+            ref var particle = ref ParticleData[i];
             var totalAcceleration = Vector3.Zero;
 
             if (ApplyGravity)
@@ -395,7 +395,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
             if (ApplyDamping)
             {
-                var velocity = _particleData[i].PositionCurrent - _particleData[i].PositionPrevious;
+                var velocity = ParticleData[i].PositionCurrent - ParticleData[i].PositionPrevious;
                 totalAcceleration -= DampingFactor * velocity;
             }
 
@@ -486,6 +486,12 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
     public override void _PhysicsProcess(double delta)
     {
+        if (Engine.IsEditorHint() && delta > DeltaSkip)
+        {
+            // Prevent jarring jumps on editor scene loads.
+            return;
+        }
+
         base._PhysicsProcess(delta);
 
         if (IsDisabledWhenInvisible && !RopeMesh.IsRopeVisible)
@@ -493,7 +499,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
             return;
         }
 
-        if (_particleData == null)
+        if (ParticleData == null)
         {
             CreateRope();
         }
@@ -514,10 +520,10 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
             }
         }
         
-        ref var start = ref _particleData![0];
+        ref var start = ref ParticleData![0];
         start.PositionCurrent = StartNode?.GlobalPosition ?? GlobalPosition;
         
-        ref var end = ref _particleData![_particleData.Count - 1];
+        ref var end = ref ParticleData![ParticleData.Count - 1];
         if (end.IsAttached && EndNode != null)
         {
             end.PositionCurrent = EndNode.GlobalPosition;
@@ -527,13 +533,13 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         ApplyForces();
         VerletProcess(simulationDeltaF);
         ApplyConstraints(simulationDeltaF);
-        RopeMesh.DrawRopeParticles(_particleData);
+        RopeMesh.DrawRopeParticles(ParticleData);
 
         EmitSignalSimulationStep(_simulationDelta);
         _simulationDelta = 0;
 
         #if TOOLS
-        UpdateEditorCollision(_particleData);
+        UpdateEditorCollision(ParticleData);
         UpdateGizmos();
         #endif
     }
@@ -560,10 +566,10 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         var segmentLength = GetAverageSegmentLength();
         var startLocation = StartNode?.GlobalPosition ?? GlobalPosition;
         var endLocation = EndNode?.GlobalPosition ?? startLocation;
-        _particleData = RopeParticleData.GenerateParticleData(startLocation, endLocation, acceleration, SimulationParticles, segmentLength);
+        ParticleData = RopeParticleData.GenerateParticleData(startLocation, endLocation, acceleration, SimulationParticles, segmentLength);
 
-        ref var start = ref _particleData[0];
-        ref var end = ref _particleData[_particleData.Count - 1];
+        ref var start = ref ParticleData[0];
+        ref var end = ref ParticleData[ParticleData.Count - 1];
 
         start.IsAttached = true;
         end.IsAttached = EndNode != null;
@@ -581,7 +587,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
     public override void DestroyRope()
     {
-        _particleData = null;
+        ParticleData = null;
         SimulationParticles = 0;
     }
     

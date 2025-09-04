@@ -15,7 +15,8 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
 
     private Vector3[] _editorVertexPositions = [];
     private VerletRopeMesh _ropeMesh;
-
+    
+    protected RopeParticleData ParticleData;
     protected VerletRopeMesh RopeMesh => _ropeMesh ??= this.FindOrCreateChild<VerletRopeMesh>();
 
     protected PhysicsBody3D StartBody { get; set; }
@@ -65,7 +66,32 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     {
         return $"verlet_rope_physical_{action}";
     }
-    
+
+    #region Particle Data
+
+    /// <summary> Returns particle struct if it exists, supports negative indexes. </summary>
+    public RopeParticle? GetParticle(int index)
+    {
+        if (ParticleData == null || index < -ParticleData.Count || index > ParticleData.Count)
+        {
+            return null;
+        }
+
+        if (index < 0)
+        {
+            index = ParticleData.Count + index;
+        }
+
+        return ParticleData[index];
+    }
+
+    public int GetParticleCount()
+    {
+        return ParticleData?.Count ?? 0;
+    }
+
+    #endregion
+
     #if TOOLS
     #region Editor
 
