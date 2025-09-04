@@ -54,7 +54,7 @@ albedo_color = Color(0.789868, 0.610247, 0, 1)
 
 [sub_resource type="ImmediateMesh" id="ImmediateMesh_nk31j"]
 resource_local_to_scene = true
-metadata/verlet_rope_internal_stamp = 5642010050090
+metadata/verlet_rope_internal_stamp = 8255782864616
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1rqa4"]
 albedo_color = Color(0.582917, 0, 0.0906055, 1)
@@ -182,7 +182,7 @@ transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 1.0395
 transform = Transform3D(1, 0, 0, 0, 1, 7.35137e-08, 0, -7.35137e-08, 1, 0, -1.42, 0.425)
 
 [node name="VerletRopeStatic" type="Node3D" parent="RopeDemos/MovingRopes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.67667, 3.68133, 5.42262)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.35236, 3.68133, 5.42262)
 script = ExtResource("2_lows4")
 SimulationParticles = 30
 SimulationBehavior = 2

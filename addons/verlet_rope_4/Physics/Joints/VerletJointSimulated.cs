@@ -49,11 +49,15 @@ public partial class VerletJointSimulated : BaseVerletJoint, IVerletExported
         ResetJoint();
     }
 
+    public override void _EnterTree()
+    {
+        ResetJoint();
+    }
+
     public override void _ExitTree()
     {
         VerletRope?.SetAttachments(null, null, null, null);
         VerletRope?.ClearExceptions();
-        VerletRope?.CallDeferred(VerletRopeSimulated.MethodName.CreateRope);
     }
 
     private void ConfigureDistanceJoint()
