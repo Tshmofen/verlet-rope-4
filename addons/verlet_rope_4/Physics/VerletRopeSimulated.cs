@@ -543,7 +543,8 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         UpdateGizmos();
         #endif
     }
-
+    
+    /// <inheritdoc cref="BaseVerletRopePhysical.CreateJoint"/>
     public override void CreateJoint(int actionId = 0, bool toCreate = true)
     {
         var metaName = GetActionMeta("create_simulated_joint");
@@ -557,7 +558,8 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         var joint = this.CreateChild<VerletJointSimulated>("JointSimulated");
         joint.SetMeta(metaName, actionId);
     }
-
+    
+    /// <inheritdoc cref="BaseVerletRopePhysical.CreateRope"/>
     public override void CreateRope()
     {
         base.CreateRope();
@@ -584,7 +586,8 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
         _wasCreated = true;
     }
-
+    
+    /// <inheritdoc cref="BaseVerletRopePhysical.DestroyRope"/>
     public override void DestroyRope()
     {
         ParticleData = null;

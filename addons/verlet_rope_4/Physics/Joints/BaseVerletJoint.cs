@@ -22,6 +22,7 @@ public abstract partial class BaseVerletJoint : Node, ISerializationListener
     /// </summary>
     public abstract Node3D EndCustomLocation{ get; set; }
 
+    /// <summary> Resets the joined rope and all joint properties, have to be called after any property changes. It is being called when you press Reset Joint quick button. </summary>
     public virtual void ResetJoint()
     {
         UpdateConfigurationWarnings();

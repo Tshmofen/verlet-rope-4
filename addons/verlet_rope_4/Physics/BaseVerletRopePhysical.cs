@@ -39,7 +39,8 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     [Export] public bool UseDebugParticles { get; set; } = false;
     /// <inheritdoc cref="VerletRopeMesh.MaterialOverride"/>
     [Export] public Material MaterialOverride { get; set; }
-
+    
+    /// <summary> Resets the rope and all corresponding properties, have to be called after any property changes. It is being called when you press `Reset Rope` quick button. </summary>
     public virtual void CreateRope()
     {
         RopeMesh.RopeLength = RopeLength;
@@ -50,8 +51,10 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         RopeMesh.MaterialOverride = MaterialOverride;
     }
 
+    /// <summary> Removes underlying particles data and disables rendering. Rope should be created using `CreateRope` to start working again. </summary>
     public virtual void DestroyRope() { }
 
+    /// <summary>Creates corresponding joint child node and adds it to the tree. Is being created via `Deferred`, so one frame have to be awaited to get the joint instance.</summary>
     public abstract void CreateJoint(int actionId = 0, bool toCreate = true);
 
     public void SetAttachments(PhysicsBody3D startBody, Node3D startLocation, PhysicsBody3D endBody, Node3D endLocation)
@@ -69,7 +72,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
 
     #region Particle Data
 
-    /// <summary> Returns particle struct if it exists, supports negative indexes. </summary>
+    /// <summary> Returns particle struct if it exists or null, supports negative indexes. </summary>
     public RopeParticle? GetParticle(int index)
     {
         if (ParticleData == null || index < -ParticleData.Count || index > ParticleData.Count)
@@ -85,6 +88,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         return ParticleData[index];
     }
 
+    /// <summary> Returns currently simulated particles amount. </summary>
     public int GetParticleCount()
     {
         return ParticleData?.Count ?? 0;

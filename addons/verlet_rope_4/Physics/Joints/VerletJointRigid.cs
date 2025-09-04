@@ -42,7 +42,8 @@ public partial class VerletJointRigid : BaseVerletJoint, IVerletExported
     {
         VerletRope?.SetAttachments(null, null, null, null);
     }
-
+    
+    /// <inheritdoc cref="BaseVerletJoint.ResetJoint"/>
     public override void ResetJoint()
     {
         base.ResetJoint();

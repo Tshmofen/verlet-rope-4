@@ -79,6 +79,7 @@ public partial class VerletJointSimulated : BaseVerletJoint, IVerletExported
         _joint.MaxForce = JointMaxForce;
     }
 
+    /// <inheritdoc cref="BaseVerletJoint.ResetJoint"/>
     public override void ResetJoint()
     {
         base.ResetJoint();

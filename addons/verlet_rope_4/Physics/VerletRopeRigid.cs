@@ -247,6 +247,10 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
         #endif
     }
 
+    /// <summary>
+    /// Recreates current internal structure of the rope in a sibling node. Is being created via `Deferred`,
+    /// so one frame have to be awaited to get the joint instance. The exposed arguments are used for editor `UndoRedo` and can be ignored.
+    /// </summary>
     public void CloneRigidBodies(int actionId = 0, bool toCreate = true)
     {
         var metaName = GetActionMeta("clone_rigid_bodies");
@@ -272,6 +276,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
         groupNode.SetSubtreeOwner(GetTree().EditedSceneRoot);
     }
 
+    /// <inheritdoc cref="BaseVerletRopePhysical.CreateJoint"/>
     public override void CreateJoint(int actionId = 0, bool toCreate = true)
     {
         var metaName = GetActionMeta("create_rigid_joint");
@@ -285,7 +290,8 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
         var joint = this.CreateChild<VerletJointRigid>("JointRigid");
         joint.SetMeta(metaName, actionId);
     }
-
+    
+    /// <inheritdoc cref="BaseVerletRopePhysical.CreateRope"/>
     public override void CreateRope()
     {
         DestroyRope();
@@ -301,7 +307,8 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
         PinSegmentBodies(_segmentBodies);
         ParticleData = GenerateParticleData(_segmentBodies);
     }
-
+    
+    /// <inheritdoc cref="BaseVerletRopePhysical.DestroyRope"/>
     public override void DestroyRope()
     {
         _segmentBodies = null;
