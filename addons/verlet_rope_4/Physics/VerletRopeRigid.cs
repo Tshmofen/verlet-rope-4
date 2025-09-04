@@ -14,7 +14,6 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     public static string ExportedBase => nameof(Node3D);
     public static string ExportedType => nameof(VerletRopeRigid);
 
-
     private static readonly StringName InternalMetaStamp = "verlet_rope_rigid_body";
     private List<RigidBody3D> _segmentBodies;
     private RopeParticleData _particleData;
