@@ -33,10 +33,14 @@ public partial class VerletJointRigid : BaseVerletJoint, IVerletExported
         ResetJoint();
     }
 
+    public override void _EnterTree()
+    {
+        ResetJoint();
+    }
+
     public override void _ExitTree()
     {
         VerletRope?.SetAttachments(null, null, null, null);
-        VerletRope?.CallDeferred(VerletRopeRigid.MethodName.CreateRope);
     }
 
     public override void ResetJoint()
