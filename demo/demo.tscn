@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=3 uid="uid://bota3ppynjsu1"]
+[gd_scene load_steps=27 format=3 uid="uid://bota3ppynjsu1"]
 
 [ext_resource type="Script" uid="uid://cmi6i20suro26" path="res://demo/scripts/RotatingCameraDemo.cs" id="1_tdg64"]
 [ext_resource type="PackedScene" uid="uid://cqnic6frw022r" path="res://demo/objects/ground.tscn" id="1_ykvhj"]
@@ -14,8 +14,6 @@
 [ext_resource type="Script" uid="uid://bpkliplhsl25q" path="res://addons/verlet_rope_4/Rendering/VerletRopeMesh.cs" id="8_nk31j"]
 [ext_resource type="PackedScene" uid="uid://cxvtuenfotsv0" path="res://demo/objects/enclosure.tscn" id="9_1rqa4"]
 [ext_resource type="PackedScene" uid="uid://x5fpe8w6qchm" path="res://demo/objects/moving_box_small.tscn" id="12_xm42s"]
-[ext_resource type="Material" uid="uid://o7na8drc2je2" path="res://addons/verlet_rope_4/Materials/rope_default.material" id="15_svvho"]
-[ext_resource type="Script" uid="uid://dxuag5deruwjl" path="res://addons/verlet_rope_4/Physics/Joints/DistanceForceJoint.cs" id="16_x31ta"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_3bmw0"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -54,16 +52,12 @@ albedo_color = Color(0, 0.537301, 0.892989, 1)
 cull_mode = 2
 albedo_color = Color(0.789868, 0.610247, 0, 1)
 
-[sub_resource type="ImmediateMesh" id="ImmediateMesh_svvho"]
+[sub_resource type="ImmediateMesh" id="ImmediateMesh_nk31j"]
 resource_local_to_scene = true
-metadata/verlet_rope_internal_stamp = 2211438476840
+metadata/verlet_rope_internal_stamp = 31019881283029
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1rqa4"]
 albedo_color = Color(0.582917, 0, 0.0906055, 1)
-
-[sub_resource type="ImmediateMesh" id="ImmediateMesh_x31ta"]
-resource_local_to_scene = true
-metadata/verlet_rope_internal_stamp = 2211941793349
 
 [node name="Demo" type="Node3D"]
 
@@ -231,7 +225,7 @@ metadata/VerletRopeObject = true
 [node name="Node3D" type="MeshInstance3D" parent="RopeDemos/PhysicsJointRope/VerletRope"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 material_override = SubResource("StandardMaterial3D_onu7k")
-mesh = SubResource("ImmediateMesh_svvho")
+mesh = SubResource("ImmediateMesh_nk31j")
 script = ExtResource("8_nk31j")
 RopeLength = 0.75
 
@@ -271,13 +265,3 @@ transform = Transform3D(0.947506, 0, 0.319737, 0, 1, 0, -0.319737, 0, 0.947506, 
 
 [node name="CustomAttachment" type="Node3D" parent="RopeDemos/RigidRope/VerletRopeRigid/MovingBoxSmall"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.141444, 0, 0)
-
-[node name="VerletRopeMesh" type="MeshInstance3D" parent="RopeDemos/RigidRope"]
-material_override = ExtResource("15_svvho")
-mesh = SubResource("ImmediateMesh_x31ta")
-script = ExtResource("8_nk31j")
-metadata/_custom_type_script = "uid://bpkliplhsl25q"
-
-[node name="DistanceForceJoint" type="Node" parent="RopeDemos/RigidRope"]
-script = ExtResource("16_x31ta")
-metadata/_custom_type_script = "uid://dxuag5deruwjl"
