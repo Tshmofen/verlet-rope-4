@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=3 uid="uid://cxvtuenfotsv0"]
+
+[ext_resource type="PackedScene" uid="uid://bs0cy6dvy7hf7" path="res://demo/objects/enclosure_fence.tscn" id="1_dlud8"]
+
+[node name="Enclosure" type="Node3D"]
+
+[node name="Fence1" parent="." instance=ExtResource("1_dlud8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.35424, 0.25, 0.425544)
+
+[node name="Fence2" parent="." instance=ExtResource("1_dlud8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.54576, 0.25, 0.425545)
+
+[node name="Fence3" parent="." instance=ExtResource("1_dlud8")]
+transform = Transform3D(-4.47035e-08, 0, 1, 0, 1, 0, -1, 0, -4.47035e-08, 0.0957553, 0.25, -1.04845)
+
+[node name="Fence4" parent="." instance=ExtResource("1_dlud8")]
+transform = Transform3D(-4.47035e-08, 0, 1, 0, 1, 0, -1, 0, -4.47035e-08, 0.0957556, 0.25, 1.95155)

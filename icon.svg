@@ -1,1 +1,16 @@
-<svg height="128" width="128" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="124" height="124" rx="14" fill="#363d52" stroke="#212532" stroke-width="4"/><g transform="scale(.101) translate(122 122)"><g fill="#fff"><path d="M105 673v33q407 354 814 0v-33z"/><path fill="#478cbf" d="m105 673 152 14q12 1 15 14l4 67 132 10 8-61q2-11 15-15h162q13 4 15 15l8 61 132-10 4-67q3-13 15-14l152-14V427q30-39 56-81-35-59-83-108-43 20-82 47-40-37-88-64 7-51 8-102-59-28-123-42-26 43-46 89-49-7-98 0-20-46-46-89-64 14-123 42 1 51 8 102-48 27-88 64-39-27-82-47-48 49-83 108 26 42 56 81zm0 33v39c0 276 813 276 813 0v-39l-134 12-5 69q-2 10-14 13l-162 11q-12 0-16-11l-10-65H447l-10 65q-4 11-16 11l-162-11q-12-3-14-13l-5-69z"/><path d="M483 600c3 34 55 34 58 0v-86c-3-34-55-34-58 0z"/><circle cx="725" cy="526" r="90"/><circle cx="299" cy="526" r="90"/></g><g fill="#414042"><circle cx="307" cy="532" r="60"/><circle cx="717" cy="532" r="60"/></g></g></svg>
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" xmlns:bx="https://boxy-svg.com">
+  <defs>
+    <style bx:fonts="Open Sans">@import url(https://fonts.googleapis.com/css2?family=Open+Sans%3Aital%2Cwght%400%2C300..800%3B1%2C300..800&amp;display=swap);</style>
+    <linearGradient gradientUnits="userSpaceOnUse" x1="356.828" y1="-121.633" x2="356.828" y2="406.963" id="gradient-1" gradientTransform="matrix(0.509708, 0, 0, 0.54221, 174.949901, 73.317161)">
+      <stop offset="0" style="stop-color: rgb(208, 193, 250);"/>
+      <stop offset="1" style="stop-color: rgb(95, 0, 186);"/>
+    </linearGradient>
+    <linearGradient gradientUnits="userSpaceOnUse" x1="250" y1="148.138" x2="250" y2="351.863" id="gradient-0" gradientTransform="matrix(1.421836, 0, 0, 1.421836, -105.459, -104.251875)">
+      <stop offset="0" style="stop-color: rgb(194, 161, 255);"/>
+      <stop offset="1" style="stop-color: rgb(36, 23, 150);"/>
+    </linearGradient>
+  </defs>
+  <path style="fill: none; stroke-width: 80; stroke-linecap: square; stroke: url(&quot;#gradient-0&quot;);" d="M 148.23 347.769 C 74.66 347.769 28.67 268.119 65.46 204.409 C 81.82 176.079 111.53 158.079 144.21 156.699 C 197.86 154.439 242.73 197.039 243.26 250.729 C 243.81 305.349 287.23 349.879 341.82 351.799 C 398.01 353.769 445.22 309.929 447.41 253.749 C 449.68 195.509 402.61 147.289 344.33 148.149"/>
+  <text style="fill: url(&quot;#gradient-1&quot;); fill-opacity: 0.85; font-family: &quot;Open Sans&quot;; font-size: 388.274px; font-weight: 700; white-space: pre;" transform="matrix(0.811452, 0, 0, 0.762811, 99.456378, 249.644951)" x="231.415" y="293.124">#</text>
+</svg>

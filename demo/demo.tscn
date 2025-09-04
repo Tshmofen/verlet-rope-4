@@ -1,8 +1,19 @@
-[gd_scene load_steps=16 format=3 uid="uid://d0647cepiojoa"]
+[gd_scene load_steps=27 format=3 uid="uid://bota3ppynjsu1"]
 
-[ext_resource type="Material" uid="uid://o7na8drc2je2" path="res://addons/verlet_rope_4/materials/rope_default.material" id="1_xy6g0"]
-[ext_resource type="Script" path="res://addons/verlet_rope_4/VerletRope.cs" id="2_lows4"]
-[ext_resource type="Script" path="res://demo/MovingRopeDemo.cs" id="2_vutyd"]
+[ext_resource type="Script" uid="uid://cmi6i20suro26" path="res://demo/scripts/RotatingCameraDemo.cs" id="1_tdg64"]
+[ext_resource type="PackedScene" uid="uid://cqnic6frw022r" path="res://demo/objects/ground.tscn" id="1_ykvhj"]
+[ext_resource type="Script" uid="uid://c3oxgehluk75x" path="res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs" id="2_lows4"]
+[ext_resource type="Script" uid="uid://bccao1l5oneap" path="res://demo/scripts/MovingBodyDemo.cs" id="2_u10mr"]
+[ext_resource type="Script" uid="uid://d36wx6t8jmjcx" path="res://demo/scripts/MovingRopeDemo.cs" id="2_vutyd"]
+[ext_resource type="Script" uid="uid://cvxw3h20i7vjf" path="res://addons/verlet_rope_4/Physics/Joints/VerletJointSimulated.cs" id="3_j5lb4"]
+[ext_resource type="PackedScene" uid="uid://d3xb1b1stk8rm" path="res://demo/objects/obstacle_cylinder.tscn" id="5_1rqa4"]
+[ext_resource type="Script" uid="uid://dja12uyulc7ee" path="res://addons/verlet_rope_4/Physics/VerletRopeRigid.cs" id="5_onu7k"]
+[ext_resource type="PackedScene" uid="uid://2ob0knp0cjht" path="res://demo/objects/moving_cylinder.tscn" id="6_xm42s"]
+[ext_resource type="Script" uid="uid://cuw8dk3lkvm2n" path="res://addons/verlet_rope_4/Physics/Joints/VerletJointRigid.cs" id="7_s1s6j"]
+[ext_resource type="PackedScene" uid="uid://blrqcmax3ddjm" path="res://demo/objects/moving_box.tscn" id="7_tdg64"]
+[ext_resource type="Script" uid="uid://bpkliplhsl25q" path="res://addons/verlet_rope_4/Rendering/VerletRopeMesh.cs" id="8_nk31j"]
+[ext_resource type="PackedScene" uid="uid://cxvtuenfotsv0" path="res://demo/objects/enclosure.tscn" id="9_1rqa4"]
+[ext_resource type="PackedScene" uid="uid://x5fpe8w6qchm" path="res://demo/objects/moving_box_small.tscn" id="12_xm42s"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_3bmw0"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -17,171 +28,240 @@ sky = SubResource("Sky_buv6g")
 tonemap_mode = 2
 glow_enabled = true
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_711ah"]
-albedo_color = Color(0.227451, 0.227451, 0.227451, 1)
-
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pbhg3"]
 albedo_color = Color(0.529412, 0.12549, 0.133333, 1)
 
-[sub_resource type="ImmediateMesh" id="ImmediateMesh_qapgp"]
-resource_local_to_scene = true
-metadata/creation_stamp = 11802419197325
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_oeqrt"]
+frequency = 0.03
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_0fwmc"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_onvmd"]
+albedo_color = Color(0.419608, 0.345098, 1, 1)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bbaqh"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_oeqrt"]
+albedo_color = Color(0.419608, 0.345098, 1, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u10mr"]
 cull_mode = 2
-albedo_color = Color(0.827451, 0.639216, 1, 1)
-disable_receive_shadows = true
+albedo_color = Color(0, 0.909527, 0.380237, 1)
 
-[sub_resource type="ImmediateMesh" id="ImmediateMesh_07n1r"]
-resource_local_to_scene = true
-metadata/creation_stamp = 11802452750933
-
-[sub_resource type="ImmediateMesh" id="ImmediateMesh_7rfvh"]
-resource_local_to_scene = true
-metadata/creation_stamp = 11802503083825
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8qm37"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ykvhj"]
 cull_mode = 2
-vertex_color_use_as_albedo = true
-albedo_color = Color(0.32549, 0.407843, 0.219608, 1)
-disable_receive_shadows = true
+albedo_color = Color(0, 0.537301, 0.892989, 1)
 
-[sub_resource type="ImmediateMesh" id="ImmediateMesh_prgmo"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_onu7k"]
+cull_mode = 2
+albedo_color = Color(0.789868, 0.610247, 0, 1)
+
+[sub_resource type="ImmediateMesh" id="ImmediateMesh_nk31j"]
 resource_local_to_scene = true
-metadata/creation_stamp = 11802553415083
+metadata/verlet_rope_internal_stamp = 24438011675750
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1rqa4"]
+albedo_color = Color(0.582917, 0, 0.0906055, 1)
 
 [node name="Demo" type="Node3D"]
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="Environment" type="Node3D" parent="."]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Environment"]
 environment = SubResource("Environment_2p4hb")
 
-[node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(0.991894, -0.0537, 0.11516, 0, 0.906308, 0.422618, -0.127065, -0.419193, 0.898962, 3.75437, 3, 8.8228)
+[node name="Camera3D" type="Camera3D" parent="Environment"]
+transform = Transform3D(0.991894, -0.0537, 0.11516, 0, 0.906308, 0.422618, -0.127065, -0.419193, 0.898962, 1.11827, 4.27401, 11.3775)
+script = ExtResource("1_tdg64")
+IsRotating = false
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.952619, -0.233005, 0.195514, 0.0514738, 0.757012, 0.651371, -0.299779, -0.610444, 0.733137, 0, 4, 0)
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Environment"]
+transform = Transform3D(0.952619, -0.233005, 0.195514, 0.0514738, 0.757012, 0.65137, -0.299779, -0.610444, 0.733137, 0, 4, 0)
 light_color = Color(0.976471, 0.956863, 0.976471, 1)
 light_energy = 1.5
 shadow_enabled = true
 
-[node name="Ground" type="CSGBox3D" parent="."]
+[node name="Ground" parent="." instance=ExtResource("1_ykvhj")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
-material_override = SubResource("StandardMaterial3D_711ah")
-use_collision = true
-size = Vector3(20, 0.2, 20)
+metadata/_edit_lock_ = true
 
-[node name="PillarRope" type="Node3D" parent="."]
+[node name="RopeDemos" type="Node3D" parent="."]
+
+[node name="WindyRopes" type="Node3D" parent="RopeDemos"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.3697, 0, 1.81553)
 
-[node name="Pillar" type="CSGBox3D" parent="PillarRope"]
-transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 1.06294, 1.4665, -0.975477)
+[node name="PillarFirst" type="CSGBox3D" parent="RopeDemos/WindyRopes"]
+transform = Transform3D(0.965926, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.965926, -4.14425, 1.4665, -2.1657)
 material_override = SubResource("StandardMaterial3D_pbhg3")
 use_collision = true
 size = Vector3(0.2, 3, 0.2)
+metadata/_edit_group_ = true
+metadata/_edit_lock_ = true
 
-[node name="VerletRope" type="MeshInstance3D" parent="PillarRope/Pillar" node_paths=PackedStringArray("AttachEnd")]
-transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -0.0962079, 1.50411, 0.00534463)
-material_override = ExtResource("1_xy6g0")
-mesh = SubResource("ImmediateMesh_qapgp")
-script = ExtResource("2_lows4")
-AttachEnd = NodePath("../../Pillar2/PillarEnd")
-RopeLength = 3.0
-RopeWidth = 0.04
-PreprocessIterations = 0
-Simulate = false
-ApplyWind = true
-WindNoise = SubResource("FastNoiseLite_0fwmc")
-Wind = Vector3(1, 0, 1)
-WindScale = 30.0
-SlideIgnoreCollisionStretch = 1.25
+[node name="PillarEnd" type="Node3D" parent="RopeDemos/WindyRopes/PillarFirst"]
+transform = Transform3D(1, 0, -1.49012e-08, 0, 1, 0, 1.49012e-08, 0, 1, 0.0682511, 1.40967, 0.00399196)
 
-[node name="PillarEnd" type="Node3D" parent="PillarRope/Pillar"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00181818, 1.48938, 0.097929)
-
-[node name="VerletRope" type="MeshInstance3D" parent="PillarRope/Pillar/PillarEnd"]
-transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, 0, 0, 0)
-material_override = SubResource("StandardMaterial3D_bbaqh")
-mesh = SubResource("ImmediateMesh_07n1r")
-script = ExtResource("2_lows4")
-RopeLength = 2.0
-SimulationParticles = 12
-PreprocessIterations = 0
-Simulate = false
-ApplyWind = true
-WindNoise = SubResource("FastNoiseLite_0fwmc")
-Wind = Vector3(1, 0, 1)
-WindScale = 30.0
-DampingFactor = 150.0
-SlideIgnoreCollisionStretch = 1.25
-
-[node name="Pillar2" type="CSGBox3D" parent="PillarRope"]
-transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, -0.937059, 1.4665, 1.02452)
+[node name="PillarSecond" type="CSGBox3D" parent="RopeDemos/WindyRopes"]
+transform = Transform3D(0.965926, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.965926, -1.41221, 1.4665, -2.89775)
 material_override = SubResource("StandardMaterial3D_pbhg3")
 use_collision = true
 size = Vector3(0.2, 3, 0.2)
+metadata/_edit_group_ = true
+metadata/_edit_lock_ = true
 
-[node name="PillarEnd" type="Node3D" parent="PillarRope/Pillar2"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.102865, 1.48938, -0.00311756)
+[node name="PillarEnd" type="Node3D" parent="RopeDemos/WindyRopes/PillarSecond"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0461738, 1.38887, 0.0225224)
 
-[node name="VerletRope" type="MeshInstance3D" parent="PillarRope/Pillar2/PillarEnd"]
-transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -0.0998901, 0, 0.0998905)
-material_override = SubResource("StandardMaterial3D_bbaqh")
-mesh = SubResource("ImmediateMesh_7rfvh")
+[node name="VerletRopeWindyAllConnected" type="Node3D" parent="RopeDemos/WindyRopes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.04443, 2.90247, -2.0848)
 script = ExtResource("2_lows4")
-RopeLength = 2.0
-SimulationParticles = 12
-PreprocessIterations = 0
-Simulate = false
+SimulationBehavior = 2
 ApplyWind = true
-WindNoise = SubResource("FastNoiseLite_0fwmc")
-Wind = Vector3(1, 0, 1)
-WindScale = 30.0
-DampingFactor = 150.0
-SlideIgnoreCollisionStretch = 1.25
+WindDirection = Vector3(40, 0, 100)
+WindNoise = SubResource("FastNoiseLite_oeqrt")
+MaterialOverride = SubResource("StandardMaterial3D_onvmd")
+metadata/VerletRopeObject = true
 
-[node name="MovingRope" type="Node3D" parent="." node_paths=PackedStringArray("MovingNode")]
+[node name="VerletRopeJoint" type="Node" parent="RopeDemos/WindyRopes/VerletRopeWindyAllConnected" node_paths=PackedStringArray("VerletRope", "StartCustomLocation", "EndCustomLocation")]
+script = ExtResource("3_j5lb4")
+VerletRope = NodePath("..")
+StartCustomLocation = NodePath("../../PillarFirst/PillarEnd")
+EndCustomLocation = NodePath("../../PillarSecond/PillarEnd")
+
+[node name="VerletRopeWindyOneSide" type="Node3D" parent="RopeDemos/WindyRopes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.10822, 2.90247, -2.15629)
+script = ExtResource("2_lows4")
+SimulationBehavior = 2
+ApplyWind = true
+WindDirection = Vector3(0, 0, 100)
+WindNoise = SubResource("FastNoiseLite_oeqrt")
+MaterialOverride = SubResource("StandardMaterial3D_onvmd")
+metadata/_custom_type_script = "uid://c3oxgehluk75x"
+metadata/VerletRopeObject = true
+
+[node name="VerletRopeWindyOneSide2" type="Node3D" parent="RopeDemos/WindyRopes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.41738, 2.90247, -2.86671)
+script = ExtResource("2_lows4")
+SimulationBehavior = 2
+ApplyWind = true
+WindDirection = Vector3(0, 0, 100)
+WindNoise = SubResource("FastNoiseLite_oeqrt")
+MaterialOverride = SubResource("StandardMaterial3D_oeqrt")
+metadata/_custom_type_script = "uid://c3oxgehluk75x"
+metadata/VerletRopeObject = true
+
+[node name="MovingRopes" type="Node3D" parent="RopeDemos" node_paths=PackedStringArray("MovingBody")]
 script = ExtResource("2_vutyd")
-MovingNode = NodePath("VerletRopeMoving")
-MovingPath = Vector3(7, 0, 0)
+MovingBody = NodePath("MovingCylinder")
 PathTime = 7.0
+PathMaxSpeed = 1.5
 TransitionType = 7
 
-[node name="CSGSphere3D" type="CSGCylinder3D" parent="MovingRope"]
-transform = Transform3D(1.34495e-08, 0.307689, 0.951487, 1, -4.37114e-08, 0, 4.15908e-08, 0.951487, -0.307689, 2.70222, -0.456735, 5.41533)
-material_override = SubResource("StandardMaterial3D_pbhg3")
-use_collision = true
-radius = 1.46126
-height = 3.10616
-sides = 50
+[node name="ObstacleCylinder" parent="RopeDemos/MovingRopes" instance=ExtResource("5_1rqa4")]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 2.91087, -0.692623, 5.47205)
+metadata/_edit_lock_ = true
 
-[node name="VerletRopeMoving" type="MeshInstance3D" parent="MovingRope"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.537658, 2.69336, 5.85259)
-material_override = SubResource("StandardMaterial3D_8qm37")
-mesh = SubResource("ImmediateMesh_prgmo")
-skeleton = NodePath("../..")
+[node name="VerletRopeMoving" type="Node3D" parent="RopeDemos/MovingRopes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0684641, 2.46518, 3.91434)
 script = ExtResource("2_lows4")
-RopeLength = 3.0
 SimulationParticles = 15
-SimulationRate = 265
-WindNoise = SubResource("FastNoiseLite_0fwmc")
-Wind = Vector3(1, 0, 1)
-WindScale = 10.0
-DampingFactor = 1000.0
+SimulationBehavior = 2
+WindDirection = Vector3(20, 0, 0)
 RopeCollisionType = 2
-RopeCollisionBehavior = 2
+RopeCollisionBehavior = 1
+StaticCollisionMask = 3
 DynamicCollisionMask = 2
+MaterialOverride = SubResource("StandardMaterial3D_u10mr")
+metadata/VerletRopeObject = true
 
-[node name="MovingCylinder" type="CSGCylinder3D" parent="MovingRope" node_paths=PackedStringArray("MovingNode")]
-transform = Transform3D(0.999993, 0.00371743, -1.62487e-10, -3.88745e-16, -4.37114e-08, -1, -0.00371743, 0.999993, -4.37111e-08, -0.297686, 1.49849, 5.83115)
-use_collision = true
-collision_layer = 2
-collision_mask = 0
-sides = 20
-smooth_faces = false
-script = ExtResource("2_vutyd")
-MovingNode = NodePath(".")
-MovingPath = Vector3(3, 0, 0)
-PathTime = 5.0
-TransitionType = 1
+[node name="VerletRopeJoint" type="Node" parent="RopeDemos/MovingRopes/VerletRopeMoving" node_paths=PackedStringArray("VerletRope", "StartCustomLocation")]
+script = ExtResource("3_j5lb4")
+VerletRope = NodePath("..")
+StartCustomLocation = NodePath("../../MovingCylinder/CustomRopePosition")
+
+[node name="MovingCylinder" parent="RopeDemos/MovingRopes" instance=ExtResource("6_xm42s")]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 1.03958, 2.24831, 5.47205)
+
+[node name="CustomRopePosition" type="Node3D" parent="RopeDemos/MovingRopes/MovingCylinder"]
+transform = Transform3D(1, 0, 0, 0, 1, 7.35137e-08, 0, -7.35137e-08, 1, 0, -1.42, 0.425)
+
+[node name="VerletRopeStatic" type="Node3D" parent="RopeDemos/MovingRopes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.35236, 3.68133, 5.42262)
+script = ExtResource("2_lows4")
+SimulationParticles = 30
+SimulationBehavior = 2
+WindDirection = Vector3(20, 0, 0)
+RopeCollisionType = 2
+RopeCollisionBehavior = 1
+StaticCollisionMask = 3
+DynamicCollisionMask = 2
+RopeLength = 5.0
+MaterialOverride = SubResource("StandardMaterial3D_ykvhj")
+metadata/VerletRopeObject = true
+
+[node name="PhysicsJointRope" type="Node3D" parent="RopeDemos"]
+transform = Transform3D(0.974421, 0, 0.22473, 0, 1, 0, -0.22473, 0, 0.974421, -0.493877, 0, 3.55581)
+
+[node name="VerletRope" type="Node3D" parent="RopeDemos/PhysicsJointRope"]
+transform = Transform3D(0.974421, 0, -0.22473, 0, 1, 0, 0.22473, 0, 0.974421, -1.90037, 0.140517, 2.38702)
+script = ExtResource("2_lows4")
+SimulationBehavior = 2
+WindDirection = Vector3(20, 0, 0)
+RopeCollisionType = 2
+RopeCollisionBehavior = 1
+IgnoreCollisionStretch = 3.0
+StaticCollisionMask = 7
+DynamicCollisionMask = 2
+RopeLength = 0.75
+MaterialOverride = SubResource("StandardMaterial3D_onu7k")
+metadata/VerletRopeObject = true
+
+[node name="VerletRopeJoint" type="Node" parent="RopeDemos/PhysicsJointRope/VerletRope" node_paths=PackedStringArray("VerletRope", "StartBody", "StartCustomLocation", "EndBody", "EndCustomLocation")]
+script = ExtResource("3_j5lb4")
+VerletRope = NodePath("..")
+StartBody = NodePath("../../MovingBoxStart")
+StartCustomLocation = NodePath("../../MovingBoxStart/CustomConnection")
+EndBody = NodePath("../../MovingBoxEnd")
+EndCustomLocation = NodePath("../../MovingBoxEnd/CustomConnection")
+JointMaxDistance = 1.0
+metadata/VerletRopeObject = true
+
+[node name="Node3D" type="MeshInstance3D" parent="RopeDemos/PhysicsJointRope/VerletRope"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+material_override = SubResource("StandardMaterial3D_onu7k")
+mesh = SubResource("ImmediateMesh_nk31j")
+script = ExtResource("8_nk31j")
+RopeLength = 0.75
+
+[node name="MovingBoxStart" parent="RopeDemos/PhysicsJointRope" instance=ExtResource("7_tdg64")]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, -2.32936, 0.133589, 2.83518)
+script = ExtResource("2_u10mr")
+
+[node name="CustomConnection" type="Node3D" parent="RopeDemos/PhysicsJointRope/MovingBoxStart"]
+transform = Transform3D(1, 0, 0, 0, 1, 7.35137e-08, 0, -7.35137e-08, 1, 0.152623, 9.53674e-07, 1.49012e-08)
+
+[node name="MovingBoxEnd" parent="RopeDemos/PhysicsJointRope" instance=ExtResource("7_tdg64")]
+transform = Transform3D(-0.627732, -0.77843, 3.40262e-08, 0, -4.37114e-08, -1, 0.77843, -0.627732, 2.7439e-08, -1.39114, 0.133589, 2.33616)
+
+[node name="CustomConnection" type="Node3D" parent="RopeDemos/PhysicsJointRope/MovingBoxEnd"]
+transform = Transform3D(1, 0, 0, 0, 1, 7.35137e-08, 0, -7.35137e-08, 1, 0.152623, 9.53674e-07, 1.49012e-08)
+
+[node name="Enclosure" parent="RopeDemos/PhysicsJointRope" instance=ExtResource("9_1rqa4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.19183, 0.298381, 2.29841)
+
+[node name="RigidRope" type="Node3D" parent="RopeDemos"]
+
+[node name="VerletRopeRigid" type="Node3D" parent="RopeDemos/RigidRope"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.14652, 3.36653, 6.89077)
+script = ExtResource("5_onu7k")
+CollisionLayer = 7
+CollisionMask = 7
+MaterialOverride = SubResource("StandardMaterial3D_1rqa4")
+
+[node name="JointRigid" type="Node" parent="RopeDemos/RigidRope/VerletRopeRigid" node_paths=PackedStringArray("VerletRope", "EndBody", "EndCustomLocation")]
+script = ExtResource("7_s1s6j")
+VerletRope = NodePath("..")
+EndBody = NodePath("../MovingBoxSmall")
+EndCustomLocation = NodePath("../MovingBoxSmall/CustomAttachment")
+
+[node name="MovingBoxSmall" parent="RopeDemos/RigidRope/VerletRopeRigid" instance=ExtResource("12_xm42s")]
+transform = Transform3D(0.947506, 0, 0.319737, 0, 1, 0, -0.319737, 0, 0.947506, 1.70422, 0.321674, -0.925304)
+
+[node name="CustomAttachment" type="Node3D" parent="RopeDemos/RigidRope/VerletRopeRigid/MovingBoxSmall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.141444, 0, 0)

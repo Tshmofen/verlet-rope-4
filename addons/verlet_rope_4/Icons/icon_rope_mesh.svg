@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <path style="paint-order: fill; stroke: rgb(205, 56, 56); fill-opacity: 0.3; fill: none; stroke-dashoffset: 183px; stroke-width: 80px; stroke-opacity: 0.25;" d="M 146.448 359.008 C 71.59 359.008 24.793 269.742 62.228 198.34 C 78.875 166.589 109.105 146.416 142.357 144.869 C 196.947 142.336 242.602 190.08 243.142 250.252 C 243.702 311.467 287.882 361.373 343.427 363.525 C 400.602 365.732 448.639 316.599 450.867 253.637 C 453.177 188.365 405.283 134.323 345.983 135.287"/>
+  <ellipse style="fill: rgb(205, 56, 56);" cx="130.857" cy="360.105" rx="60.857" ry="60.105"/>
+  <ellipse style="fill: rgb(205, 56, 56);" cx="130.857" cy="150.105" rx="60.857" ry="60.105"/>
+  <ellipse style="fill: rgb(205, 56, 56);" cx="370.857" cy="150.105" rx="60.857" ry="60.105"/>
+  <ellipse style="fill: rgb(205, 56, 56);" cx="370.857" cy="360.105" rx="60.857" ry="60.105"/>
+</svg>
