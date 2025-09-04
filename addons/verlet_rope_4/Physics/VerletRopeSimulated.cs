@@ -22,7 +22,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     private const float DynamicCollisionCheckLength = 0.1f;
     private const float DeltaSkip = 0.5f;
     
-    private bool _wasCreated;
+    private int _forcedFrames;
     private double _simulationDelta;
     private readonly List<Rid> _collisionExceptions = [];
 
@@ -47,7 +47,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     /// <summary> Number of stiffing cycles per frame, higher values gives more accurate simulation for lengthy ropes with many simulation particles </summary>
     [Export] public int StiffnessIterations { get; set; } = 2;
     /// <summary> How much frames (at 1/60 delta rate) are precalculated on rope creation to make it begin at more natural state. </summary>
-    [Export] public int PreprocessIterations { get; set; } = 5;
+    [Export] public int PreprocessIterations { get; set; } = 3;
     /// <summary> Determines if simulation is disabled when the rope is not on the screen. If <see cref="VerletJointSimulated"/> is used to connect bodies, it might be better to disable this option to prevent de-syncs. </summary>
     [Export] public bool IsDisabledWhenInvisible { get; set; } = true;
     /// <inheritdoc cref="Data.RopeSimulationBehavior"/>
@@ -433,9 +433,9 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
     private bool IsRopeSimulated()
     {
-        if (_wasCreated)
+        if (_forcedFrames > 0)
         {
-            _wasCreated = false;
+            _forcedFrames--;
             return true;
         }
 
@@ -584,7 +584,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
             ApplyConstraints(1/60f);
         }
 
-        _wasCreated = true;
+        _forcedFrames = PreprocessIterations;
     }
     
     /// <inheritdoc cref="BaseVerletRopePhysical.DestroyRope"/>

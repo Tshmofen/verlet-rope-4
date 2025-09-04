@@ -54,7 +54,7 @@ albedo_color = Color(0.789868, 0.610247, 0, 1)
 
 [sub_resource type="ImmediateMesh" id="ImmediateMesh_nk31j"]
 resource_local_to_scene = true
-metadata/verlet_rope_internal_stamp = 11130256835913
+metadata/verlet_rope_internal_stamp = 21233546640965
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1rqa4"]
 albedo_color = Color(0.582917, 0, 0.0906055, 1)
@@ -237,7 +237,7 @@ script = ExtResource("2_u10mr")
 transform = Transform3D(1, 0, 0, 0, 1, 7.35137e-08, 0, -7.35137e-08, 1, 0.152623, 9.53674e-07, 1.49012e-08)
 
 [node name="MovingBoxEnd" parent="RopeDemos/PhysicsJointRope" instance=ExtResource("7_tdg64")]
-transform = Transform3D(-0.627732, -0.77843, 3.40262e-08, 0, -4.37114e-08, -1, 0.77843, -0.627732, 2.7439e-08, -1.39007, 0.133589, 2.33152)
+transform = Transform3D(-0.627732, -0.77843, 3.40262e-08, 0, -4.37114e-08, -1, 0.77843, -0.627732, 2.7439e-08, -1.39114, 0.133589, 2.33616)
 
 [node name="CustomConnection" type="Node3D" parent="RopeDemos/PhysicsJointRope/MovingBoxEnd"]
 transform = Transform3D(1, 0, 0, 0, 1, 7.35137e-08, 0, -7.35137e-08, 1, 0.152623, 9.53674e-07, 1.49012e-08)
