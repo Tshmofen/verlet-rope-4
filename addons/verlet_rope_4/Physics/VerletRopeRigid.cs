@@ -215,6 +215,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     {
         base._Ready();
         CreateRope();
+        RopeMesh.UpdateRopeVisibility(ParticleData);
     }
 
     public override void _PhysicsProcess(double delta)
@@ -240,6 +241,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
         }
 
         RopeMesh.DrawRopeParticles(ParticleData);
+        RopeMesh.UpdateRopeVisibility(ParticleData);
 
         #if TOOLS
         UpdateEditorCollision(ParticleData);

@@ -482,6 +482,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         };
 
         CreateRope();
+        RopeMesh.UpdateRopeVisibility(ParticleData);
     }
 
     public override void _PhysicsProcess(double delta)
@@ -534,6 +535,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         VerletProcess(simulationDeltaF);
         ApplyConstraints(simulationDeltaF);
         RopeMesh.DrawRopeParticles(ParticleData);
+        RopeMesh.UpdateRopeVisibility(ParticleData);
 
         EmitSignalSimulationStep(_simulationDelta);
         _simulationDelta = 0;

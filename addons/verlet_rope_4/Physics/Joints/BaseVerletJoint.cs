@@ -32,7 +32,7 @@ public abstract partial class BaseVerletJoint : Node, ISerializationListener
     {
         if (StartBody == null && StartCustomLocation == null && EndBody == null && EndCustomLocation == null)
         {
-            return ["No custom bodies specified, joint is doing nothing - consider resetting or removing it."];
+            return ["No custom connection points specified, joint is doing nothing - consider resetting or removing it."];
         }
 
         return [];
