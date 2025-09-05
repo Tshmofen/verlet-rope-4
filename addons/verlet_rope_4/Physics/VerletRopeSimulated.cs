@@ -21,7 +21,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     private const float StaticCollisionCheckLength = 0.005f;
     private const float DynamicCollisionCheckLength = 0.1f;
     private const float DeltaSkip = 0.5f;
-    
+
     private int _forcedFrames;
     private double _simulationDelta;
     private readonly List<Rid> _collisionExceptions = [];
@@ -33,7 +33,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     private readonly Dictionary<RigidBody3D, RopeDynamicCollisionData> _dynamicBodies = [];
 
     #if TOOLS
-    [ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(CreateRope);
+    [ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(() => CreateRope());
     [ExportToolButton("Add Simulated Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
     #endif
     
@@ -562,18 +562,23 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     }
     
     /// <inheritdoc cref="BaseVerletRopePhysical.CreateRope"/>
-    public override void CreateRope()
+    public override void CreateRope(bool forceReset = true)
     {
-        base.CreateRope();
+        base.CreateRope(forceReset);
 
+        if (!forceReset && PreviousStart == StartNode && PreviousEnd == EndNode)
+        {
+            return;
+        }
+        
         var acceleration = Gravity * GravityScale;
         var segmentLength = GetAverageSegmentLength();
         var startLocation = StartNode?.GlobalPosition ?? GlobalPosition;
         var endLocation = EndNode?.GlobalPosition ?? startLocation;
         ParticleData = RopeParticleData.GenerateParticleData(startLocation, endLocation, acceleration, SimulationParticles, segmentLength);
-
+        
         ref var start = ref ParticleData[0];
-        ref var end = ref ParticleData[ParticleData.Count - 1];
+        ref var end = ref ParticleData[^1];
 
         start.IsAttached = true;
         end.IsAttached = EndNode != null;

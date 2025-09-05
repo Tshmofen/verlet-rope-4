@@ -104,7 +104,7 @@ public partial class VerletJointSimulated : BaseVerletJoint, IVerletExported
             VerletRope?.RegisterExceptionRid(StartBody.GetRid(), IgnoreStartBodyCollision);
         }
         
-        VerletRope?.CallDeferred(VerletRopeSimulated.MethodName.CreateRope);
+        VerletRope?.CallDeferred(VerletRopeSimulated.MethodName.CreateRope, true);
     }
 
     public override string[] _GetConfigurationWarnings()

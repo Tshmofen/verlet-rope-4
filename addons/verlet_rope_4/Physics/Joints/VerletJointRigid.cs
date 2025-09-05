@@ -49,6 +49,6 @@ public partial class VerletJointRigid : BaseVerletJoint, IVerletExported
         base.ResetJoint();
         VerletRope ??= GetParent() as VerletRopeRigid;
         VerletRope?.SetAttachments(StartBody, StartCustomLocation, EndBody, EndCustomLocation);
-        VerletRope?.CallDeferred(VerletRopeRigid.MethodName.CreateRope);
+        VerletRope?.CallDeferred(VerletRopeRigid.MethodName.CreateRope, true);
     }
 }
