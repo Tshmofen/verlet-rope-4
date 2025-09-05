@@ -18,12 +18,14 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     
     protected RopeParticleData ParticleData;
     protected VerletRopeMesh RopeMesh => _ropeMesh ??= this.FindOrCreateChild<VerletRopeMesh>();
-
-    protected PhysicsBody3D StartBody { get; set; }
-    protected Node3D StartNode { get; set; }
-
-    protected PhysicsBody3D EndBody { get; set; }
-    protected Node3D EndNode { get; set; }
+    
+    protected Node3D PreviousStart { get; private set; }
+    protected PhysicsBody3D StartBody { get; private set; }
+    protected Node3D StartNode { get; private set; }
+    
+    protected Node3D PreviousEnd { get; private set; }
+    protected PhysicsBody3D EndBody { get; private set; }
+    protected Node3D EndNode { get; private set; }
     
     // Properties have the same default values as on `RopeMesh`
     /// <inheritdoc cref="VerletRopeMesh.RopeLength"/>
@@ -41,7 +43,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     [Export] public Material MaterialOverride { get; set; }
     
     /// <summary> Resets the rope and all corresponding properties, have to be called after any property changes. It is being called when you press `Reset Rope` quick button. </summary>
-    public virtual void CreateRope()
+    public virtual void CreateRope(bool forceReset = true)
     {
         RopeMesh.RopeLength = RopeLength;
         RopeMesh.RopeWidth = RopeWidth;
@@ -59,8 +61,11 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
 
     public void SetAttachments(PhysicsBody3D startBody, Node3D startLocation, PhysicsBody3D endBody, Node3D endLocation)
     {
+        PreviousStart = StartNode ?? StartBody;
         StartBody = startBody;
         StartNode = startLocation ?? startBody;
+        
+        PreviousEnd = EndNode ?? EndBody ;
         EndBody = endBody;
         EndNode = endLocation ?? endBody;
     }
@@ -153,7 +158,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
 
     public void OnAfterDeserialize()
     {
-        CallDeferred(MethodName.CreateRope);
+        CallDeferred(MethodName.CreateRope, true);
     }
 
     #endregion

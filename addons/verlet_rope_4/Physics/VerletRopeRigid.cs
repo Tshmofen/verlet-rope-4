@@ -18,7 +18,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     private List<RigidBody3D> _segmentBodies;
 
     #if TOOLS
-    [ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(CreateRope);
+    [ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(() => CreateRope());
     [ExportToolButton("Clone Rigid Bodies")] public Callable CloneBodiesButton => Callable.From(CloneRigidBodiesAction);
     [ExportToolButton("Add Rigid Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
     #endif
@@ -215,6 +215,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     {
         base._Ready();
         CreateRope();
+        RopeMesh.UpdateRopeVisibility(ParticleData);
     }
 
     public override void _PhysicsProcess(double delta)
@@ -240,6 +241,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
         }
 
         RopeMesh.DrawRopeParticles(ParticleData);
+        RopeMesh.UpdateRopeVisibility(ParticleData);
 
         #if TOOLS
         UpdateEditorCollision(ParticleData);
@@ -292,7 +294,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     }
     
     /// <inheritdoc cref="BaseVerletRopePhysical.CreateRope"/>
-    public override void CreateRope()
+    public override void CreateRope(bool forceReset = true)
     {
         DestroyRope();
 
@@ -302,7 +304,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
             return;
         }
 
-        base.CreateRope();
+        base.CreateRope(forceReset);
         _segmentBodies = SpawnSegmentBodies(this);
         PinSegmentBodies(_segmentBodies);
         ParticleData = GenerateParticleData(_segmentBodies);

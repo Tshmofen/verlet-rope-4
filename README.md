@@ -14,7 +14,7 @@
 </p>
 
 # Godot 4 Verlet Rope (.NET)
-It is an implementation of [Verlet Intergration](https://en.wikipedia.org/wiki/Verlet_integration) for physics ropes on Godot 4.4 .NET similar to the ones seen in `Half-Life 2` or generally in `Source` engine.
+It is an implementation of [Verlet Integration](https://en.wikipedia.org/wiki/Verlet_integration) for physics ropes on Godot 4.4 .NET similar to the ones seen in `Half-Life 2` or generally in `Source` engine.
 
 This addon allows creation of dynamic and physics-based ropes, specifically offering following specialized nodes to fit different needs:
 * **`VerletRopeSimulated`**: Customizable and performant node for visual ropes that react to wind, gravity, and collisions with smooth, realistic behavior.
@@ -35,13 +35,13 @@ This addon allows creation of dynamic and physics-based ropes, specifically offe
 ## Features
 1. **Generation of flat-plane rope meshes** using tessellation with Catmull-Rom splines.
 2. **Two variants of rope simulation**: fully verlet-based (optionally affected by other bodies) and built-in physics-based (both affects and is affected by other bodies).
-3. **Intergrated joint nodes** allowing to connect ropes to other nodes and physical bodies, constraining their movement.
-4. **Many adjustable parameters**: particle & segment counts; lengths & widths; custom simulation rates; wind & gravity forces; customizable damping; customizable visuals; and other fine-tunning settings specific to each rope variant.
+3. **Integrated joint nodes** allowing to connect ropes to other nodes and physical bodies, constraining their movement.
+4. **Many adjustable parameters**: particle & segment counts; lengths & widths; custom simulation rates; wind & gravity forces; customizable damping; customizable visuals; and other fine-tuning settings specific to each rope variant.
 5. **`VisibleOnScreenNotifier3D` optional support** (integrated and automatic) for performance improvements when required.
-6. **Simualted advanced performance-friendly slide collisions** for `VerletRopeSimulated` with static mode `O(n)` and dynamic mode `O(n*m)` raycasts complexity (`n` - rope particles, `m` - affected dynamic bodies).
+6. **Simulated advanced performance-friendly slide collisions** for `VerletRopeSimulated` with static mode `O(n)` and dynamic mode `O(n*m)` raycasts complexity (`n` - rope particles, `m` - affected dynamic bodies).
 7. **Editor-specific tooling** to make ropes configuration easier.
    * Different `[Tool]` buttons for quick joint creation, rope resets, structure copying and quick configuration presets;
-   * Internal meta-stamping for ropes duplications/copypaste support;
+   * Internal meta-stamping for ropes duplication/copy-paste support;
    * Custom editor-collisions for precise rope click-selectors.
 
 ## Installation
@@ -55,8 +55,8 @@ Ensure you have **Godot 4.4.1+ .NET** and the **.NET 8 SDK** installed.
 > Checkout full installation guide if you need additional details or demo steps at [this wiki page](https://github.com/Tshmofen/verlet-rope-4/wiki/Guide-%E2%80%90-Installation).
 
 ## Quick Start
-The followind nodes are being added to the `Create Child Node` menu, try them out yourself and see their corresponding wiki pages by the following links, you can find specific properties descriptions and recommendations there:
-* **[`VerletRopeSimulated`](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeSimulated)** -> `Node3D` - First of the two rope nodes, provides access to fully verlet-simualted rope with the most settings available.
+The following nodes are being added to the `Create Child Node` menu, try them out yourself and see their corresponding wiki pages by the following links, you can find specific properties descriptions and recommendations there:
+* **[`VerletRopeSimulated`](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeSimulated)** -> `Node3D` - First of the two rope nodes, provides access to fully verlet-simulated rope with the most settings available.
   * **[`VerletJointSimulated`](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletJointSimulated)** -> `Node` - Corresponding simulated joint utility node.
 * **[`VerletRopeRigidBody`](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeRigidBody)** -> `Node3D` - Second rope node, provides access to rigid-bodies-based rope, that allows it to properly interact with physics. 
   * **[`VerletJointRigid`](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletJointRigid)** -> `Node` - Corresponding rigid joint utility node.

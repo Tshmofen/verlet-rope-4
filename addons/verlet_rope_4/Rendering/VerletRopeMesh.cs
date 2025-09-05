@@ -240,15 +240,30 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
         ResetRopeRotation();
         DrawCurve(particles);
 
-        if (_visibleNotifier != null)
-        {
-            _visibleNotifier.Aabb = GetAabb();
-        }
-
         if (UseDebugParticles)
         {
             DrawRopeDebugParticles(particles);
         }
+    }
+
+    public void UpdateRopeVisibility(RopeParticleData particles)
+    {
+        if (_visibleNotifier == null || particles == null || particles.Count == 0)
+        {
+            return;
+        }
+
+        var minPosition =  new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+        var maxPosition = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+
+        for (var i = 0; i < particles.Count; i++)
+        {
+            ref var particle = ref particles[i];
+            minPosition = minPosition.Min(particle.PositionCurrent);
+            maxPosition = maxPosition.Max(particle.PositionCurrent);
+        }
+
+        _visibleNotifier.Aabb = new Aabb(_visibleNotifier.ToLocal(minPosition), _visibleNotifier.ToLocal(maxPosition - minPosition)).Abs();
     }
 
     public override string[] _GetConfigurationWarnings()

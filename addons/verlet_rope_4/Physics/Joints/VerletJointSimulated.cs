@@ -62,7 +62,7 @@ public partial class VerletJointSimulated : BaseVerletJoint, IVerletExported
 
     private void ConfigureDistanceJoint()
     {
-        if (JointMaxDistance == 0 || StartBody == null || EndBody == null)
+        if (JointMaxDistance == 0 || (StartBody == null && EndBody == null))
         {
             _joint?.Dispose();
             _joint = null;
@@ -77,6 +77,11 @@ public partial class VerletJointSimulated : BaseVerletJoint, IVerletExported
         _joint.CustomLocationB = EndCustomLocation;
         _joint.ForceEasing = JointForceEasing;
         _joint.MaxForce = JointMaxForce;
+
+        if (StartBody == null && StartCustomLocation == null)
+        {
+            _joint.CustomLocationA = VerletRope;
+        }
     }
 
     /// <inheritdoc cref="BaseVerletJoint.ResetJoint"/>
@@ -99,21 +104,29 @@ public partial class VerletJointSimulated : BaseVerletJoint, IVerletExported
             VerletRope?.RegisterExceptionRid(StartBody.GetRid(), IgnoreStartBodyCollision);
         }
         
-        VerletRope?.CallDeferred(VerletRopeSimulated.MethodName.CreateRope);
+        VerletRope?.CallDeferred(VerletRopeSimulated.MethodName.CreateRope, true);
     }
 
     public override string[] _GetConfigurationWarnings()
     {
-        var baseWarnings = base._GetConfigurationWarnings();
+        var warnings = base._GetConfigurationWarnings().ToList();
 
-        if (JointMaxDistance > 0 && (StartBody is null || EndBody is null))
+        if (VerletRope == null)
         {
-            return baseWarnings
-                .Union([$"{nameof(JointMaxDistance)} is configured but either `{nameof(StartBody)}` or `{nameof(EndBody)}` is not accessible for physical connection."])
-                .ToArray();
+            warnings.Add("Joint will do nothing without an associated rope, please assign one."); 
         }
 
-        return baseWarnings;
+        if (JointMaxDistance > 0 && StartBody is null && EndBody is null)
+        {
+            warnings.Add($"{nameof(JointMaxDistance)} is configured but both `{nameof(StartBody)}` and `{nameof(EndBody)}` are not accessible for physical connection.");
+        }
+
+        if (JointMaxDistance > 0 && VerletRope?.IsDisabledWhenInvisible == true)
+        {
+            warnings.Add($"Rope has `{nameof(VerletRopeSimulated.IsDisabledWhenInvisible)}` enabled, if your joint is moving it might lead to rope not being drawn when it leaves the screen - consider disabling it.");
+        }
+
+        return warnings.ToArray();
     }
 
     #region Script Reload

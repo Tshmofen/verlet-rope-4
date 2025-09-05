@@ -47,15 +47,20 @@ public partial class DistanceForceJoint : Node, IVerletExported
 
     public override void _PhysicsProcess(double delta)
     {
-        if (MaxDistance == 0 || BodyA == null || BodyB == null)
+        if (MaxDistance == 0)
         {
             return;
         } 
 
-        var a = CustomLocationA?.GlobalPosition ?? BodyA.GlobalPosition;
-        var b = CustomLocationB?.GlobalPosition ?? BodyB.GlobalPosition;
+        var a = CustomLocationA?.GlobalPosition ?? BodyA?.GlobalPosition;
+        var b = CustomLocationB?.GlobalPosition ?? BodyB?.GlobalPosition;
 
-        var connectionDirection = b - a;
+        if (a == null || b == null)
+        {
+            return;
+        }
+
+        var connectionDirection = (b - a).Value;
         var connectionDistance = connectionDirection.Length();
 
         if (connectionDistance < MaxDistance)
