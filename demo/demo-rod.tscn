@@ -1,0 +1,112 @@
+[gd_scene load_steps=14 format=3 uid="uid://ddh4ay4y7e2gr"]
+
+[ext_resource type="Script" uid="uid://cs3du1asqgk7n" path="res://demo/scripts/FpsControllerDemo.cs" id="1_let6w"]
+[ext_resource type="PackedScene" uid="uid://cqnic6frw022r" path="res://demo/objects/ground.tscn" id="2_q0emq"]
+[ext_resource type="Script" uid="uid://c3oxgehluk75x" path="res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs" id="3_6v5nt"]
+[ext_resource type="Script" uid="uid://cvxw3h20i7vjf" path="res://addons/verlet_rope_4/Physics/Joints/VerletJointSimulated.cs" id="4_6qfrt"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_3bmw0"]
+sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+
+[sub_resource type="Sky" id="Sky_buv6g"]
+sky_material = SubResource("ProceduralSkyMaterial_3bmw0")
+
+[sub_resource type="Environment" id="Environment_2p4hb"]
+background_mode = 2
+sky = SubResource("Sky_buv6g")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_let6w"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_let6w"]
+height = 1.0
+radius = 0.05
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_bdqcq"]
+top_radius = 0.05
+bottom_radius = 0.05
+height = 1.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pgvvn"]
+albedo_color = Color(0.878842, 0, 0.396908, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_let6w"]
+size = Vector3(0.2, 0.2, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_bdqcq"]
+size = Vector3(0.2, 0.2, 0.2)
+
+[node name="Demo" type="Node3D"]
+
+[node name="Environment" type="Node3D" parent="."]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Environment"]
+environment = SubResource("Environment_2p4hb")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Environment"]
+transform = Transform3D(0.952619, -0.233005, 0.195514, 0.0514738, 0.757012, 0.65137, -0.299779, -0.610444, 0.733137, 0, 4, 0)
+light_color = Color(0.976471, 0.956863, 0.976471, 1)
+light_energy = 1.5
+shadow_enabled = true
+
+[node name="CharacterBody3D" type="CharacterBody3D" parent="Environment"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.03444, 0)
+script = ExtResource("1_let6w")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/CharacterBody3D"]
+shape = SubResource("CapsuleShape3D_let6w")
+
+[node name="Camera3D" type="Camera3D" parent="Environment/CharacterBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.925744, 0)
+
+[node name="AnimatableFishingRod" type="AnimatableBody3D" parent="Environment/CharacterBody3D/Camera3D"]
+transform = Transform3D(0.866025, 0.353553, -0.353553, 0, 0.707107, 0.707107, 0.5, -0.612372, 0.612372, 0, -0.210956, -0.98888)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/CharacterBody3D/Camera3D/AnimatableFishingRod"]
+shape = SubResource("CylinderShape3D_let6w")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Environment/CharacterBody3D/Camera3D/AnimatableFishingRod"]
+mesh = SubResource("CylinderMesh_bdqcq")
+
+[node name="RopeAttachment" type="Node3D" parent="Environment/CharacterBody3D/Camera3D/AnimatableFishingRod"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.46683e-08, 0.466295, 1.46683e-08)
+
+[node name="VerletRopeSimulated" type="Node3D" parent="Environment/CharacterBody3D/Camera3D/AnimatableFishingRod"]
+script = ExtResource("3_6v5nt")
+SimulationBehavior = 2
+RopeLength = 0.4
+RopeWidth = 0.04
+MaterialOverride = SubResource("StandardMaterial3D_pgvvn")
+metadata/_custom_type_script = "uid://c3oxgehluk75x"
+
+[node name="JointSimulated" type="Node" parent="Environment/CharacterBody3D/Camera3D/AnimatableFishingRod/VerletRopeSimulated" node_paths=PackedStringArray("VerletRope", "StartBody", "StartCustomLocation", "EndBody", "EndCustomLocation")]
+script = ExtResource("4_6qfrt")
+VerletRope = NodePath("..")
+StartBody = NodePath("../..")
+StartCustomLocation = NodePath("../../RopeAttachment")
+EndBody = NodePath("../../../../../../Ground/FishingRodBody")
+EndCustomLocation = NodePath("../../../../../../Ground/FishingRodBody/NodeAttachment")
+JointMaxDistance = 0.5
+JointMaxForce = 30.0
+metadata/verlet_rope_physical_create_simulated_joint = 1160363999
+
+[node name="Ground" parent="." instance=ExtResource("2_q0emq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+metadata/_edit_lock_ = true
+
+[node name="FishingRodBody" type="RigidBody3D" parent="Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.656984, 1.32815, -1.31146)
+linear_damp = 1.0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground/FishingRodBody"]
+mesh = SubResource("BoxMesh_let6w")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground/FishingRodBody"]
+shape = SubResource("BoxShape3D_bdqcq")
+
+[node name="NodeAttachment" type="Node3D" parent="Ground/FishingRodBody"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+
+[node name="RopeDemos" type="Node3D" parent="."]
