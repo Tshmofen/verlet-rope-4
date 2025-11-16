@@ -20,7 +20,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
     private const float StaticCollisionCheckLength = 0.005f;
     private const float DynamicCollisionCheckLength = 0.1f;
-    private const float DeltaSkip = 0.5f;
+    private const int EngineDeltaSkipMs = 500;
 
     private int _forcedFrames;
     private double _simulationDelta;
@@ -48,9 +48,15 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     [Export] public int StiffnessIterations { get; set; } = 2;
     /// <summary> How much frames (at 1/60 delta rate) are precalculated on rope creation to make it begin at more natural state. </summary>
     [Export] public int PreprocessIterations { get; set; } = 3;
+    /// <summary>
+    /// Milliseconds the physics processing frame took after which the rope simulation will be skipped. Should be used to prevent jarrings on freezes or physics pauses (60 fps ~ 16 ms).
+    /// If needed should be set at least 2-3 times higher than the expected physics rate. Usually something like 300-500 ms just to prevent unexpected behavior during freezes.
+    /// When set to 0 the option is effectively disabled.
+    /// </summary>
+    [Export(PropertyHint.Range, "0,1000")] public int DeltaSkipMs  { get; set; } = 0;
     /// <summary> Determines if simulation is disabled when the rope is not on the screen. If <see cref="VerletJointSimulated"/> is used to connect bodies, it might be better to disable this option to prevent de-syncs. </summary>
     [Export] public bool IsDisabledWhenInvisible { get; set; } = true;
-    /// <inheritdoc cref="Data.RopeSimulationBehavior"/>
+    /// <inheritdoc cref="RopeSimulationBehavior"/>
     [Export] public RopeSimulationBehavior SimulationBehavior { get; set; } = RopeSimulationBehavior.Selected;
 
     [ExportGroup("Gravity")]
@@ -101,6 +107,22 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
 
     #region Util
+
+    /// <summary> Prevents jarring jumps on editor scene loads, freezes or longer frames. </summary>
+    private bool IsPhysicsProcessSkip(double delta)
+    {
+        if (Engine.IsEditorHint() && delta > EngineDeltaSkipMs / 1000f)
+        {
+            return true;
+        }
+
+        if (DeltaSkipMs == 0)
+        {
+            return false;
+        }
+        
+        return delta > DeltaSkipMs / 1000f;
+    }
 
     private float GetAverageSegmentLength()
     {
@@ -487,9 +509,8 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
     public override void _PhysicsProcess(double delta)
     {
-        if (Engine.IsEditorHint() && delta > DeltaSkip)
+        if (IsPhysicsProcessSkip(delta))
         {
-            // Prevent jarring jumps on editor scene loads.
             return;
         }
 
