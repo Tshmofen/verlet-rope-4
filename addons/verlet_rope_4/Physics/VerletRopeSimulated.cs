@@ -51,6 +51,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     /// <summary>
     /// Milliseconds the physics processing frame took after which the rope simulation will be skipped. Should be used to prevent jarrings on freezes or physics pauses (60 fps ~ 16 ms).
     /// If needed should be set at least 2-3 times higher than the expected physics rate. Usually something like 300-500 ms just to prevent unexpected behavior during freezes.
+    /// When set to 0 the option is effectively disabled.
     /// </summary>
     [Export(PropertyHint.Range, "0,1000")] public int DeltaSkipMs  { get; set; } = 0;
     /// <summary> Determines if simulation is disabled when the rope is not on the screen. If <see cref="VerletJointSimulated"/> is used to connect bodies, it might be better to disable this option to prevent de-syncs. </summary>
