@@ -27,9 +27,9 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
 
     public override bool IsRopeCreated => ParticleData is { Count: > 0 } && _segmentBodies is { Count: > 0 };
 
-    /// <summary> Determines amount of separate <see cref="RigidBody3D"/> segments that will constitute the rope. </summary>
     [ExportGroup("Simulation")]
     [Export] public override bool IsCreatedOnReady { get; set; } = true;
+    /// <summary> Determines amount of separate <see cref="RigidBody3D"/> segments that will constitute the rope. </summary>
     [Export(PropertyHint.Range, "1,100")] public int SimulationSegments { get; set; } = 10;
     
     /// <summary> Adjusts the radius of rope segment collision. Final collision width equals to <see cref="BaseVerletRopePhysical.RopeWidth"/> with added <see cref="CollisionWidthMargin"/>. </summary>
