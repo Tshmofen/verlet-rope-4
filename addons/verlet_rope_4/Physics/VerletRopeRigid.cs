@@ -25,6 +25,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     
     /// <summary> Determines amount of separate <see cref="RigidBody3D"/> segments that will constitute the rope. </summary>
     [ExportGroup("Simulation")]
+    [Export] public override bool ToCreateOnReady { get; set; } = true;
     [Export(PropertyHint.Range, "1,100")] public int SimulationSegments { get; set; } = 10;
     
     /// <summary> Adjusts the radius of rope segment collision. Final collision width equals to <see cref="BaseVerletRopePhysical.RopeWidth"/> with added <see cref="CollisionWidthMargin"/>. </summary>
@@ -214,17 +215,20 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     public override void _Ready()
     {
         base._Ready();
-        CreateRope();
-        RopeMesh.UpdateRopeVisibility(ParticleData);
+
+        if (ToCreateOnReady)
+        {
+            CreateRope();
+            RopeMesh.UpdateRopeVisibility(ParticleData);
+        }
     }
 
     public override void _PhysicsProcess(double delta)
     {
         base._PhysicsProcess(delta);
 
-        if (ParticleData == null || _segmentBodies == null)
+        if (ParticleData == null || ParticleData.Count == 0 || _segmentBodies == null || _segmentBodies.Count == 0)
         {
-            CreateRope();
             return;
         }
 

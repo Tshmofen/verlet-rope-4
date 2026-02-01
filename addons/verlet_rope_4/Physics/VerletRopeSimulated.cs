@@ -39,6 +39,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     
     /// <summary> Determines amount of separate particles used is simulations, total segments amount is <see cref="SimulationParticles"/> minus 1. </summary>
     [ExportGroup("Simulation")]
+    [Export] public override bool ToCreateOnReady { get; set; } = true;
     [Export(PropertyHint.Range, "3,100")] public int SimulationParticles { get; set; } = 10;
     /// <summary> Determines target update rate for calculations (e.g. 30 updates per second) - but never exceeds physics tick rate. when value is set to 0 - the rope is updated every frame. </summary>
     [Export(PropertyHint.Range, "0,1000")] public int SimulationRate { get; set; } = 0;
@@ -105,12 +106,16 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     );
     #endif
 
-
     #region Util
 
-    /// <summary> Prevents jarring jumps on editor scene loads, freezes or longer frames. </summary>
     private bool IsPhysicsProcessSkip(double delta)
     {
+        if (ParticleData == null || ParticleData.Count == 0)
+        {
+            return true;
+        }
+
+        // Delta check prevents jarring jumps on editor scene loads, freezes or longer frames.
         if (Engine.IsEditorHint() && delta > EngineDeltaSkipMs / 1000f)
         {
             return true;
@@ -503,8 +508,11 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
             Margin = 0.1f
         };
 
-        CreateRope();
-        RopeMesh.UpdateRopeVisibility(ParticleData);
+        if (ToCreateOnReady)
+        {
+            CreateRope();
+            RopeMesh.UpdateRopeVisibility(ParticleData);
+        }
     }
 
     public override void _PhysicsProcess(double delta)
@@ -519,11 +527,6 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         if (IsDisabledWhenInvisible && !RopeMesh.IsRopeVisible)
         {
             return;
-        }
-
-        if (ParticleData == null)
-        {
-            CreateRope();
         }
 
         if (!IsRopeSimulated())

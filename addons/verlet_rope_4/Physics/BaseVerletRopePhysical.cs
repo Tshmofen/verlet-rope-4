@@ -26,6 +26,8 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     protected Node3D PreviousEnd { get; private set; }
     protected PhysicsBody3D EndBody { get; private set; }
     protected Node3D EndNode { get; private set; }
+
+    public abstract bool ToCreateOnReady { get; set; }
     
     // Properties have the same default values as on `RopeMesh`
     /// <inheritdoc cref="VerletRopeMesh.RopeLength"/>
