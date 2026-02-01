@@ -1,4 +1,5 @@
-﻿using Godot;
+﻿using System;
+using Godot;
 
 namespace VerletRope4.Physics.Joints;
 
@@ -28,6 +29,8 @@ public partial class DistanceForceJoint : Node, IVerletExported
     /// <summary> Determines force easing once it's applied, is only relevant while force is less than <see cref="MaxForce"/> and determines how fast it's rising depending on the distance. </summary>
     [Export(PropertyHint.ExpEasing)] public float ForceEasing { get; set; } = 1.0f;
 
+    public Func<bool> IsAppliedCustomCondition { get; set; }
+
     private static void ApplyPullForce(PhysicsBody3D body, Node3D customLocation, Vector3 pullForce)
     {
         if (body is not RigidBody3D rigidBody)
@@ -50,7 +53,12 @@ public partial class DistanceForceJoint : Node, IVerletExported
         if (MaxDistance == 0)
         {
             return;
-        } 
+        }
+
+        if (IsAppliedCustomCondition != null && !IsAppliedCustomCondition())
+        {
+            return;
+        }
 
         var a = CustomLocationA?.GlobalPosition ?? BodyA?.GlobalPosition;
         var b = CustomLocationB?.GlobalPosition ?? BodyB?.GlobalPosition;

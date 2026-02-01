@@ -1,5 +1,7 @@
-﻿using Godot;
+﻿using System;
+using Godot;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using VerletRope4.Data;
 using VerletRope4.Physics.Joints;
 using VerletRope4.Utility;
@@ -18,14 +20,16 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     private List<RigidBody3D> _segmentBodies;
 
     #if TOOLS
-    [ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(() => CreateRope());
-    [ExportToolButton("Clone Rigid Bodies")] public Callable CloneBodiesButton => Callable.From(CloneRigidBodiesAction);
-    [ExportToolButton("Add Rigid Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
+    [UsedImplicitly][ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(() => CreateRope());
+    [UsedImplicitly][ExportToolButton("Clone Rigid Bodies")] public Callable CloneBodiesButton => Callable.From(CloneRigidBodiesAction);
+    [UsedImplicitly][ExportToolButton("Add Rigid Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
     #endif
-    
+
+    public override bool IsRopeCreated => ParticleData is { Count: > 0 } && _segmentBodies is { Count: > 0 };
+
     /// <summary> Determines amount of separate <see cref="RigidBody3D"/> segments that will constitute the rope. </summary>
     [ExportGroup("Simulation")]
-    [Export] public override bool ToCreateOnReady { get; set; } = true;
+    [Export] public override bool IsCreatedOnReady { get; set; } = true;
     [Export(PropertyHint.Range, "1,100")] public int SimulationSegments { get; set; } = 10;
     
     /// <summary> Adjusts the radius of rope segment collision. Final collision width equals to <see cref="BaseVerletRopePhysical.RopeWidth"/> with added <see cref="CollisionWidthMargin"/>. </summary>
@@ -212,17 +216,6 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     #endregion
     #endif
 
-    public override void _Ready()
-    {
-        base._Ready();
-
-        if (ToCreateOnReady)
-        {
-            CreateRope();
-            RopeMesh.UpdateRopeVisibility(ParticleData);
-        }
-    }
-
     public override void _PhysicsProcess(double delta)
     {
         base._PhysicsProcess(delta);
@@ -306,6 +299,11 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
         {
             // Only possible to create inside tree, as physics rely on actual paths
             return;
+        }
+
+        if (ConnectedJoint != null && ConnectedJoint is not VerletJointRigid)
+        {
+            throw new ApplicationException($"`{nameof(VerletRopeRigid)}` only accepts joints of `{nameof(VerletJointRigid)} type.");
         }
 
         base.CreateRope(forceReset);

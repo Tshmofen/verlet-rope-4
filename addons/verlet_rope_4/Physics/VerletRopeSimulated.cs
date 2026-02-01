@@ -1,6 +1,8 @@
+using System;
 using Godot;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using VerletRope4.Data;
 using VerletRope4.Physics.Joints;
 using VerletRope4.Physics.Presets;
@@ -24,7 +26,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
     private int _forcedFrames;
     private double _simulationDelta;
-    private readonly List<Rid> _collisionExceptions = [];
+    private List<Rid> _collisionExceptions = [];
 
     private RayCast3D _rayCast;
     private BoxShape3D _collisionShape;
@@ -33,13 +35,15 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     private readonly Dictionary<RigidBody3D, RopeDynamicCollisionData> _dynamicBodies = [];
 
     #if TOOLS
-    [ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(() => CreateRope());
-    [ExportToolButton("Add Simulated Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
+    [UsedImplicitly][ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(() => CreateRope());
+    [UsedImplicitly][ExportToolButton("Add Simulated Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
     #endif
-    
+
+    public override bool IsRopeCreated => ParticleData is { Count: > 0 };
+
     /// <summary> Determines amount of separate particles used is simulations, total segments amount is <see cref="SimulationParticles"/> minus 1. </summary>
     [ExportGroup("Simulation")]
-    [Export] public override bool ToCreateOnReady { get; set; } = true;
+    [Export] public override bool IsCreatedOnReady { get; set; } = true;
     [Export(PropertyHint.Range, "3,100")] public int SimulationParticles { get; set; } = 10;
     /// <summary> Determines target update rate for calculations (e.g. 30 updates per second) - but never exceeds physics tick rate. when value is set to 0 - the rope is updated every frame. </summary>
     [Export(PropertyHint.Range, "0,1000")] public int SimulationRate { get; set; } = 0;
@@ -95,13 +99,13 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
     #if TOOLS
     [ExportGroup("Quick Presets")]
-    [ExportToolButton("Preset - Base Wind")] public Callable PresetBaseWindButton => Callable.From(
+    [UsedImplicitly][ExportToolButton("Preset - Base Wind")] public Callable PresetBaseWindButton => Callable.From(
         () => CommitEditorAction("Verlet Rope Simulated - Base Wind Preset", (undoRedo, actionId) => VerletRopeSimulatedPreset.SetBaseWindValues(this, undoRedo, actionId))
     );
-    [ExportToolButton("Preset - Floating Rope")] public Callable PresetFloatingRopeButton => Callable.From(
+    [UsedImplicitly][ExportToolButton("Preset - Floating Rope")] public Callable PresetFloatingRopeButton => Callable.From(
         () => CommitEditorAction("Verlet Rope Simulated - Base Floating Preset", (undoRedo, actionId) => VerletRopeSimulatedPreset.SetFloatingValues(this, undoRedo, actionId))
     );
-    [ExportToolButton("Preset - All Collisions")] public Callable PresetBaseAllCollisionsButton => Callable.From(
+    [UsedImplicitly][ExportToolButton("Preset - All Collisions")] public Callable PresetBaseAllCollisionsButton => Callable.From(
         () => CommitEditorAction("Verlet Rope Simulated - Base All Collisions Preset", (undoRedo, actionId) => VerletRopeSimulatedPreset.SetBaseAllCollisionsValues(this, undoRedo, actionId))
     );
     #endif
@@ -162,9 +166,12 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         _rayCast.HitFromInside = RayCastHitFromInside;
 
         _rayCast.ClearExceptions();
-        foreach (var rid in _collisionExceptions)
+        if (_collisionExceptions != null)
         {
-            _rayCast.AddExceptionRid(rid);
+            foreach (var rid in _collisionExceptions)
+            {
+                _rayCast.AddExceptionRid(rid);
+            }
         }
             
         _rayCast.ForceRaycastUpdate();
@@ -495,8 +502,6 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
     public override void _Ready()
     {
-        base._Ready();
-
         _rayCast = RopeMesh.FindOrCreateChild<RayCast3D>();
         _rayCast.Enabled = false;
 
@@ -508,11 +513,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
             Margin = 0.1f
         };
 
-        if (ToCreateOnReady)
-        {
-            CreateRope();
-            RopeMesh.UpdateRopeVisibility(ParticleData);
-        }
+        base._Ready();
     }
 
     public override void _PhysicsProcess(double delta)
@@ -600,6 +601,19 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         var startLocation = StartNode?.GlobalPosition ?? GlobalPosition;
         var endLocation = EndNode?.GlobalPosition ?? startLocation;
         ParticleData = RopeParticleData.GenerateParticleData(startLocation, endLocation, acceleration, SimulationParticles, segmentLength);
+
+        if (ConnectedJoint is VerletJointSimulated simulatedJoint)
+        {
+            _collisionExceptions = simulatedJoint.GetPhysicsExceptionRids();
+        }
+        else if (ConnectedJoint != null)
+        {
+            throw new ApplicationException($"`{nameof(VerletRopeSimulated)}` only accepts joints of `{nameof(VerletJointSimulated)} type.");
+        }
+        else
+        {
+            _collisionExceptions = null;
+        }
         
         ref var start = ref ParticleData[0];
         ref var end = ref ParticleData[^1];
@@ -623,24 +637,5 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     {
         ParticleData = null;
         SimulationParticles = 0;
-    }
-    
-    /// <summary> Clears physics <see cref="Rid"/> that are currently ignored for collisions. </summary>
-    public void ClearExceptions()
-    {
-        _collisionExceptions.Clear();
-    }
-
-    /// <summary> Registers physics <see cref="Rid"/> for collision ignore. Use to exclude joined bodies from collision simulation. </summary>
-    public void RegisterExceptionRid(Rid rid, bool toInclude)
-    {
-        if (toInclude)
-        {
-            _collisionExceptions.Add(rid);
-        }
-        else
-        {
-            _collisionExceptions.Remove(rid);
-        }
     }
 }

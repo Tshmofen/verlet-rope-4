@@ -57,7 +57,7 @@ albedo_color = Color(0.789868, 0.610247, 0, 1)
 
 [sub_resource type="ImmediateMesh" id="ImmediateMesh_nk31j"]
 resource_local_to_scene = true
-metadata/verlet_rope_internal_stamp = 1768821953133
+metadata/verlet_rope_internal_stamp = 17779403070360
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1rqa4"]
 albedo_color = Color(0.582917, 0, 0.0906055, 1)
@@ -278,7 +278,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.19183, 0.298381, 2.29841)
 [node name="RigidRope" type="Node3D" parent="RopeDemos" unique_id=1094219201]
 
 [node name="VerletRopeRigid" type="Node3D" parent="RopeDemos/RigidRope" unique_id=1486409077]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.14652, 3.36653, 6.89077)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.3075945, 3.36653, 6.7909446)
 script = ExtResource("5_onu7k")
 CollisionLayer = 7
 CollisionMask = 7
