@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using JetBrains.Annotations;
 using VerletRope4.Utility;
 
 namespace VerletRope4.Physics.Joints;
@@ -16,7 +15,7 @@ public partial class VerletJointSimulated : BaseVerletJoint, IVerletExported
 
     private DistanceForceJoint _joint;
 
-    [UsedImplicitly][ExportToolButton("Reset Joint (Apply Changes)")] public Callable ResetJointButton => Callable.From(() => ResetJoint());
+    [ExportToolButton("Reset Joint (Apply Changes)")] public Callable ResetJointButton => Callable.From(() => ResetJoint());
     
     /// <summary> A <see cref="VerletRopeSimulated"/> node instance to which join constraints will be applied to. Automatically assigns current parent if it is of needed type and the value is currently unset. </summary>
     [ExportCategory("Attachment Settings")]

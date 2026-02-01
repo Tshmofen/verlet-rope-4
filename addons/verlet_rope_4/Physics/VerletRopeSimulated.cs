@@ -2,7 +2,6 @@ using System;
 using Godot;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using VerletRope4.Data;
 using VerletRope4.Physics.Joints;
 using VerletRope4.Physics.Presets;
@@ -35,8 +34,8 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     private readonly Dictionary<RigidBody3D, RopeDynamicCollisionData> _dynamicBodies = [];
 
     #if TOOLS
-    [UsedImplicitly][ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(() => CreateRope());
-    [UsedImplicitly][ExportToolButton("Add Simulated Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
+    [ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(() => CreateRope());
+    [ExportToolButton("Add Simulated Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
     #endif
 
     public override bool IsRopeCreated => ParticleData is { Count: > 0 };
@@ -99,13 +98,13 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
     #if TOOLS
     [ExportGroup("Quick Presets")]
-    [UsedImplicitly][ExportToolButton("Preset - Base Wind")] public Callable PresetBaseWindButton => Callable.From(
+    [ExportToolButton("Preset - Base Wind")] public Callable PresetBaseWindButton => Callable.From(
         () => CommitEditorAction("Verlet Rope Simulated - Base Wind Preset", (undoRedo, actionId) => VerletRopeSimulatedPreset.SetBaseWindValues(this, undoRedo, actionId))
     );
-    [UsedImplicitly][ExportToolButton("Preset - Floating Rope")] public Callable PresetFloatingRopeButton => Callable.From(
+    [ExportToolButton("Preset - Floating Rope")] public Callable PresetFloatingRopeButton => Callable.From(
         () => CommitEditorAction("Verlet Rope Simulated - Base Floating Preset", (undoRedo, actionId) => VerletRopeSimulatedPreset.SetFloatingValues(this, undoRedo, actionId))
     );
-    [UsedImplicitly][ExportToolButton("Preset - All Collisions")] public Callable PresetBaseAllCollisionsButton => Callable.From(
+    [ExportToolButton("Preset - All Collisions")] public Callable PresetBaseAllCollisionsButton => Callable.From(
         () => CommitEditorAction("Verlet Rope Simulated - Base All Collisions Preset", (undoRedo, actionId) => VerletRopeSimulatedPreset.SetBaseAllCollisionsValues(this, undoRedo, actionId))
     );
     #endif

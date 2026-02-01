@@ -1,7 +1,6 @@
 ﻿using System;
 using Godot;
 using System.Collections.Generic;
-using JetBrains.Annotations;
 using VerletRope4.Data;
 using VerletRope4.Physics.Joints;
 using VerletRope4.Utility;
@@ -20,9 +19,9 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     private List<RigidBody3D> _segmentBodies;
 
     #if TOOLS
-    [UsedImplicitly][ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(() => CreateRope());
-    [UsedImplicitly][ExportToolButton("Clone Rigid Bodies")] public Callable CloneBodiesButton => Callable.From(CloneRigidBodiesAction);
-    [UsedImplicitly][ExportToolButton("Add Rigid Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
+    [ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(() => CreateRope());
+    [ExportToolButton("Clone Rigid Bodies")] public Callable CloneBodiesButton => Callable.From(CloneRigidBodiesAction);
+    [ExportToolButton("Add Rigid Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
     #endif
 
     public override bool IsRopeCreated => ParticleData is { Count: > 0 } && _segmentBodies is { Count: > 0 };

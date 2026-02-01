@@ -1,5 +1,4 @@
 ﻿using Godot;
-using JetBrains.Annotations;
 
 namespace VerletRope4.Physics.Joints;
 
@@ -12,7 +11,7 @@ public partial class VerletJointRigid : BaseVerletJoint, IVerletExported
     public static string ExportedType => nameof(VerletJointRigid);
 
     #if TOOLS
-    [UsedImplicitly][ExportToolButton("Reset Joint (Apply Changes)")] public Callable ResetJointButton => Callable.From(() => ResetJoint());
+    [ExportToolButton("Reset Joint (Apply Changes)")] public Callable ResetJointButton => Callable.From(() => ResetJoint());
     #endif
 
     /// <summary> A <see cref="VerletRopeRigid"/> node instance to which join constraints will be applied to. Automatically assigns current parent if it is of needed type and the value is currently unset. </summary>
