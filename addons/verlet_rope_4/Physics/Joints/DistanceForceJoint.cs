@@ -29,6 +29,10 @@ public partial class DistanceForceJoint : Node, IVerletExported
     /// <summary> Determines force easing once it's applied, is only relevant while force is less than <see cref="MaxForce"/> and determines how fast it's rising depending on the distance. </summary>
     [Export(PropertyHint.ExpEasing)] public float ForceEasing { get; set; } = 1.0f;
 
+    /// <summary>
+    /// Determines custom condition for force applying, if returns <see langword="false"/> - the joint does nothing.
+    /// Can be used to disable joint when external context requires it (e.g. <see cref="VerletRopeSimulated"/> is not created yet).
+    /// </summary>
     public Func<bool> IsAppliedCustomCondition { get; set; }
 
     private static void ApplyPullForce(PhysicsBody3D body, Node3D customLocation, Vector3 pullForce)

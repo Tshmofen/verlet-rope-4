@@ -28,8 +28,12 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     protected Node3D PreviousEnd { get; private set; }
     protected PhysicsBody3D EndBody { get; private set; }
     protected Node3D EndNode { get; private set; }
-
+    
+    // Note: Is not using [Export] to be properly grouped in actual inherited properties.
+    /// <summary> Determines whether rope is immediately created on <see cref="_Ready"/> call or have to be manually created via <see cref="CreateRope"/>. </summary>
     public abstract bool IsCreatedOnReady { get; set; }
+
+    /// <summary> Returns whether rope is created at the moment, managed via <see cref="CreateRope"/> and <see cref="DestroyRope"/>. </summary>
     public abstract bool IsRopeCreated { get; }
     
     // Properties have the same default values as on `RopeMesh`
@@ -102,6 +106,11 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         EndNode = endLocation ?? endBody;
     }
 
+    /// <summary>
+    /// Manually sets attachment points of the Rope without using corresponding <see cref="BaseVerletJoint"/> instance.
+    /// Throws an exception if used when <see cref="BaseVerletJoint"/> is already set.
+    /// </summary>
+    /// <exception cref="ApplicationException"/>
     public void SetAttachmentPoints(PhysicsBody3D startBody, Node3D startLocation, PhysicsBody3D endBody, Node3D endLocation)
     {
         if (ConnectedJoint != null)
@@ -112,6 +121,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         SetAttachmentPointsInternal(startBody, startLocation, endBody, endLocation);
     }
 
+    /// <summary> Configures current joint of the rope to determine which points are used as rope connections, and recreates the rope if requested and was already created. </summary>
     public void SetJoint(BaseVerletJoint joint, bool toResetRope = true)
     {
         ConnectedJoint = joint;

@@ -1,5 +1,4 @@
-﻿using System;
-using Godot;
+﻿using Godot;
 
 namespace VerletRope4.Physics.Joints;
 
@@ -42,7 +41,7 @@ public abstract partial class BaseVerletJoint : Node, ISerializationListener
         _verletRope?.SetJoint(null, false);
     }
 
-    /// <summary> Resets the joined rope and all joint properties, have to be called after any property changes. It is being called when you press Reset Joint quick button. </summary>
+    /// <summary> Resets the joined rope (if requested) and all joint properties, have to be called after any property changes. It is being called when you press Reset Joint quick button. </summary>
     public virtual void ResetJoint(bool toResetRope = true)
     {
         UpdateConfigurationWarnings();

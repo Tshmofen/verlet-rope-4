@@ -14,9 +14,11 @@ public partial class VerletJointSimulated : BaseVerletJoint, IVerletExported
     public static string ExportedType => nameof(VerletJointSimulated);
 
     private DistanceForceJoint _joint;
-
-    [ExportToolButton("Reset Joint (Apply Changes)")] public Callable ResetJointButton => Callable.From(() => ResetJoint());
     
+    #if TOOLS
+    [ExportToolButton("Reset Joint (Apply Changes)")] public Callable ResetJointButton => Callable.From(() => ResetJoint());
+    #endif
+
     /// <summary> A <see cref="VerletRopeSimulated"/> node instance to which join constraints will be applied to. Automatically assigns current parent if it is of needed type and the value is currently unset. </summary>
     [ExportCategory("Attachment Settings")]
     [Export] public VerletRopeSimulated VerletRope { get; set; }
@@ -82,16 +84,17 @@ public partial class VerletJointSimulated : BaseVerletJoint, IVerletExported
         base.ResetJoint(toResetRope);
     }
 
+    /// <summary> Returns physics <see cref="Rid"/> of connected bodies that are to be ignored by parent <see cref="VerletRopeSimulated"/> instance. </summary>
     public List<Rid> GetPhysicsExceptionRids()
     {
         var exceptions = new List<Rid>(2);
 
-        if (!IgnoreEndBodyCollision && EndBody != null)
+        if (IgnoreEndBodyCollision && EndBody != null)
         {
             exceptions.Add(EndBody.GetRid());
         }
 
-        if (!IgnoreStartBodyCollision && StartBody != null)
+        if (IgnoreStartBodyCollision && StartBody != null)
         {
             exceptions.Add(StartBody.GetRid());
         }
