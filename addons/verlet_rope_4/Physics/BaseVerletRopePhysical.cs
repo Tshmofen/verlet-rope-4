@@ -1,6 +1,7 @@
 ﻿using System;
 using Godot;
 using VerletRope4.Data;
+using VerletRope4.Physics.Joints;
 using VerletRope4.Rendering;
 using VerletRope4.Utility;
 
@@ -15,8 +16,9 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
 
     private Vector3[] _editorVertexPositions = [];
     private VerletRopeMesh _ropeMesh;
-    
-    protected RopeParticleData ParticleData;
+
+    protected RopeParticleData ParticleData { get; set; }
+    protected BaseVerletJoint ConnectedJoint { get; private set; }
     protected VerletRopeMesh RopeMesh => _ropeMesh ??= this.FindOrCreateChild<VerletRopeMesh>();
     
     protected Node3D PreviousStart { get; private set; }
@@ -26,6 +28,13 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     protected Node3D PreviousEnd { get; private set; }
     protected PhysicsBody3D EndBody { get; private set; }
     protected Node3D EndNode { get; private set; }
+    
+    // Note: Is not using [Export] to be properly grouped in actual inherited properties.
+    /// <summary> Determines whether rope is immediately created on <see cref="_Ready"/> call or have to be manually created via <see cref="CreateRope"/>. </summary>
+    public abstract bool IsCreatedOnReady { get; set; }
+
+    /// <summary> Returns whether rope is created at the moment, managed via <see cref="CreateRope"/> and <see cref="DestroyRope"/>. </summary>
+    public abstract bool IsRopeCreated { get; }
     
     // Properties have the same default values as on `RopeMesh`
     /// <inheritdoc cref="VerletRopeMesh.RopeLength"/>
@@ -45,6 +54,17 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     /// <summary> Resets the rope and all corresponding properties, have to be called after any property changes. It is being called when you press `Reset Rope` quick button. </summary>
     public virtual void CreateRope(bool forceReset = true)
     {
+        if (ConnectedJoint != null)
+        {
+            ConnectedJoint.ResetJoint(false);
+            SetAttachmentPointsInternal(
+                ConnectedJoint.StartBody,
+                ConnectedJoint.StartCustomLocation,
+                ConnectedJoint.EndBody,
+                ConnectedJoint.EndCustomLocation
+            );
+        }
+
         RopeMesh.RopeLength = RopeLength;
         RopeMesh.RopeWidth = RopeWidth;
         RopeMesh.SubdivisionLodDistance = SubdivisionLodDistance;
@@ -59,21 +79,60 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     /// <summary>Creates corresponding joint child node and adds it to the tree. Is being created via `Deferred`, so one frame have to be awaited to get the joint instance.</summary>
     public abstract void CreateJoint(int actionId = 0, bool toCreate = true);
 
-    public void SetAttachments(PhysicsBody3D startBody, Node3D startLocation, PhysicsBody3D endBody, Node3D endLocation)
-    {
-        PreviousStart = StartNode ?? StartBody;
-        StartBody = startBody;
-        StartNode = startLocation ?? startBody;
-        
-        PreviousEnd = EndNode ?? EndBody ;
-        EndBody = endBody;
-        EndNode = endLocation ?? endBody;
-    }
-
     protected static StringName GetActionMeta(string action)
     {
         return $"verlet_rope_physical_{action}";
     }
+
+    #region Joint / Attachment
+
+    public override void _Ready()
+    {
+        if (IsCreatedOnReady || Engine.IsEditorHint())
+        {
+            CreateRope();
+            RopeMesh.UpdateRopeVisibility(ParticleData);
+        }
+    }
+
+    private void SetAttachmentPointsInternal(PhysicsBody3D startBody, Node3D startLocation, PhysicsBody3D endBody, Node3D endLocation)
+    {
+        PreviousStart = StartNode ?? StartBody;
+        StartBody = startBody;
+        StartNode = startLocation ?? startBody;
+
+        PreviousEnd = EndNode ?? EndBody;
+        EndBody = endBody;
+        EndNode = endLocation ?? endBody;
+    }
+
+    /// <summary>
+    /// Manually sets attachment points of the Rope without using corresponding <see cref="BaseVerletJoint"/> instance.
+    /// Throws an exception if used when <see cref="BaseVerletJoint"/> is already set.
+    /// </summary>
+    /// <exception cref="ApplicationException"/>
+    public void SetAttachmentPoints(PhysicsBody3D startBody, Node3D startLocation, PhysicsBody3D endBody, Node3D endLocation)
+    {
+        if (ConnectedJoint != null)
+        {
+            throw new ApplicationException("Attachment points cannot be manually set while joint is connected.");
+        }
+
+        SetAttachmentPointsInternal(startBody, startLocation, endBody, endLocation);
+    }
+
+    /// <summary> Configures current joint of the rope to determine which points are used as rope connections, and recreates the rope if requested and was already created. </summary>
+    public void SetJoint(BaseVerletJoint joint, bool toResetRope = true)
+    {
+        ConnectedJoint = joint;
+
+        if (IsRopeCreated && toResetRope)
+        {
+            CreateRope();
+        }
+    }
+
+    #endregion
 
     #region Particle Data
 

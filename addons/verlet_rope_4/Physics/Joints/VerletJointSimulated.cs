@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using VerletRope4.Utility;
 
@@ -13,9 +14,11 @@ public partial class VerletJointSimulated : BaseVerletJoint, IVerletExported
     public static string ExportedType => nameof(VerletJointSimulated);
 
     private DistanceForceJoint _joint;
-
-    [ExportToolButton("Reset Joint (Apply Changes)")] public Callable ResetJointButton => Callable.From(ResetJoint);
     
+    #if TOOLS
+    [ExportToolButton("Reset Joint (Apply Changes)")] public Callable ResetJointButton => Callable.From(() => ResetJoint());
+    #endif
+
     /// <summary> A <see cref="VerletRopeSimulated"/> node instance to which join constraints will be applied to. Automatically assigns current parent if it is of needed type and the value is currently unset. </summary>
     [ExportCategory("Attachment Settings")]
     [Export] public VerletRopeSimulated VerletRope { get; set; }
@@ -44,22 +47,6 @@ public partial class VerletJointSimulated : BaseVerletJoint, IVerletExported
     /// <inheritdoc cref="DistanceForceJoint.ForceEasing"/>
     [Export(PropertyHint.ExpEasing)] public float JointForceEasing { get; set; } = 0.9f;
 
-    public override void _Ready()
-    {
-        ResetJoint();
-    }
-
-    public override void _EnterTree()
-    {
-        ResetJoint();
-    }
-
-    public override void _ExitTree()
-    {
-        VerletRope?.SetAttachments(null, null, null, null);
-        VerletRope?.ClearExceptions();
-    }
-
     private void ConfigureDistanceJoint()
     {
         if (JointMaxDistance == 0 || (StartBody == null && EndBody == null))
@@ -77,6 +64,7 @@ public partial class VerletJointSimulated : BaseVerletJoint, IVerletExported
         _joint.CustomLocationB = EndCustomLocation;
         _joint.ForceEasing = JointForceEasing;
         _joint.MaxForce = JointMaxForce;
+        _joint.IsAppliedCustomCondition = VerletRope != null ? () => VerletRope.IsRopeCreated : null;
 
         if (StartBody == null && StartCustomLocation == null)
         {
@@ -84,27 +72,34 @@ public partial class VerletJointSimulated : BaseVerletJoint, IVerletExported
         }
     }
 
-    /// <inheritdoc cref="BaseVerletJoint.ResetJoint"/>
-    public override void ResetJoint()
+    protected override BaseVerletRopePhysical TryFindVerletRope()
     {
-        base.ResetJoint();
+        return VerletRope ??= GetParent() as VerletRopeSimulated;
+    }
+
+    /// <inheritdoc cref="BaseVerletJoint.ResetJoint"/>
+    public override void ResetJoint(bool toResetRope = true)
+    {
         ConfigureDistanceJoint();
-        UpdateConfigurationWarnings();
+        base.ResetJoint(toResetRope);
+    }
 
-        VerletRope ??= GetParent() as VerletRopeSimulated;
-        VerletRope?.SetAttachments(StartBody, StartCustomLocation, EndBody,EndCustomLocation);
+    /// <summary> Returns physics <see cref="Rid"/> of connected bodies that are to be ignored by parent <see cref="VerletRopeSimulated"/> instance. </summary>
+    public List<Rid> GetPhysicsExceptionRids()
+    {
+        var exceptions = new List<Rid>(2);
 
-        if (EndBody != null)
+        if (IgnoreEndBodyCollision && EndBody != null)
         {
-            VerletRope?.RegisterExceptionRid(EndBody.GetRid(), IgnoreEndBodyCollision);
-        }        
-        
-        if (StartBody != null)
-        {
-            VerletRope?.RegisterExceptionRid(StartBody.GetRid(), IgnoreStartBodyCollision);
+            exceptions.Add(EndBody.GetRid());
         }
-        
-        VerletRope?.CallDeferred(VerletRopeSimulated.MethodName.CreateRope, true);
+
+        if (IgnoreStartBodyCollision && StartBody != null)
+        {
+            exceptions.Add(StartBody.GetRid());
+        }
+
+        return exceptions;
     }
 
     public override string[] _GetConfigurationWarnings()
@@ -128,15 +123,4 @@ public partial class VerletJointSimulated : BaseVerletJoint, IVerletExported
 
         return warnings.ToArray();
     }
-
-    #region Script Reload
-
-    public override void OnAfterDeserialize()
-    {
-        // Clear exceptions after script reload as physics server does not retain object RIDs
-        VerletRope?.ClearExceptions();
-        base.OnAfterDeserialize();
-    }
-
-    #endregion
 }

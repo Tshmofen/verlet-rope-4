@@ -1,4 +1,5 @@
-﻿using Godot;
+﻿using System;
+using Godot;
 using System.Collections.Generic;
 using VerletRope4.Data;
 using VerletRope4.Physics.Joints;
@@ -22,9 +23,12 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     [ExportToolButton("Clone Rigid Bodies")] public Callable CloneBodiesButton => Callable.From(CloneRigidBodiesAction);
     [ExportToolButton("Add Rigid Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
     #endif
-    
-    /// <summary> Determines amount of separate <see cref="RigidBody3D"/> segments that will constitute the rope. </summary>
+
+    public override bool IsRopeCreated => ParticleData is { Count: > 0 } && _segmentBodies is { Count: > 0 };
+
     [ExportGroup("Simulation")]
+    [Export] public override bool IsCreatedOnReady { get; set; } = true;
+    /// <summary> Determines amount of separate <see cref="RigidBody3D"/> segments that will constitute the rope. </summary>
     [Export(PropertyHint.Range, "1,100")] public int SimulationSegments { get; set; } = 10;
     
     /// <summary> Adjusts the radius of rope segment collision. Final collision width equals to <see cref="BaseVerletRopePhysical.RopeWidth"/> with added <see cref="CollisionWidthMargin"/>. </summary>
@@ -211,20 +215,12 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     #endregion
     #endif
 
-    public override void _Ready()
-    {
-        base._Ready();
-        CreateRope();
-        RopeMesh.UpdateRopeVisibility(ParticleData);
-    }
-
     public override void _PhysicsProcess(double delta)
     {
         base._PhysicsProcess(delta);
 
-        if (ParticleData == null || _segmentBodies == null)
+        if (ParticleData == null || ParticleData.Count == 0 || _segmentBodies == null || _segmentBodies.Count == 0)
         {
-            CreateRope();
             return;
         }
 
@@ -302,6 +298,11 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
         {
             // Only possible to create inside tree, as physics rely on actual paths
             return;
+        }
+
+        if (ConnectedJoint != null && ConnectedJoint is not VerletJointRigid)
+        {
+            throw new ApplicationException($"`{nameof(VerletRopeRigid)}` only accepts joints of `{nameof(VerletJointRigid)} type.");
         }
 
         base.CreateRope(forceReset);
