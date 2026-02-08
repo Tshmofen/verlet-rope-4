@@ -20,18 +20,13 @@ public static class SegmentPlaceUtility
         var cos = Mathf.Clamp(placementDistance / (placementCount * segmentLength), -1.0f, 1.0f);
         var sin = Mathf.Sqrt(1.0f - cos * cos);
 
-        for (var i = 1; i < placementCount; i++)
+        for (var i = 1; i <= placementCount; i++)
         {
             var segmentChange = i % 2 == 0
                 ? segmentLength * (cos * rightDirection + sin * upDirection)
                 : segmentLength * (cos * rightDirection - sin * upDirection);
 
             points[i] = points[i - 1] + segmentChange;
-        }
-
-        if (isOddCount)
-        {
-            points[^2] = points[^3] * rightDirection;
         }
 
         points[^1] = b;

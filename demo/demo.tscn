@@ -57,7 +57,7 @@ albedo_color = Color(0.789868, 0.610247, 0, 1)
 
 [sub_resource type="ImmediateMesh" id="ImmediateMesh_nk31j"]
 resource_local_to_scene = true
-metadata/verlet_rope_internal_stamp = 20726472056788
+metadata/verlet_rope_internal_stamp = 17436745208425
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1rqa4"]
 albedo_color = Color(0.582917, 0, 0.0906055, 1)
