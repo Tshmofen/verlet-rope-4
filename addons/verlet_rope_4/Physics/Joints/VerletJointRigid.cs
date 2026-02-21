@@ -6,7 +6,7 @@ namespace VerletRope4.Physics.Joints;
 public partial class VerletJointRigid : BaseVerletJoint, IVerletExported
 {
     public static string ScriptPath => "res://addons/verlet_rope_4/Physics/Joints/VerletJointRigid.cs";
-    public static string IconPath => "res://addons/verlet_rope_4/icons/icon_joint.svg";
+    public static string IconPath => "res://addons/verlet_rope_4/Icons/icon_joint.svg";
     public static string ExportedBase => nameof(Node);
     public static string ExportedType => nameof(VerletJointRigid);
 
