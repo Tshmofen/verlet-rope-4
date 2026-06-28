@@ -70,10 +70,10 @@ public sealed class RopeParticleData
 // TODO: Make providers implement interface/base with only PositionCurrent, so that bookmark properties were not exposed when not needed
 public struct RopeParticle
 {
-    /// <summary> The current position of the particle for this frame - used for mesh generation. </summary>
+    /// <summary> Bookmark provider property - The position of the particle from the previous frame. used to calculate velocity. </summary>
     public Vector3 PositionPrevious { get; set; }
 
-    /// <summary> Bookmark provider property - The position of the particle from the previous frame. used to calculate velocity. </summary>
+    /// <summary>The current position of the particle for this frame - used for mesh generation. </summary>
     public Vector3 PositionCurrent { get; set; }
 
     /// <summary> Bookmark provider property - The acceleration applied to this particle (i.e. combined from gravity, wind or any other forces). </summary>
