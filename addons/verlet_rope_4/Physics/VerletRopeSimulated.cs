@@ -25,6 +25,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
     private int _forcedFrames;
     private double _simulationDelta;
+    private float _restSegmentLength;
     private Array<Rid> _collisionExceptions = [];
 
     private BoxShape3D _collisionShape;
@@ -132,11 +133,6 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         return delta > DeltaSkipMs / 1000f;
     }
 
-    private float GetAverageSegmentLength()
-    {
-        return RopeMesh.RopeLength / (ParticleData?.Count ?? SimulationParticles - 1);
-    }
-
     private float GetCurrentRopeLength()
     {
         var length = 0f;
@@ -189,7 +185,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
             for (var i = 0; i < ParticleData.Count - 1; i++)
             {
                 var segment = ParticleData[i + 1].PositionCurrent - ParticleData[i].PositionCurrent;
-                var stretch = segment.Length() - GetAverageSegmentLength();
+                var stretch = segment.Length() - _restSegmentLength;
                 var direction = segment.Normalized();
 
                 if (ParticleData[i].IsAttached)
@@ -326,9 +322,8 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
     private void CollideRope()
     {
-        var segmentLength = GetAverageSegmentLength();
-        var segmentCollisionSlideLength = segmentLength * SlideCollisionStretch;
-        var segmentCollisionIgnoreLength = segmentLength * IgnoreCollisionStretch;
+        var segmentCollisionSlideLength = _restSegmentLength * SlideCollisionStretch;
+        var segmentCollisionIgnoreLength = _restSegmentLength * IgnoreCollisionStretch;
 
         for (var i = 0; i < ParticleData.Count; i++)
         {
@@ -502,7 +497,6 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
         _rayQuery = new PhysicsRayQueryParameters3D
         {
-            CollisionMask = 0, // will be set per call
             HitBackFaces = RayCastHitBackFaces,
             HitFromInside = RayCastHitFromInside,
             CollideWithAreas = false,
@@ -591,12 +585,12 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         {
             return;
         }
-        
+
+        _restSegmentLength = RopeMesh.RopeLength / (ParticleData?.Count ?? SimulationParticles - 1);
         var acceleration = Gravity * GravityScale;
-        var segmentLength = GetAverageSegmentLength();
         var startLocation = StartNode?.GlobalPosition ?? GlobalPosition;
         var endLocation = EndNode?.GlobalPosition ?? startLocation;
-        ParticleData = RopeParticleData.GenerateParticleData(startLocation, endLocation, acceleration, SimulationParticles, segmentLength);
+        ParticleData = RopeParticleData.GenerateParticleData(startLocation, endLocation, acceleration, SimulationParticles, _restSegmentLength);
 
         if (ConnectedJoint is VerletJointSimulated simulatedJoint)
         {
