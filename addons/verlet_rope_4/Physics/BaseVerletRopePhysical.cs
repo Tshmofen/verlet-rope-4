@@ -1,5 +1,6 @@
-﻿using System;
-using Godot;
+﻿using Godot;
+using System;
+using VerletRope.Data;
 using VerletRope4.Data;
 using VerletRope4.Physics.Joints;
 using VerletRope4.Rendering;
@@ -35,10 +36,12 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
 
     /// <summary> Returns whether rope is created at the moment, managed via <see cref="CreateRope"/> and <see cref="DestroyRope"/>. </summary>
     public abstract bool IsRopeCreated { get; }
-    
+
     // Properties have the same default values as on `RopeMesh`
-    /// <inheritdoc cref="VerletRopeMesh.RopeLength"/>
+    /// <inheritdoc cref="RopeMeshType"/>
     [ExportGroup("Visuals")]
+    [Export] public RopeMeshType MeshType { get; set; } = RopeMeshType.Ribbon;
+    /// <inheritdoc cref="VerletRopeMesh.RopeLength"/>
     [Export] public float RopeLength { get; set; } = 3.0f;
     /// <inheritdoc cref="VerletRopeMesh.RopeWidth"/>
     [Export] public float RopeWidth { get; set; } = 0.07f;
@@ -50,7 +53,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     [Export] public bool UseDebugParticles { get; set; } = false;
     /// <inheritdoc cref="VerletRopeMesh.MaterialOverride"/>
     [Export] public Material MaterialOverride { get; set; }
-    
+
     /// <summary> Resets the rope and all corresponding properties, have to be called after any property changes. It is being called when you press `Reset Rope` quick button. </summary>
     public virtual void CreateRope(bool forceReset = true)
     {
@@ -65,6 +68,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
             );
         }
 
+        RopeMesh.MeshType = MeshType;
         RopeMesh.RopeLength = RopeLength;
         RopeMesh.RopeWidth = RopeWidth;
         RopeMesh.SubdivisionLodDistance = SubdivisionLodDistance;
