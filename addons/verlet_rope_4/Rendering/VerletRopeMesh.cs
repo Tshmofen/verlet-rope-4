@@ -21,10 +21,12 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
     
     private bool _useVisibleOnScreenNotifier = true;
     private VisibleOnScreenNotifier3D _visibleNotifier;
-    private ImmediateMesh _mesh;
     private Camera3D _camera;
     private double _simulationDelta;
     
+    private SurfaceTool _surfaceTool;
+    private ArrayMesh _arrayMesh;
+
     /// <summary> Determines total target length of the rope, it is just a base value and actual length might be different depending on physics and configured behavior. </summary>
     [ExportGroup("Visuals")]
     [Export] public float RopeLength { get; set; } = 3.0f;
@@ -93,23 +95,30 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
         tangent = ((3f * a * tSqr) + (2f * b * t) + m1).Normalized();
     }
 
-    private void DrawQuad(IReadOnlyList<Vector3> vertices, Vector3 normal, float uvx0, float uvx1)
+    private void DrawQuad(IReadOnlyList<Vector3> vertices, float uvx0, float uvx1)
     {
-        // NOTE: still may need tangents setup for normal mapping, not tested
-        // SetTangent(new Plane(-t, 0.0f));
-        _mesh.SurfaceSetNormal(normal);
-        _mesh.SurfaceSetUV(new Vector2(uvx0, 0.0f));
-        _mesh.SurfaceAddVertex(vertices[0]);
-        _mesh.SurfaceSetUV(new Vector2(uvx1, 0.0f));
-        _mesh.SurfaceAddVertex(vertices[1]);
-        _mesh.SurfaceSetUV(new Vector2(uvx1, 1.0f));
-        _mesh.SurfaceAddVertex(vertices[2]);
-        _mesh.SurfaceSetUV(new Vector2(uvx0, 0.0f));
-        _mesh.SurfaceAddVertex(vertices[0]);
-        _mesh.SurfaceSetUV(new Vector2(uvx1, 1.0f));
-        _mesh.SurfaceAddVertex(vertices[2]);
-        _mesh.SurfaceSetUV(new Vector2(uvx0, 1.0f));
-        _mesh.SurfaceAddVertex(vertices[3]);
+        // Add two triangles: v0-v1-v2 and v0-v2-v3
+        // Set normal and UV for each vertex
+
+        // Triangle 1: v0, v1, v2
+        _surfaceTool.SetUV(new Vector2(uvx0, 0.0f));
+        _surfaceTool.AddVertex(vertices[0]);
+        
+        _surfaceTool.SetUV(new Vector2(uvx1, 0.0f));
+        _surfaceTool.AddVertex(vertices[1]);
+        
+        _surfaceTool.SetUV(new Vector2(uvx1, 1.0f));
+        _surfaceTool.AddVertex(vertices[2]);
+
+        // Triangle 2: v0, v2, v3
+        _surfaceTool.SetUV(new Vector2(uvx0, 0.0f));
+        _surfaceTool.AddVertex(vertices[0]);
+        
+        _surfaceTool.SetUV(new Vector2(uvx1, 1.0f));
+        _surfaceTool.AddVertex(vertices[2]);
+        
+        _surfaceTool.SetUV(new Vector2(uvx0, 1.0f));
+        _surfaceTool.AddVertex(vertices[3]);
     }
 
     private float GetDrawSubdivisionStep(RopeParticleData particles, Vector3 cameraPosition, int particleIndex)
@@ -153,8 +162,7 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
 
     private void DrawCurve(RopeParticleData particles)
     {
-        _mesh.ClearSurfaces();
-        _mesh.SurfaceBegin(Mesh.PrimitiveType.Triangles);
+        _surfaceTool.Begin(Mesh.PrimitiveType.Triangles);
 
         var cameraPosition = _camera?.GlobalPosition ?? Vector3.Zero;
 
@@ -184,50 +192,57 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
                     nextPosition + (nextBinormal * RopeWidth),
                     currentPosition + (currentBinormal * RopeWidth)
                 };
-
-                DrawQuad(vs, -currentBinormal, t, t + step);
+                
+                DrawQuad(vs, t, t + step);
                 t += step;
             }
         }
 
-        _mesh.SurfaceEnd();
+        _arrayMesh.ClearSurfaces();
+        _surfaceTool.GenerateNormals();
+        _surfaceTool.GenerateTangents();
+        _surfaceTool.Commit(_arrayMesh);
     }
 
     private void DrawRopeDebugParticles(RopeParticleData particles)
-    {        
-        if (!IsRopeVisible || !IsInsideTree())
+    {
+        if (!IsRopeVisible || !IsInsideTree() || particles == null)
         {
             return;
         }
 
         const float debugParticleLength = 0.3f;
-        _mesh.SurfaceBegin(Mesh.PrimitiveType.Lines);
+        _surfaceTool.Clear();
+        _surfaceTool.Begin(Mesh.PrimitiveType.Lines);
 
         for (var i = 0; i < particles.Count; i++)
         {
             var particle = particles[i];
             var localPosition = particle.PositionCurrent - GlobalPosition;
 
-            _mesh.SurfaceAddVertex(localPosition);
-            _mesh.SurfaceAddVertex(localPosition + (debugParticleLength * particle.Tangent));
+            // Tangent
+            _surfaceTool.AddVertex(localPosition);
+            _surfaceTool.AddVertex(localPosition + debugParticleLength * particle.Tangent);
 
-            _mesh.SurfaceAddVertex(localPosition);
-            _mesh.SurfaceAddVertex(localPosition + (debugParticleLength * particle.Normal));
+            // Normal
+            _surfaceTool.AddVertex(localPosition);
+            _surfaceTool.AddVertex(localPosition + debugParticleLength * particle.Normal);
 
-            _mesh.SurfaceAddVertex(localPosition);
-            _mesh.SurfaceAddVertex(localPosition + (debugParticleLength * particle.Binormal));
+            // Binormal
+            _surfaceTool.AddVertex(localPosition);
+            _surfaceTool.AddVertex(localPosition + debugParticleLength * particle.Binormal);
         }
 
-        _mesh.SurfaceEnd();
+        _surfaceTool.Commit(_arrayMesh);
     }
 
     public void DrawRopeParticles(RopeParticleData particles)
     {
-        if (!IsRopeVisible || !IsInsideTree())
+        if (!IsRopeVisible || !IsInsideTree() || particles == null || particles.Count < 2)
         {
             return;
         }
-
+        
         #if TOOLS
         _camera = Engine.IsEditorHint()
             ? EditorInterface.Singleton.GetEditorViewport3D().GetCamera3D()
@@ -275,13 +290,14 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
 
     public override void _Ready()
     {
-        _mesh = Mesh as ImmediateMesh;
+        _surfaceTool = new SurfaceTool();
+        _arrayMesh = Mesh as ArrayMesh;
 
-        if (_mesh == null || _mesh.GetMeta(CreationStampMeta, 0ul).AsUInt64() != GetInstanceId())
+        if (_arrayMesh == null || _arrayMesh.GetMeta(CreationStampMeta, 0ul).AsUInt64() != GetInstanceId())
         {
-            Mesh = _mesh = new ImmediateMesh();
-            _mesh.SetMeta(CreationStampMeta, GetInstanceId());
-            _mesh.ResourceLocalToScene = true;
+            Mesh = _arrayMesh = new ArrayMesh();
+            _arrayMesh.ResourceLocalToScene = true;
+            _arrayMesh.SetMeta(CreationStampMeta, GetInstanceId());
         }
 
         if (UseVisibleOnScreenNotifier && !Engine.IsEditorHint())
