@@ -22,7 +22,7 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
     private static readonly Dictionary<RopeMeshType, IRopeMeshTool> MeshTools = new()
     {
         { RopeMeshType.Ribbon, new RopeMeshRibbonTool() },
-        { RopeMeshType.Tube, new RopeMeshDebugTool() } // TODO
+        { RopeMeshType.Tube, new RopeMeshTubeTool() }
     };
     
     private bool _useVisibleOnScreenNotifier = true;
