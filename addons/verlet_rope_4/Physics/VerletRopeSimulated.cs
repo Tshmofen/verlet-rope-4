@@ -1,7 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using Godot;
 using System.Linq;
-using Godot.Collections;
 using VerletRope4.Data;
 using VerletRope4.Physics.Joints;
 using VerletRope4.Physics.Presets;
@@ -26,13 +27,13 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     private int _forcedFrames;
     private double _simulationDelta;
     private float _restSegmentLength;
-    private Array<Rid> _collisionExceptions = [];
+    private List<Rid> _collisionExceptions = [];
 
+    private RayCast3D _rayCast;
     private BoxShape3D _collisionShape;
     private PhysicsDirectSpaceState3D _spaceState;
-    private PhysicsRayQueryParameters3D _rayQuery;
     private PhysicsShapeQueryParameters3D _collisionShapeParameters;
-    private readonly System.Collections.Generic.Dictionary<RigidBody3D, RopeDynamicCollisionData> _dynamicBodies = [];
+    private readonly Dictionary<RigidBody3D, RopeDynamicCollisionData> _dynamicBodies = [];
 
     #if TOOLS
     [ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(() => CreateRope());
@@ -149,31 +150,40 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     {
         collision = normal = Vector3.Zero;
 
-        if (_spaceState == null || _rayQuery == null)
+        if (_rayCast == null || !_rayCast.IsInsideTree())
+        {
+            // Return for pre-ready calls from outer scripts on rope pre-initialization and tree exit
+            return false;
+        }
+
+        _rayCast.CollisionMask = collisionMask;
+        _rayCast.GlobalPosition = from;
+        _rayCast.TargetPosition = direction;
+        _rayCast.HitBackFaces = RayCastHitBackFaces;
+        _rayCast.HitFromInside = RayCastHitFromInside;
+
+        _rayCast.ClearExceptions();
+        if (_collisionExceptions != null)
+        {
+            foreach (var rid in _collisionExceptions)
+            {
+                _rayCast.AddExceptionRid(rid);
+            }
+        }
+
+        _rayCast.ForceRaycastUpdate();
+        if (!_rayCast.IsColliding())
         {
             return false;
         }
 
-        _rayQuery.From = from;
-        _rayQuery.To = from + direction;
-        _rayQuery.CollisionMask = collisionMask;
-        _rayQuery.Exclude = _collisionExceptions;
-        _rayQuery.HitBackFaces = RayCastHitBackFaces;
-        _rayQuery.HitFromInside = RayCastHitFromInside;
-        
-        var result = _spaceState.IntersectRay(_rayQuery);
-        if (result.Count == 0)
-        {
-            return false;
-        }
-
-        collision = result["position"].AsVector3();
-        normal = result["normal"].AsVector3();
+        collision = _rayCast.GetCollisionPoint();
+        normal = _rayCast.GetCollisionNormal();
         return true;
     }
 
     #endregion
-    
+
     #region Internal Logic
 
     #region Constraints
@@ -486,23 +496,17 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
     public override void _Ready()
     {
+        _rayCast = RopeMesh.FindOrCreateChild<RayCast3D>();
+        _rayCast.Enabled = false;
+
         _spaceState = GetWorld3D().DirectSpaceState;
         _collisionShape = new BoxShape3D();
-
         _collisionShapeParameters = new PhysicsShapeQueryParameters3D
         {
             ShapeRid = _collisionShape.GetRid(),
             Margin = 0.1f
         };
 
-        _rayQuery = new PhysicsRayQueryParameters3D
-        {
-            HitBackFaces = RayCastHitBackFaces,
-            HitFromInside = RayCastHitFromInside,
-            CollideWithAreas = false,
-            CollideWithBodies = true
-        };
-        
         base._Ready();
     }
 
@@ -594,7 +598,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
         if (ConnectedJoint is VerletJointSimulated simulatedJoint)
         {
-            _collisionExceptions = new Array<Rid>(simulatedJoint.GetPhysicsExceptionRids());
+            _collisionExceptions = new List<Rid>(simulatedJoint.GetPhysicsExceptionRids());
         }
         else if (ConnectedJoint != null)
         {

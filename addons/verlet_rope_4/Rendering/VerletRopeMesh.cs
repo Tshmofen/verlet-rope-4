@@ -97,10 +97,7 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
 
     private void DrawQuad(IReadOnlyList<Vector3> vertices, float uvx0, float uvx1)
     {
-        // Add two triangles: v0-v1-v2 and v0-v2-v3
-        // Set normal and UV for each vertex
-
-        // Triangle 1: v0, v1, v2
+        // Triangle 1
         _surfaceTool.SetUV(new Vector2(uvx0, 0.0f));
         _surfaceTool.AddVertex(vertices[0]);
         
@@ -110,7 +107,7 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
         _surfaceTool.SetUV(new Vector2(uvx1, 1.0f));
         _surfaceTool.AddVertex(vertices[2]);
 
-        // Triangle 2: v0, v2, v3
+        // Triangle 2
         _surfaceTool.SetUV(new Vector2(uvx0, 0.0f));
         _surfaceTool.AddVertex(vertices[0]);
         
@@ -219,16 +216,13 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
         {
             var particle = particles[i];
             var localPosition = particle.PositionCurrent - GlobalPosition;
-
-            // Tangent
+            
             _surfaceTool.AddVertex(localPosition);
             _surfaceTool.AddVertex(localPosition + debugParticleLength * particle.Tangent);
-
-            // Normal
+            
             _surfaceTool.AddVertex(localPosition);
             _surfaceTool.AddVertex(localPosition + debugParticleLength * particle.Normal);
-
-            // Binormal
+            
             _surfaceTool.AddVertex(localPosition);
             _surfaceTool.AddVertex(localPosition + debugParticleLength * particle.Binormal);
         }

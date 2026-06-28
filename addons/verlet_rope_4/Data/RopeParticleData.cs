@@ -67,7 +67,6 @@ public sealed class RopeParticleData
     }
 }
 
-// TODO: Make providers implement interface/base with only PositionCurrent, so that bookmark properties were not exposed when not needed
 public struct RopeParticle
 {
     /// <summary> Bookmark provider property - The position of the particle from the previous frame. used to calculate velocity. </summary>
