@@ -66,76 +66,109 @@ public class RopeMeshTubeTool : IRopeMeshTool
         surfaceTool.Begin(Mesh.PrimitiveType.Triangles);
 
         var particles = context.Particles;
-        var radius = context.RopeWidth * 0.5f;
         var cameraPos = context.CurrentCamera?.GlobalPosition ?? Vector3.Zero;
         var globalPos = context.GlobalPosition;
-        
+
+        var hasPrevFrame = false;
+        var prevTangent = Vector3.Zero;
+        var prevNormal = Vector3.Zero;
+        Vector3[] prevRing = null;
+        Vector3[] prevNormals = null;
+
         for (var i = 0; i < particles.Count - 1; i++)
         {
             var (p0, p1, p2, p3) = GetSimulationParticles(context, i);
             var step = GetDrawSubdivisionStep(context, cameraPos, i);
             var t = 0.0f;
-            
-            Vector3[] previousRing = null;
+
             while (t <= 1.0f)
             {
                 CatmullInterpolate(p0, p1, p2, p3, 0.0f, t, out var center, out var tangent);
-                var localCenter = center -= globalPos;
+                var localCenter = center - globalPos;
+                Vector3 prevBinormal;
 
-                // Build a stable orthonormal basis (using world up)
-                var up = Mathf.Abs(tangent.Dot(Vector3.Up)) > 0.99f
-                    ? Vector3.Right
-                    : Vector3.Up;
-                
-                var normal = (up - tangent * tangent.Dot(up)).Normalized();
-                var binormal = tangent.Cross(normal).Normalized();
-                
+                if (hasPrevFrame)
+                {
+                    var rotation = new Quaternion(prevTangent, tangent);
+                    var newNormal = rotation * prevNormal;
+                    newNormal = (newNormal - tangent * tangent.Dot(newNormal)).Normalized();
+                    var newBinormal = tangent.Cross(newNormal).Normalized();
+                    prevTangent = tangent;
+                    prevNormal = newNormal;
+                    prevBinormal = newBinormal;
+                }
+                else
+                {
+                    var up = Mathf.Abs(tangent.Dot(Vector3.Up)) > 0.99f ? Vector3.Right : Vector3.Up;
+                    var normal = (up - tangent * tangent.Dot(up)).Normalized();
+                    var binormal = tangent.Cross(normal).Normalized();
+                    prevTangent = tangent;
+                    prevNormal = normal;
+                    prevBinormal = binormal;
+                    hasPrevFrame = true;
+                }
+
+                // Build rings
                 var ring = new Vector3[TubeSegments];
+                var normals = new Vector3[TubeSegments];
                 for (var j = 0; j < TubeSegments; j++)
                 {
                     var angle = j * Mathf.Tau / TubeSegments;
-                    var offset = radius * (Mathf.Cos(angle) * normal + Mathf.Sin(angle) * binormal);
-                    ring[j] = localCenter + offset;
+                    var radial = Mathf.Cos(angle) * prevNormal + Mathf.Sin(angle) * prevBinormal;
+                    ring[j] = localCenter + context.RopeWidth * radial;
+                    normals[j] = radial; // outward normal
                 }
-
-                // Triangulate between previous ring and current ring
-                if (previousRing != null)
+                
+                // Render triangles
+                if (prevRing != null)
                 {
                     for (var j = 0; j < TubeSegments; j++)
                     {
                         var next = (j + 1) % TubeSegments;
-                        // Two triangles: (prev[j], curr[j], curr[next]) and (prev[j], curr[next], prev[next])
-                        // UVs: U = t (current), V = j/sides
-                        var u0 = t - step; // previous t
-                        var u1 = t;
+                        var u0 = t - step;
                         var v0 = j / (float)TubeSegments;
                         var v1 = next / (float)TubeSegments;
 
-                        // Triangle 1
+                        // --- First triangle (prev[j], curr[j], curr[next]) ---
+                        surfaceTool.SetNormal(prevNormals[j]);
+                        surfaceTool.SetTangent(new Plane(tangent, 1.0f));
                         surfaceTool.SetUV(new Vector2(u0, v0));
-                        surfaceTool.AddVertex(previousRing[j]);
-                        surfaceTool.SetUV(new Vector2(u1, v0));
+                        surfaceTool.AddVertex(prevRing[j]);
+                        
+                        surfaceTool.SetNormal(normals[j]);
+                        surfaceTool.SetTangent(new Plane(tangent, 1.0f));
+                        surfaceTool.SetUV(new Vector2(t, v0));
                         surfaceTool.AddVertex(ring[j]);
-                        surfaceTool.SetUV(new Vector2(u1, v1));
+                        
+                        surfaceTool.SetNormal(normals[next]);
+                        surfaceTool.SetTangent(new Plane(tangent, 1.0f));
+                        surfaceTool.SetUV(new Vector2(t, v1));
                         surfaceTool.AddVertex(ring[next]);
 
-                        // Triangle 2
+                        // --- Second triangle (prev[j], curr[next], prev[next]) ---
+                        surfaceTool.SetNormal(prevNormals[j]);
+                        surfaceTool.SetTangent(new Plane(tangent, 1.0f));
                         surfaceTool.SetUV(new Vector2(u0, v0));
-                        surfaceTool.AddVertex(previousRing[j]);
-                        surfaceTool.SetUV(new Vector2(u1, v1));
+                        surfaceTool.AddVertex(prevRing[j]);
+                        
+                        surfaceTool.SetNormal(normals[next]);
+                        surfaceTool.SetTangent(new Plane(tangent, 1.0f));
+                        surfaceTool.SetUV(new Vector2(t, v1));
                         surfaceTool.AddVertex(ring[next]);
+                        
+                        surfaceTool.SetNormal(prevNormals[next]);
+                        surfaceTool.SetTangent(new Plane(tangent, 1.0f));
                         surfaceTool.SetUV(new Vector2(u0, v1));
-                        surfaceTool.AddVertex(previousRing[next]);
+                        surfaceTool.AddVertex(prevRing[next]);
                     }
                 }
 
-                previousRing = ring;
+                prevRing = ring;
+                prevNormals = normals;
                 t += step;
             }
         }
         
-        surfaceTool.GenerateNormals();
-        surfaceTool.GenerateTangents();
         surfaceTool.Commit(context.ArrayMesh);
     }
 }
