@@ -103,21 +103,31 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
         var particles = context.Particles;
 
         ref var start = ref particles[0];
-        start.Tangent = (particles[1].PositionCurrent - start.PositionCurrent).Normalized();
-        start.Normal = (start.PositionCurrent - cameraPosition).Normalized();
+        start.Tangent = (particles[1].PositionRender - start.PositionRender).Normalized();
+        start.Normal = (start.PositionRender - cameraPosition).Normalized();
         start.Binormal = start.Normal.Cross(start.Tangent).Normalized();
 
         ref var end = ref particles[particles.Count - 1];
-        end.Tangent = (end.PositionCurrent - particles[particles.Count - 2].PositionCurrent).Normalized();
-        end.Normal = (end.PositionCurrent - cameraPosition).Normalized();
+        end.Tangent = (end.PositionRender - particles[particles.Count - 2].PositionRender).Normalized();
+        end.Normal = (end.PositionRender - cameraPosition).Normalized();
         end.Binormal = end.Normal.Cross(end.Tangent).Normalized();
 
         for (var i = 1; i < particles.Count - 1; i++)
         {
             ref var particle = ref particles[i];
-            particle.Tangent = (particles[i + 1].PositionCurrent - particles[i - 1].PositionCurrent).Normalized();
-            particle.Normal = (particles[i].PositionCurrent - cameraPosition).Normalized();
+            particle.Tangent = (particles[i + 1].PositionRender - particles[i - 1].PositionRender).Normalized();
+            particle.Normal = (particles[i].PositionRender - cameraPosition).Normalized();
             particle.Binormal = particles[i].Normal.Cross(particles[i].Tangent).Normalized();
+        }
+    }
+
+    private static void CalculateRopeParticlesSmoothPositions(MeshRenderContext context)
+    {
+        var particles = context.Particles;
+        for (var i = 0; i < particles.Count; i++)
+        {
+            ref var particle = ref particles[i];
+            particle.PositionRender = particle.PositionCurrent;
         }
     }
 
@@ -131,6 +141,7 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
         }
         
         var renderContext = GetMeshRenderContext(particles);
+        CalculateRopeParticlesSmoothPositions(renderContext);
         CalculateRopeCameraOrientation(renderContext);
         ResetRopeRotation();
         
@@ -156,8 +167,8 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
         for (var i = 0; i < particles.Count; i++)
         {
             ref var particle = ref particles[i];
-            minPosition = minPosition.Min(particle.PositionCurrent);
-            maxPosition = maxPosition.Max(particle.PositionCurrent);
+            minPosition = minPosition.Min(particle.PositionRender);
+            maxPosition = maxPosition.Max(particle.PositionRender);
         }
 
         _visibleNotifier.Aabb = new Aabb(_visibleNotifier.ToLocal(minPosition), _visibleNotifier.ToLocal(maxPosition - minPosition)).Abs();

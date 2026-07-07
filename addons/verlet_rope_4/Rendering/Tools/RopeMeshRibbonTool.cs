@@ -13,7 +13,7 @@ public class RopeMeshRibbonTool : IRopeMeshTool
 
     private static float GetDrawSubdivisionStep(MeshRenderContext context, Vector3 cameraPosition, int particleIndex)
     {
-        var camDistParticle = cameraPosition - context.Particles[particleIndex].PositionCurrent;
+        var camDistParticle = cameraPosition - context.Particles[particleIndex].PositionRender;
         if (camDistParticle.LengthSquared() > context.SubdivisionLodDistance * context.SubdivisionLodDistance)
         {
             return 1.0f;
@@ -68,21 +68,21 @@ public class RopeMeshRibbonTool : IRopeMeshTool
         surfaceTool.AddVertex(vertices[3]);
     }
     
-    private (Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3) GetSimulationParticles(MeshRenderContext context, int index)
+    private static (Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3) GetSimulationParticles(MeshRenderContext context, int index)
     {
         var particles = context.Particles;
 
         var p0 = (index == 0)
-            ? particles[index].PositionCurrent - (particles[index].Tangent * context.AverageSegmentLength)
-            : particles[index - 1].PositionCurrent;
+            ? particles[index].PositionRender - (particles[index].Tangent * context.AverageSegmentLength)
+            : particles[index - 1].PositionRender;
 
-        var p1 = particles[index].PositionCurrent;
+        var p1 = particles[index].PositionRender;
 
-        var p2 = particles[index + 1].PositionCurrent;
+        var p2 = particles[index + 1].PositionRender;
 
         var p3 = index == particles.Count - 2
-            ? particles[index + 1].PositionCurrent + (particles[index + 1].Tangent * context.AverageSegmentLength)
-            : particles[index + 2].PositionCurrent;
+            ? particles[index + 1].PositionRender + (particles[index + 1].Tangent * context.AverageSegmentLength)
+            : particles[index + 2].PositionRender;
 
         return (p0, p1, p2, p3);
     }

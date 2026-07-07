@@ -15,7 +15,7 @@ public class RopeMeshTubeTool : IRopeMeshTool
     private static float GetDrawSubdivisionStep(MeshRenderContext context, Vector3 cameraPosition, int particleIndex)
     {
         var particles = context.Particles;
-        var camDistParticle = cameraPosition - particles[particleIndex].PositionCurrent;
+        var camDistParticle = cameraPosition - particles[particleIndex].PositionRender;
         if (camDistParticle.LengthSquared() > context.SubdivisionLodDistance * context.SubdivisionLodDistance)
         {
             return 1.0f;
@@ -48,13 +48,13 @@ public class RopeMeshTubeTool : IRopeMeshTool
     {
         var particles = context.Particles;
         var p0 = (index == 0)
-            ? particles[index].PositionCurrent - (particles[index].Tangent * context.AverageSegmentLength)
-            : particles[index - 1].PositionCurrent;
-        var p1 = particles[index].PositionCurrent;
-        var p2 = particles[index + 1].PositionCurrent;
+            ? particles[index].PositionRender - (particles[index].Tangent * context.AverageSegmentLength)
+            : particles[index - 1].PositionRender;
+        var p1 = particles[index].PositionRender;
+        var p2 = particles[index + 1].PositionRender;
         var p3 = (index == particles.Count - 2)
-            ? particles[index + 1].PositionCurrent + (particles[index + 1].Tangent * context.AverageSegmentLength)
-            : particles[index + 2].PositionCurrent;
+            ? particles[index + 1].PositionRender + (particles[index + 1].Tangent * context.AverageSegmentLength)
+            : particles[index + 2].PositionRender;
         return (p0, p1, p2, p3);
     }
 
