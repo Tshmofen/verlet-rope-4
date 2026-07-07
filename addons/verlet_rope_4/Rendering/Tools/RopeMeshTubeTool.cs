@@ -75,6 +75,15 @@ public class RopeMeshTubeTool : IRopeMeshTool
         Vector3[] prevRing = null;
         Vector3[] prevNormals = null;
 
+        var startCenter = Vector3.Zero;
+        var startTangent = Vector3.Zero;
+        Vector3[] firstRing = null;
+
+        var endCenter = Vector3.Zero;
+        var endTangent = Vector3.Zero;
+        Vector3[] lastRing = null;
+
+        // Generate tubes
         for (var i = 0; i < particles.Count - 1; i++)
         {
             var (p0, p1, p2, p3) = GetSimulationParticles(context, i);
@@ -118,7 +127,7 @@ public class RopeMeshTubeTool : IRopeMeshTool
                     ring[j] = localCenter + context.RopeWidth * radial;
                     normals[j] = radial; // outward normal
                 }
-                
+
                 // Render triangles
                 if (prevRing != null)
                 {
@@ -134,12 +143,12 @@ public class RopeMeshTubeTool : IRopeMeshTool
                         surfaceTool.SetTangent(new Plane(tangent, 1.0f));
                         surfaceTool.SetUV(new Vector2(u0, v0));
                         surfaceTool.AddVertex(prevRing[j]);
-                        
+
                         surfaceTool.SetNormal(normals[j]);
                         surfaceTool.SetTangent(new Plane(tangent, 1.0f));
                         surfaceTool.SetUV(new Vector2(t, v0));
                         surfaceTool.AddVertex(ring[j]);
-                        
+
                         surfaceTool.SetNormal(normals[next]);
                         surfaceTool.SetTangent(new Plane(tangent, 1.0f));
                         surfaceTool.SetUV(new Vector2(t, v1));
@@ -150,17 +159,31 @@ public class RopeMeshTubeTool : IRopeMeshTool
                         surfaceTool.SetTangent(new Plane(tangent, 1.0f));
                         surfaceTool.SetUV(new Vector2(u0, v0));
                         surfaceTool.AddVertex(prevRing[j]);
-                        
+
                         surfaceTool.SetNormal(normals[next]);
                         surfaceTool.SetTangent(new Plane(tangent, 1.0f));
                         surfaceTool.SetUV(new Vector2(t, v1));
                         surfaceTool.AddVertex(ring[next]);
-                        
+
                         surfaceTool.SetNormal(prevNormals[next]);
                         surfaceTool.SetTangent(new Plane(tangent, 1.0f));
                         surfaceTool.SetUV(new Vector2(u0, v1));
                         surfaceTool.AddVertex(prevRing[next]);
                     }
+                }
+                
+                // Preserve ends for further render
+                if (i == 0 && t == 0f)
+                {
+                    startCenter = localCenter;
+                    startTangent = tangent;
+                    firstRing = ring;
+                }
+                else
+                {
+                    endCenter = localCenter;
+                    endTangent = tangent;
+                    lastRing = ring;
                 }
 
                 prevRing = ring;
@@ -168,7 +191,55 @@ public class RopeMeshTubeTool : IRopeMeshTool
                 t += step;
             }
         }
-        
-        surfaceTool.Commit(context.ArrayMesh);
+
+        // Generate closing caps
+        if (firstRing != null && lastRing != null && TubeSegments >= 3)
+        {
+            for (var j = 0; j < TubeSegments; j++)
+            {
+                var next = (j + 1) % TubeSegments;
+                
+                surfaceTool.SetNormal(-startTangent);
+                surfaceTool.SetTangent(new Plane(Vector3.Zero, 1.0f));
+                surfaceTool.SetUV(new Vector2(0.5f, 0.5f));
+                surfaceTool.AddVertex(startCenter);
+                
+                var radialJ = (firstRing[j] - startCenter).Normalized();
+                surfaceTool.SetNormal(-startTangent);
+                surfaceTool.SetTangent(new Plane(radialJ, 1.0f));
+                surfaceTool.SetUV(new Vector2(0.5f + 0.5f * Mathf.Cos(j * Mathf.Tau / TubeSegments), 0.5f + 0.5f * Mathf.Sin(j * Mathf.Tau / TubeSegments)));
+                surfaceTool.AddVertex(firstRing[j]);
+                
+                var radialNext = (firstRing[next] - startCenter).Normalized();
+                surfaceTool.SetNormal(-startTangent);
+                surfaceTool.SetTangent(new Plane(radialNext, 1.0f));
+                surfaceTool.SetUV(new Vector2(0.5f + 0.5f * Mathf.Cos(next * Mathf.Tau / TubeSegments), 0.5f + 0.5f * Mathf.Sin(next * Mathf.Tau / TubeSegments)));
+                surfaceTool.AddVertex(firstRing[next]);
+            }
+            
+            for (var j = 0; j < TubeSegments; j++)
+            {
+                var next = (j + 1) % TubeSegments;
+                
+                surfaceTool.SetNormal(endTangent);
+                surfaceTool.SetTangent(new Plane(Vector3.Zero, 1.0f));
+                surfaceTool.SetUV(new Vector2(0.5f, 0.5f));
+                surfaceTool.AddVertex(endCenter);
+                
+                var radialJ = (lastRing[j] - endCenter).Normalized();
+                surfaceTool.SetNormal(endTangent);
+                surfaceTool.SetTangent(new Plane(radialJ, 1.0f));
+                surfaceTool.SetUV(new Vector2(0.5f + 0.5f * Mathf.Cos(j * Mathf.Tau / TubeSegments), 0.5f + 0.5f * Mathf.Sin(j * Mathf.Tau / TubeSegments)));
+                surfaceTool.AddVertex(lastRing[j]);
+                
+                var radialNext = (lastRing[next] - endCenter).Normalized();
+                surfaceTool.SetNormal(endTangent);
+                surfaceTool.SetTangent(new Plane(radialNext, 1.0f));
+                surfaceTool.SetUV(new Vector2(0.5f + 0.5f * Mathf.Cos(next * Mathf.Tau / TubeSegments), 0.5f + 0.5f * Mathf.Sin(next * Mathf.Tau / TubeSegments)));
+                surfaceTool.AddVertex(lastRing[next]);
+            }
+        }
+
+        context.SurfaceTool.Commit(context.ArrayMesh);
     }
 }
