@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using VerletRope.Data;
 using VerletRope.Rendering;
 using VerletRope.Rendering.Tools;
+using VerletRope.Utility;
 using VerletRope4.Data;
 
 namespace VerletRope4.Rendering;
@@ -41,6 +42,11 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
     [Export] public float RopeLength { get; set; } = 3.0f;
     /// <summary> Determines visual width of the rope, does not affect rope behavior. </summary>
     [Export] public float RopeWidth { get; set; } = 0.07f;
+    /// <summary>
+    /// The amount of rope smoothing, bigger values make rope more gentle, but also less responsive.
+    /// When set to 0, the smoothing is completely disabled and might lead to jitter.
+    /// </summary>
+    [Export(PropertyHint.Range, "0,0.99,0.01")] public float RopeSmoothing { get; set; } = 0.7f;
     /// <summary> If distance to particle is greater than <see cref="SubdivisionLodDistance"/>, the corresponding segment is not subdivided for rendering. </summary>
     [Export] public float SubdivisionLodDistance { get; set; } = 15.0f;
     /// <summary> Creates a child <see cref="VisibleOnScreenNotifier3D"/> when enabled. Is only triggered on <see cref="_Ready"/> calls. </summary>
@@ -121,13 +127,22 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
         }
     }
 
-    private static void CalculateRopeParticlesSmoothPositions(MeshRenderContext context)
+    private void CalculateRopeParticlesRenderPositions(MeshRenderContext context)
     {
         var particles = context.Particles;
+        var smoothFactor = 1.0f - RopeSmoothing;
+
         for (var i = 0; i < particles.Count; i++)
         {
             ref var particle = ref particles[i];
-            particle.PositionRender = particle.PositionCurrent;
+
+            if (RopeSmoothing == 0)
+            {
+                particle.PositionRender = particle.PositionCurrent;
+                continue;
+            }
+
+            particle.PositionRender = MathUtility.Lerp(particle.PositionRender, particle.PositionCurrent, smoothFactor);
         }
     }
 
@@ -141,7 +156,7 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
         }
         
         var renderContext = GetMeshRenderContext(particles);
-        CalculateRopeParticlesSmoothPositions(renderContext);
+        CalculateRopeParticlesRenderPositions(renderContext);
         CalculateRopeCameraOrientation(renderContext);
         ResetRopeRotation();
         

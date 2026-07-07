@@ -45,6 +45,8 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     [Export] public float RopeLength { get; set; } = 3.0f;
     /// <inheritdoc cref="VerletRopeMesh.RopeWidth"/>
     [Export] public float RopeWidth { get; set; } = 0.07f;
+    /// <inheritdoc cref="VerletRopeMesh.RopeSmoothing"/>
+    [Export(PropertyHint.Range, "0,0.99,0.01")] public float RopeSmoothing { get; set; } = 0.7f;
     /// <inheritdoc cref="VerletRopeMesh.SubdivisionLodDistance"/>
     [Export] public float SubdivisionLodDistance { get; set; } = 15.0f;
     /// <inheritdoc cref="VerletRopeMesh.UseVisibleOnScreenNotifier"/>
@@ -71,6 +73,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         RopeMesh.MeshType = MeshType;
         RopeMesh.RopeLength = RopeLength;
         RopeMesh.RopeWidth = RopeWidth;
+        RopeMesh.RopeSmoothing = RopeSmoothing;
         RopeMesh.SubdivisionLodDistance = SubdivisionLodDistance;
         RopeMesh.UseVisibleOnScreenNotifier = UseVisibleOnScreenNotifier;
         RopeMesh.UseDebugParticles = UseDebugParticles;
