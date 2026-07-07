@@ -47,6 +47,10 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
     /// When set to 0, the smoothing is completely disabled and might lead to jitter.
     /// </summary>
     [Export(PropertyHint.Range, "0,0.99,0.01")] public float RopeSmoothing { get; set; } = 0.7f;
+    /// <summary> Determines whether start of the rope should be smoothed. Might be disabled when it should be attached to a moving point very rigidly. </summary>
+    [Export] public bool IsSmoothRopeStart { get; set; } = true;
+    /// <summary> Determines whether end of the rope should be smoothed. Might be disabled when it should be attached to a moving point very rigidly. </summary>
+    [Export] public bool IsSmoothRopeEnd { get; set; } = true;
     /// <summary> If distance to particle is greater than <see cref="SubdivisionLodDistance"/>, the corresponding segment is not subdivided for rendering. </summary>
     [Export] public float SubdivisionLodDistance { get; set; } = 15.0f;
     /// <summary> Creates a child <see cref="VisibleOnScreenNotifier3D"/> when enabled. Is only triggered on <see cref="_Ready"/> calls. </summary>
@@ -136,12 +140,12 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
         {
             ref var particle = ref particles[i];
 
-            if (RopeSmoothing == 0)
+            if (RopeSmoothing == 0 || (i == 0 && !IsSmoothRopeStart) || (i == particles.Count - 1 && !IsSmoothRopeEnd))
             {
                 particle.PositionRender = particle.PositionCurrent;
                 continue;
             }
-
+            
             particle.PositionRender = MathUtility.Lerp(particle.PositionRender, particle.PositionCurrent, smoothFactor);
         }
     }
