@@ -13,13 +13,14 @@ public class RopeMeshRibbonTool : IRopeMeshTool
 
     private static float GetDrawSubdivisionStep(MeshRenderContext context, Vector3 cameraPosition, int particleIndex)
     {
-        var camDistParticle = cameraPosition - context.Particles[particleIndex].PositionRender;
+        var particles = context.Particles;
+        var camDistParticle = cameraPosition - particles[particleIndex].PositionRender;
         if (camDistParticle.LengthSquared() > context.SubdivisionLodDistance * context.SubdivisionLodDistance)
         {
             return 1.0f;
         }
 
-        var tangentDots = context.Particles[particleIndex].Tangent.Dot(context.Particles[particleIndex + 1].Tangent);
+        var tangentDots = particles[particleIndex].Tangent.Dot(particles[particleIndex + 1].Tangent);
         return
             tangentDots >= Cos5Deg ? 1.0f :
             tangentDots >= Cos15Deg ? 0.5f :
@@ -43,10 +44,8 @@ public class RopeMeshRibbonTool : IRopeMeshTool
         tangent = ((3f * a * tSqr) + (2f * b * t) + m1).Normalized();
     }
 
-    private static void DrawQuad(MeshRenderContext context, IReadOnlyList<Vector3> vertices, float uvx0, float uvx1)
+    private static void DrawQuad(SurfaceTool surfaceTool, Vector3[] vertices, float uvx0, float uvx1)
     {
-        var surfaceTool = context.SurfaceTool;
-
         // Triangle 1
         surfaceTool.SetUV(new Vector2(uvx0, 0.0f));
         surfaceTool.AddVertex(vertices[0]);
@@ -67,7 +66,7 @@ public class RopeMeshRibbonTool : IRopeMeshTool
         surfaceTool.SetUV(new Vector2(uvx0, 1.0f));
         surfaceTool.AddVertex(vertices[3]);
     }
-    
+
     private static (Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3) GetSimulationParticles(MeshRenderContext context, int index)
     {
         var particles = context.Particles;
@@ -94,37 +93,41 @@ public class RopeMeshRibbonTool : IRopeMeshTool
         var surfaceTool = context.SurfaceTool;
         surfaceTool.Begin(Mesh.PrimitiveType.Triangles);
 
+        var particles = context.Particles;
         var cameraPosition = context.CurrentCamera?.GlobalPosition ?? Vector3.Zero;
+        var globalPosition = context.GlobalPosition;
+        var ropeWidth = context.RopeWidth;
+        var quadVertices = new Vector3[4];
 
-        for (var i = 0; i < context.Particles.Count - 1; i++)
+        for (var i = 0; i < particles.Count - 1; i++)
         {
             var (p0, p1, p2, p3) = GetSimulationParticles(context, i);
             var step = GetDrawSubdivisionStep(context, cameraPosition, i);
             var t = 0.0f;
 
-            while (t <= 1.0f)
+            while (t <= 1.0f + Mathf.Epsilon)
             {
+                var nextT = t + step;
+                var clampedT = Mathf.Min(nextT, 1.0f); // clamp to avoid UV seam
+
                 CatmullInterpolate(p0, p1, p2, p3, 0.0f, t, out var currentPosition, out var currentTangent);
-                CatmullInterpolate(p0, p1, p2, p3, 0.0f, Mathf.Min(t + step, 1.0f), out var nextPosition, out var nextTangent);
+                CatmullInterpolate(p0, p1, p2, p3, 0.0f, clampedT, out var nextPosition, out var nextTangent);
 
                 var currentNormal = (currentPosition - cameraPosition).Normalized();
                 var currentBinormal = currentNormal.Cross(currentTangent).Normalized();
-                currentPosition -= context.GlobalPosition;
+                currentPosition -= globalPosition;
 
                 var nextNormal = (nextPosition - cameraPosition).Normalized();
                 var nextBinormal = nextNormal.Cross(nextTangent).Normalized();
-                nextPosition -= context.GlobalPosition;
+                nextPosition -= globalPosition;
 
-                var vs = new[]
-                {
-                    currentPosition - (currentBinormal * context.RopeWidth),
-                    nextPosition - (nextBinormal * context.RopeWidth),
-                    nextPosition + (nextBinormal * context.RopeWidth),
-                    currentPosition + (currentBinormal * context.RopeWidth)
-                };
+                quadVertices[0] = currentPosition - (currentBinormal * ropeWidth);
+                quadVertices[1] = nextPosition - (nextBinormal * ropeWidth);
+                quadVertices[2] = nextPosition + (nextBinormal * ropeWidth);
+                quadVertices[3] = currentPosition + (currentBinormal * ropeWidth);
 
-                DrawQuad(context, vs, t, t + step);
-                t += step;
+                DrawQuad(surfaceTool, quadVertices, t, clampedT);
+                t = nextT;
             }
         }
 
