@@ -275,14 +275,14 @@ public class RopeMeshTubeTool : IRopeMeshTool
                 surfaceTool.AddVertex(endCenter);
 
                 surfaceTool.SetNormal(endTangent);
-                surfaceTool.SetTangent(new Plane(prevNormals[j], 1.0f));
-                surfaceTool.SetUV(new Vector2(0.5f + 0.5f * ringCos[j], 0.5f + 0.5f * ringSin[j]));
-                surfaceTool.AddVertex(prevRing[j]);
-
-                surfaceTool.SetNormal(endTangent);
                 surfaceTool.SetTangent(new Plane(prevNormals[next], 1.0f));
                 surfaceTool.SetUV(new Vector2(0.5f + 0.5f * ringCos[next], 0.5f + 0.5f * ringSin[next]));
                 surfaceTool.AddVertex(prevRing[next]);
+
+                surfaceTool.SetNormal(endTangent);
+                surfaceTool.SetTangent(new Plane(prevNormals[j], 1.0f));
+                surfaceTool.SetUV(new Vector2(0.5f + 0.5f * ringCos[j], 0.5f + 0.5f * ringSin[j]));
+                surfaceTool.AddVertex(prevRing[j]);
             }
         }
 
