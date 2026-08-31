@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Godot;
 using System.Linq;
 using VerletRope4.Data;
@@ -98,7 +97,11 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     [Export] public bool RayCastHitFromInside { get; set; }
     [Export] public bool RayCastHitBackFaces { get; set; }
 
-    #if TOOLS
+    [ExportGroup("Self Collision")]
+    [Export] public bool IsSelfColliding { get; set; }
+    [Export(PropertyHint.Range, "0.05,5.0")] public float SelfCollisionRadius { get; set; } = 0.1f;
+
+#if TOOLS
     [ExportGroup("Quick Presets")]
     [ExportToolButton("Preset - Base Wind")] public Callable PresetBaseWindButton => Callable.From(
         () => CommitEditorAction("Verlet Rope Simulated - Base Wind Preset", (undoRedo, actionId) => VerletRopeSimulatedPreset.SetBaseWindValues(this, undoRedo, actionId))
@@ -382,6 +385,41 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         }
     }
 
+    private void SelfCollideRope()
+    {
+        for (var i = 0; i < ParticleData.Count; i++)
+        {
+            ref var p1 = ref ParticleData[i];
+            if (p1.IsAttached)
+            {
+                continue;
+            }
+
+            for (var j = i + 2; j < ParticleData.Count; j++) // skip immediate neighbors (constrained already)
+            {
+                ref var p2 = ref ParticleData[j];
+
+                var delta = p2.PositionCurrent - p1.PositionCurrent;
+                var distanceSquared = delta.LengthSquared();
+                if (distanceSquared >= SelfCollisionRadius * SelfCollisionRadius)
+                {
+                    continue;
+                }
+
+                var distance = Mathf.Sqrt(distanceSquared);
+                var direction = delta / distance;
+                var overlap = SelfCollisionRadius - distance;
+                var positionOffset = direction * overlap * 0.5f; 
+
+                p1.PositionCurrent -= positionOffset;
+                if (!p2.IsAttached)
+                {
+                    p2.PositionCurrent += positionOffset;
+                }
+            }
+        }
+    }
+
     #endregion
 
     private void VerletProcess(float delta)
@@ -434,6 +472,11 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     private void ApplyConstraints(float delta)
     {
         StiffRope();
+
+        if (IsSelfColliding)
+        {
+            SelfCollideRope();
+        }
 
         if (RopeCollisionBehavior == RopeCollisionBehavior.None)
         {
