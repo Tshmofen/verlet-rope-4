@@ -136,9 +136,9 @@ public class RopeMeshTubeTool : IRopeMeshTool
                         var next = (j + 1) % TubeSegments;
                         var u0 = t - step;
                         var v0 = j / (float)TubeSegments;
-                        var v1 = next / (float)TubeSegments;
+                        var v1 = (j + 1) / (float)TubeSegments;
 
-                        // --- First triangle (prev[j], curr[j], curr[next]) ---
+                        // First triangle
                         surfaceTool.SetNormal(prevNormals[j]);
                         surfaceTool.SetTangent(new Plane(tangent, 1.0f));
                         surfaceTool.SetUV(new Vector2(u0, v0));
@@ -154,7 +154,7 @@ public class RopeMeshTubeTool : IRopeMeshTool
                         surfaceTool.SetUV(new Vector2(t, v1));
                         surfaceTool.AddVertex(ring[next]);
 
-                        // --- Second triangle (prev[j], curr[next], prev[next]) ---
+                        // Second triangle
                         surfaceTool.SetNormal(prevNormals[j]);
                         surfaceTool.SetTangent(new Plane(tangent, 1.0f));
                         surfaceTool.SetUV(new Vector2(u0, v0));
