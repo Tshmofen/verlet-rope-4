@@ -58,7 +58,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     /// If needed should be set at least 2-3 times higher than the expected physics rate. Usually something like 300-500 ms just to prevent unexpected behavior during freezes.
     /// When set to 0 the option is effectively disabled.
     /// </summary>
-    [Export(PropertyHint.Range, "0,1000")] public int DeltaSkipMs  { get; set; } = 0;
+    [Export(PropertyHint.Range, "0,1000")] public int DeltaSkipMs { get; set; } = 0;
     /// <summary> Determines if simulation is disabled when the rope is not on the screen. If <see cref="VerletJointSimulated"/> is used to connect bodies, it might be better to disable this option to prevent de-syncs. </summary>
     [Export] public bool IsDisabledWhenInvisible { get; set; } = true;
     /// <inheritdoc cref="RopeSimulationBehavior"/>
@@ -99,9 +99,10 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
     [ExportGroup("Self Collision")]
     [Export] public bool IsSelfColliding { get; set; }
-    [Export(PropertyHint.Range, "0.05,5.0")] public float SelfCollisionRadius { get; set; } = 0.1f;
+    [Export(PropertyHint.Range, "0.05,5.0")] public float SelfCollisionRadius { get; set; } = 0.12f;
+    [Export(PropertyHint.Range, "0.01,1.0")] public float SelfCollisionSmoothing { get; set; } = 0.4f;
 
-#if TOOLS
+    #if TOOLS
     [ExportGroup("Quick Presets")]
     [ExportToolButton("Preset - Base Wind")] public Callable PresetBaseWindButton => Callable.From(
         () => CommitEditorAction("Verlet Rope Simulated - Base Wind Preset", (undoRedo, actionId) => VerletRopeSimulatedPreset.SetBaseWindValues(this, undoRedo, actionId))
@@ -387,6 +388,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
     private void SelfCollideRope()
     {
+        var collisionRadiusSquared = SelfCollisionRadius * SelfCollisionRadius;
         for (var i = 0; i < ParticleData.Count; i++)
         {
             ref var p1 = ref ParticleData[i];
@@ -395,13 +397,13 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
                 continue;
             }
 
-            for (var j = i + 2; j < ParticleData.Count; j++) // skip immediate neighbors (constrained already)
+            for (var j = i + 2; j < ParticleData.Count; j++)
             {
                 ref var p2 = ref ParticleData[j];
 
                 var delta = p2.PositionCurrent - p1.PositionCurrent;
                 var distanceSquared = delta.LengthSquared();
-                if (distanceSquared >= SelfCollisionRadius * SelfCollisionRadius)
+                if (distanceSquared >= collisionRadiusSquared)
                 {
                     continue;
                 }
@@ -409,12 +411,17 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
                 var distance = Mathf.Sqrt(distanceSquared);
                 var direction = delta / distance;
                 var overlap = SelfCollisionRadius - distance;
-                var positionOffset = direction * overlap * 0.5f; 
+                var correction = overlap * SelfCollisionSmoothing;
 
-                p1.PositionCurrent -= positionOffset;
-                if (!p2.IsAttached)
+                if (p2.IsAttached)
                 {
-                    p2.PositionCurrent += positionOffset;
+                    p1.PositionCurrent -= direction * correction;
+                }
+                else
+                {
+                    var offset = direction * (correction * 0.5f);
+                    p1.PositionCurrent -= offset;
+                    p2.PositionCurrent += offset;
                 }
             }
         }
