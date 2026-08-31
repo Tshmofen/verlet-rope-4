@@ -57,6 +57,8 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     [Export] public bool UseVisibleOnScreenNotifier { get; set; } = true;
     /// <inheritdoc cref="VerletRopeMesh.UseDebugParticles"/>
     [Export] public bool UseDebugParticles { get; set; } = false;
+    /// <inheritdoc cref="VerletRopeMesh.TubeSegments"/>
+    [Export(PropertyHint.Range, "3,32")] public int TubeSegments { get; set; } = 6;
     /// <inheritdoc cref="VerletRopeMesh.MaterialOverride"/>
     [Export] public Material MaterialOverride { get; set; }
 
@@ -83,6 +85,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         RopeMesh.SubdivisionLodDistance = SubdivisionLodDistance;
         RopeMesh.UseVisibleOnScreenNotifier = UseVisibleOnScreenNotifier;
         RopeMesh.UseDebugParticles = UseDebugParticles;
+        RopeMesh.TubeSegments = TubeSegments;
         RopeMesh.MaterialOverride = MaterialOverride;
     }
 

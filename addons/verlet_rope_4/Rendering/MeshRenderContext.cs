@@ -12,5 +12,6 @@ public class MeshRenderContext
     public Camera3D CurrentCamera { get; set; }
     public float SubdivisionLodDistance { get; set; }
     public float AverageSegmentLength { get; set; }
+    public int TubeSegments { get; set; }
     public float RopeWidth { get; set; }
 }

@@ -61,7 +61,9 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
     }
     /// <summary> Draws orientation axis from every actual particle position when enabled. </summary>
     [Export] public bool UseDebugParticles { get; set; } = false;
-    
+    /// <summary> Determines amount of segments of each cylinder when <see cref="RopeMeshType.Tube"/> is used, does not affect rope behavior. </summary>
+    [Export(PropertyHint.Range, "3,32")] public int TubeSegments { get; set; } = 6;
+
     /// <summary> If <see cref="VisibleOnScreenNotifier3D"/> is being used, returns if rope is actually visible - otherwise always returns <b>true</b>. </summary>
     public bool IsRopeVisible => _visibleNotifier?.IsOnScreen() ?? true;
 
@@ -89,6 +91,7 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
             RopeWidth = RopeWidth,
             ArrayMesh = _arrayMesh,
             SurfaceTool = _surfaceTool,
+            TubeSegments = TubeSegments,
             GlobalPosition = GlobalPosition,
             CurrentCamera = GetCurrentCamera(),
             SubdivisionLodDistance = SubdivisionLodDistance,

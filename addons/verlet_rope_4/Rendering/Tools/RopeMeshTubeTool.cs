@@ -1,30 +1,50 @@
 ﻿using Godot;
+using System.Collections.Generic;
 
 namespace VerletRope.Rendering.Tools;
 
 public class RopeMeshTubeTool : IRopeMeshTool
 {
-    private const int TubeSegments = 6;
-
+    // Threshold cosines for adaptive subdivision
     private static readonly float Cos5Deg = Mathf.Cos(Mathf.DegToRad(5.0f));
     private static readonly float Cos15Deg = Mathf.Cos(Mathf.DegToRad(15.0f));
     private static readonly float Cos30Deg = Mathf.Cos(Mathf.DegToRad(30.0f));
 
-    // Precomputed ring angles for TubeSegments
-    private static readonly float[] RingCos = new float[TubeSegments];
-    private static readonly float[] RingSin = new float[TubeSegments];
-
-    static RopeMeshTubeTool()
-    {
-        for (var j = 0; j < TubeSegments; j++)
-        {
-            var angle = j * Mathf.Tau / TubeSegments;
-            RingCos[j] = Mathf.Cos(angle);
-            RingSin[j] = Mathf.Sin(angle);
-        }
-    }
+    // Cache for precomputed ring angles (cos/sin)
+    private static readonly Dictionary<int, (float[] Cos, float[] Sin)> RingTrigCache = new();
+    private static readonly object CacheLock = new();
 
     #region Utility Methods
+
+    // Retrieve or create the cos/sin arrays for the given number of tube segments.
+    private static (float[] Cos, float[] Sin) GetRingTrig(int segments)
+    {
+        if (RingTrigCache.TryGetValue(segments, out var trig))
+        {
+            return trig;
+        }
+
+        lock (CacheLock)
+        {
+            if (RingTrigCache.TryGetValue(segments, out trig))
+            {
+                return trig;
+            }
+            
+            var cos = new float[segments];
+            var sin = new float[segments];
+
+            for (var j = 0; j < segments; j++)
+            {
+                var angle = j * Mathf.Tau / segments;
+                cos[j] = Mathf.Cos(angle);
+                sin[j] = Mathf.Sin(angle);
+            }
+            
+            RingTrigCache[segments] = trig = (cos, sin);
+            return trig;
+        }
+    }
 
     private static float GetDrawSubdivisionStep(MeshRenderContext context, Vector3 cameraPosition, int particleIndex)
     {
@@ -44,7 +64,6 @@ public class RopeMeshTubeTool : IRopeMeshTool
 
     private static void CatmullInterpolate(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float tension, float t, out Vector3 point, out Vector3 tangent)
     {
-        // Fast catmull spline
         var tSqr = t * t;
         var tCube = tSqr * t;
 
@@ -82,6 +101,9 @@ public class RopeMeshTubeTool : IRopeMeshTool
         var particles = context.Particles;
         var cameraPos = context.CurrentCamera?.GlobalPosition ?? Vector3.Zero;
         var globalPos = context.GlobalPosition;
+        
+        var tubeSegments = context.TubeSegments;
+        var (ringCos, ringSin) = GetRingTrig(tubeSegments);
 
         var hasPrevFrame = false;
         var prevTangent = Vector3.Zero;
@@ -132,27 +154,27 @@ public class RopeMeshTubeTool : IRopeMeshTool
                     prevBinormal = binormal;
                     hasPrevFrame = true;
                 }
-                
-                var ring = new Vector3[TubeSegments];
-                var normals = new Vector3[TubeSegments];
-                for (var j = 0; j < TubeSegments; j++)
+
+                // Build ring for current segment
+                var ring = new Vector3[tubeSegments];
+                var normals = new Vector3[tubeSegments];
+                for (var j = 0; j < tubeSegments; j++)
                 {
-                    var radial = RingCos[j] * prevNormal + RingSin[j] * prevBinormal;
+                    var radial = ringCos[j] * prevNormal + ringSin[j] * prevBinormal;
                     ring[j] = localCenter + context.RopeWidth * radial;
-                    normals[j] = radial; // outward normal
+                    normals[j] = radial;
                 }
 
                 // Render triangles
                 if (prevRing != null)
                 {
-                    // Tangent is same for all vertices of this ring
                     surfaceTool.SetTangent(new Plane(tangent, 1.0f));
-                    for (var j = 0; j < TubeSegments; j++)
+                    for (var j = 0; j < tubeSegments; j++)
                     {
-                        var next = (j + 1) % TubeSegments;
+                        var next = (j + 1) % tubeSegments;
                         var u0 = t - step;
-                        var v0 = j / (float)TubeSegments;
-                        var v1 = (j + 1) / (float)TubeSegments; // Fixed UV seam
+                        var v0 = j / (float)tubeSegments;
+                        var v1 = (j + 1) / (float)tubeSegments;
 
                         // First triangle
                         surfaceTool.SetNormal(prevNormals[j]);
@@ -182,7 +204,7 @@ public class RopeMeshTubeTool : IRopeMeshTool
                     }
                 }
 
-                // Preserve ends for further render
+                // Preserve ends for caps
                 if (i == 0 && t == 0f)
                 {
                     startCenter = localCenter;
@@ -204,48 +226,48 @@ public class RopeMeshTubeTool : IRopeMeshTool
             }
         }
 
-        // Generate closing caps
-        if (firstRing != null && lastRing != null && TubeSegments >= 3)
+        // Generate closing caps (only if enough segments)
+        if (firstRing != null && lastRing != null && tubeSegments >= 3)
         {
             // Start cap
-            for (var j = 0; j < TubeSegments; j++)
+            for (var j = 0; j < tubeSegments; j++)
             {
-                var next = (j + 1) % TubeSegments;
-                
+                var next = (j + 1) % tubeSegments;
+
                 surfaceTool.SetNormal(-startTangent);
                 surfaceTool.SetTangent(new Plane(firstNormals[0], 1.0f));
                 surfaceTool.SetUV(new Vector2(0.5f, 0.5f));
                 surfaceTool.AddVertex(startCenter);
-                
+
                 surfaceTool.SetNormal(-startTangent);
                 surfaceTool.SetTangent(new Plane(firstNormals[j], 1.0f));
-                surfaceTool.SetUV(new Vector2(0.5f + 0.5f * RingCos[j], 0.5f + 0.5f * RingSin[j]));
+                surfaceTool.SetUV(new Vector2(0.5f + 0.5f * ringCos[j], 0.5f + 0.5f * ringSin[j]));
                 surfaceTool.AddVertex(firstRing[j]);
-                
+
                 surfaceTool.SetNormal(-startTangent);
                 surfaceTool.SetTangent(new Plane(firstNormals[next], 1.0f));
-                surfaceTool.SetUV(new Vector2(0.5f + 0.5f * RingCos[next], 0.5f + 0.5f * RingSin[next]));
+                surfaceTool.SetUV(new Vector2(0.5f + 0.5f * ringCos[next], 0.5f + 0.5f * ringSin[next]));
                 surfaceTool.AddVertex(firstRing[next]);
             }
 
             // End cap
-            for (var j = 0; j < TubeSegments; j++)
+            for (var j = 0; j < tubeSegments; j++)
             {
-                var next = (j + 1) % TubeSegments;
-                
+                var next = (j + 1) % tubeSegments;
+
                 surfaceTool.SetNormal(endTangent);
                 surfaceTool.SetTangent(new Plane(lastNormals[0], 1.0f));
                 surfaceTool.SetUV(new Vector2(0.5f, 0.5f));
                 surfaceTool.AddVertex(endCenter);
-                
+
                 surfaceTool.SetNormal(endTangent);
                 surfaceTool.SetTangent(new Plane(lastNormals[j], 1.0f));
-                surfaceTool.SetUV(new Vector2(0.5f + 0.5f * RingCos[j], 0.5f + 0.5f * RingSin[j]));
+                surfaceTool.SetUV(new Vector2(0.5f + 0.5f * ringCos[j], 0.5f + 0.5f * ringSin[j]));
                 surfaceTool.AddVertex(lastRing[j]);
-                
+
                 surfaceTool.SetNormal(endTangent);
                 surfaceTool.SetTangent(new Plane(lastNormals[next], 1.0f));
-                surfaceTool.SetUV(new Vector2(0.5f + 0.5f * RingCos[next], 0.5f + 0.5f * RingSin[next]));
+                surfaceTool.SetUV(new Vector2(0.5f + 0.5f * ringCos[next], 0.5f + 0.5f * ringSin[next]));
                 surfaceTool.AddVertex(lastRing[next]);
             }
         }
