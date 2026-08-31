@@ -128,12 +128,12 @@ public class RopeMeshTubeTool : IRopeMeshTool
                 }
 
                 builder.CaptureEndRing(localCenter, tangent);
-                builder.SwapBuffers();
+                builder.SwapRingBuffers();
                 t += step;
             }
         }
 
-        builder.AddCaps();
+        builder.AddTubeCaps();
         surfaceTool.Commit(context.ArrayMesh);
     }
 }
@@ -235,20 +235,20 @@ file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] r
         }
     }
 
-    public void AddCaps()
+    public void AddTubeCaps()
     {
         if (tubeSegments < 3 || !_hasPrevRing)
         {
             return;
         }
 
-        AddCap(_startCenter, _startTangent, _firstRing, _firstNormals, true);
-        AddCap(_endCenter, _endTangent, _prevRing, _prevNormals, false);
+        AddTubeCap(_startCenter, _startTangent, _firstRing, _firstNormals, true);
+        AddTubeCap(_endCenter, _endTangent, _prevRing, _prevNormals, false);
     }
 
     #region Utils
 
-    private void AddCap(Vector3 center, Vector3 tangent, Vector3[] ring, Vector3[] normals, bool isStartCap)
+    private void AddTubeCap(Vector3 center, Vector3 tangent, Vector3[] ring, Vector3[] normals, bool isStartCap)
     {
         var normal = isStartCap ? -tangent : tangent;
         var firstNormal = normals[0];
@@ -260,22 +260,22 @@ file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] r
             var uvJ = new Vector2(0.5f + 0.5f * ringCos[j], 0.5f + 0.5f * ringSin[j]);
             var uvNext = new Vector2(0.5f + 0.5f * ringCos[next], 0.5f + 0.5f * ringSin[next]);
 
-            AddCapVertex(normal, firstNormal, uvCenter, center);
+            AddTubeCapVertex(normal, firstNormal, uvCenter, center);
 
             if (isStartCap)
             {
-                AddCapVertex(normal, normals[j], uvJ, ring[j]);
-                AddCapVertex(normal, normals[next], uvNext, ring[next]);
+                AddTubeCapVertex(normal, normals[j], uvJ, ring[j]);
+                AddTubeCapVertex(normal, normals[next], uvNext, ring[next]);
             }
             else
             {
-                AddCapVertex(normal, normals[next], uvNext, ring[next]);
-                AddCapVertex(normal, normals[j], uvJ, ring[j]);
+                AddTubeCapVertex(normal, normals[next], uvNext, ring[next]);
+                AddTubeCapVertex(normal, normals[j], uvJ, ring[j]);
             }
         }
     }
     
-    private void AddCapVertex(Vector3 normal, Vector3 tangent, Vector2 uv, Vector3 position)
+    private void AddTubeCapVertex(Vector3 normal, Vector3 tangent, Vector2 uv, Vector3 position)
     {
         surfaceTool.SetNormal(normal);
         surfaceTool.SetTangent(new Plane(tangent, 1.0f));
@@ -283,7 +283,7 @@ file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] r
         surfaceTool.AddVertex(position);
     }
 
-    public void SwapBuffers()
+    public void SwapRingBuffers()
     {
         var tempRing = _prevRing;
         var tempNormals = _prevNormals;
