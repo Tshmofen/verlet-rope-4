@@ -21,11 +21,16 @@ You can see properties descriptions below to see available visuals or refer to `
 ### Visuals
 | Export variable | How it works |
 |--|--|
-| Rope Length                    | Determines total target length of the rope, it is just a base value and actual length might be different depending on physics provider and configured behavior. |
-| Rope Width                     |  Determines visual width of the rope, does not affect rope behavior. Ropes are flat, but always look at the camera, so width effectively behaves as a diameter.|
+| Mesh Type                      | Determines the rope’s visual appearance: `Ribbon` (flat camera‑facing ribbon) or `Tube` (3D cylindrical mesh). |
+| Rope Length                    | Determines total target length of the rope, it is just a base value and actual length might be different depending on physics and configured behavior. |
+| Rope Width                     |  Determines visual width of the rope, does not affect rope behavior. Width effectively behaves as a diameter. |
+| Rope Smoothing                 | Amount of smoothing applied to particle positions for rendering. Higher values make the rope appear gentler but less responsive. 0 disables smoothing. |
+| Smooth Rope Start              | If `true`, smoothing is applied at the start of the rope. Disable when the start must stay rigidly attached to a moving point. |
+| Smooth Rope End                | If `true`, smoothing is applied at the end of the rope. Disable when the end must stay rigidly attached to a moving point. |
+| Tube Segments                  | Number of segments around the tube’s circumference. Only used when `Mesh Type = Tube`. |
 | Subdivision Lod Distance       | If distance to the particle is greater than this value, the corresponding segment is not subdivided for rendering. |
-| Use Visible On Screen Notifier | Creates a child `VisibleOnScreenNotifier3D` for the rope when enabled. Is only triggered on `_Ready` calls. |
 | Use Debug Particles            | Draws orientation axis from every actual particle positions when enabled. |
+| Use Visible On Screen Notifier | Creates a child `VisibleOnScreenNotifier3D` for the rope when enabled. Is only triggered on `_Ready` calls. |
 
 ## Programmatic Access
 The node is designed to be driven by an external simulation. To use it programmatically, you must generate the particle data representing the rope's shape and call its main drawing function every time you want it to be updated (usually every frame).
@@ -48,7 +53,8 @@ This structure holds the data for a single particle in the rope simulation. It i
 
 | Property | Description |
 |--|--|
-| `Vector3 PositionCurrent`  | The current position of the particle for this frame - used for mesh generation. |
+| `Vector3 PositionCurrent`  | The current **physics** position of the particle. This is the raw output of the simulation. |
+| `Vector3 PositionRender`   | The current **smoothed** position used for actual mesh generation. This value is computed automatically by the mesh node when smoothing is enabled – you only need to update `PositionCurrent`. |
 | `Vector3 PositionPrevious` | Bookmark property - the position of the particle from the previous frame - used to calculate velocity. |
 | `Vector3 Acceleration`     | Bookmark property - The acceleration applied to this particle (i.e. combined from gravity, wind or any other forces). |
 | `bool IsAttached`          | Bookmark property - indicates whether particle's position is locked and not simulated (e.g. for attachment points). |
@@ -57,7 +63,7 @@ This structure holds the data for a single particle in the rope simulation. It i
 | `Vector3D Binormal`        | Internal property - provides currently calculated visual binormal particle vector. |
 
 > [!NOTE]
-> **\*** *All `bookmark` properties are here only for external simulation provider bookkeeping and only indicate how it have to be handled on the following steps, the only property provided from outside that is used by mesh generation is `PositionCurrent`.*  
+> **\*** *All `bookmark` properties are here only for external simulation provider bookkeeping and only indicate how it have to be handled on the following steps, the only properties provided from outside that are used by mesh generation are `PositionCurrent` (for physics) and `PositionRender` (for rendering). The mesh node will automatically populate `PositionRender` based on `PositionCurrent` and the smoothing settings..*  
 > **\*** *All `internal` properties are being calculated and assigned by the Mesh generator, they can be fetched and used if needed, but should not be assigned from outside.*
 
 <sup>(TODO: Make providers implement interface/base with only `PositionCurrent`, so that bookmark properties were not exposed when not needed)</sup>

@@ -36,7 +36,7 @@ You can see properties descriptions below to understand how to alter the rope's 
 | Simulation Particles  | Determines amount of separate particles used is simulations, total segments amount is `SimulationParticles` minus 1. |
 | Simulation Rate       | Determines amount of rope calculations per second, but never exceeds physics tick rate. when value is set to 0 - the rope is updated every physics frame. As it is relies on physics process, it cannot exceed physics rate. |
 | Stiffness             | Akin to elasticity - it controls how much the verlet constraint corrects the rope to the expected positions. |
-| Stiffness Iterations  | Number of stiffing cycles per frame, higher values gives more accurate simulation for lengthy ropes with many simulation particles. Adjust it if you find that the rope is sagging or stretching too much. |
+| Stiffness Iterations  | Number of stiffness cycles per frame, higher values gives more accurate simulation for lengthy ropes with many simulation particles. Adjust it if you find that the rope is sagging or stretching too much. |
 | Preprocess Iterations | Number of frames (at `1/60` delta rate) to be precalculated on rope creation to make it start position to be in more natural state. |
 | Delta Skip MS | Specifies milliseconds the physics processing frame takes after which the rope simulation will be skipped. Should be used to prevent jarrings of the rope on freezes or physics pauses.<br/> If needed should be set at least 2-3 times higher than the expected physics (default is `60 fps ~ 16 MS`) rate. Usually something like `300-500 MS` is expected just to prevent unexpected behavior during freezes. When set to 0 the option is effectively disabled. |
 | Is Disabled When Invisible | Determines if the rope simulation is disabled when the rope is not on the screen (only available when `UseVisibleOn ScreenNotifier = true`). If `VerletJointSimulated` is used to connect bodies, it might be better to disable this option to prevent de-syncs. |
@@ -90,6 +90,17 @@ You can see properties descriptions below to understand how to alter the rope's 
 > [!NOTE]
 > Dynamic collisions will provide best results with simple shapes like spheres, cylinders or capsules that are equally centered on itself, complex geometry might not collide very well.
 
+### Self Collision
+
+| Export variable | How it works |
+|--|--|
+| **Is Self Colliding**       | Enables self‑collision between particles of the same rope. |
+| **Self Collision Radius**   | Radius of the collision sphere around each particle. |
+| **Self Collision Smoothing**| Smoothing factor for the correction applied (0.01–1.0). Lower values make the response softer. |
+
+> [!NOTE]
+> This setting increases the performance requirement for the rope and will apply additional O(n^2) algorithm to determine the self collisions. But generally should not affect performance much as long as amount of rope particles is small.
+
 ### Quick Presets Actions
 | Button Action | How it works |
 |--|--|
@@ -101,8 +112,13 @@ You can see properties descriptions below to understand how to alter the rope's 
 This section is inherited from [VerletRopeMesh](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeMesh) node.
 | Export variable | How it works |
 |--|--|
+| Mesh Type                      | Determines the rope’s visual appearance: `Ribbon` (flat camera‑facing ribbon) or `Tube` (3D cylindrical mesh). |
 | Rope Length                    | Determines total target length of the rope, it is just a base value and actual length might be different depending on physics and configured behavior. |
-| Rope Width                     |  Determines visual width of the rope, does not affect rope behavior. Ropes are flat, but always look at the camera, so width effectively behaves as a diameter.|
+| Rope Width                     |  Determines visual width of the rope, does not affect rope behavior. Width effectively behaves as a diameter. |
+| Rope Smoothing                 | Amount of smoothing applied to particle positions for rendering. Higher values make the rope appear gentler but less responsive. 0 disables smoothing. |
+| Smooth Rope Start              | If `true`, smoothing is applied at the start of the rope. Disable when the start must stay rigidly attached to a moving point. |
+| Smooth Rope End                | If `true`, smoothing is applied at the end of the rope. Disable when the end must stay rigidly attached to a moving point. |
+| Tube Segments                  | Number of segments around the tube’s circumference. Only used when `Mesh Type = Tube`. |
 | Subdivision Lod Distance       | If distance to the particle is greater than this value, the corresponding segment is not subdivided for rendering. |
 | Use Debug Particles            | Draws orientation axis from every actual particle positions when enabled. |
 | Use Visible On Screen Notifier | Creates a child `VisibleOnScreenNotifier3D` for the rope when enabled. Is only triggered on `_Ready` calls. |

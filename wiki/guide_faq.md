@@ -39,3 +39,6 @@
 
 * **Q: How to synchronize wind effect across multiple ropes?**
   * **A**: Create a single `FastNoiseLite` resource and reuse it across your ropes in `Wind Noise` property - it will synchronize the wind values of nearby ropes. The current wind force is determined using rope particle position and system time.
+  
+* **Q: How do I switch between a flat ribbon and a 3D tube look?**  
+  * **A**: Set the `Mesh Type` property on the rope (or on `VerletRopeMesh`) to `Ribbon` or `Tube`. For tubes, you can adjust the `Tube Segments` for smoother or cheaper geometry.

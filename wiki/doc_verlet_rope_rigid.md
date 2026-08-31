@@ -71,8 +71,13 @@ You can see properties descriptions below to understand how to alter the rope's 
 This section is inherited from [VerletRopeMesh](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeMesh) node.
 | Export variable | How it works |
 |--|--|
+| Mesh Type                      | Determines the rope’s visual appearance: `Ribbon` (flat camera‑facing ribbon) or `Tube` (3D cylindrical mesh). |
 | Rope Length                    | Determines total target length of the rope, it is just a base value and actual length might be different depending on physics and configured behavior. |
-| Rope Width                     |  Determines visual width of the rope, does not affect rope behavior. Ropes are flat, but always look at the camera, so width effectively behaves as a diameter.|
+| Rope Width                     |  Determines visual width of the rope, does not affect rope behavior. Width effectively behaves as a diameter. |
+| Rope Smoothing                 | Amount of smoothing applied to particle positions for rendering. Higher values make the rope appear gentler but less responsive. 0 disables smoothing. |
+| Smooth Rope Start              | If `true`, smoothing is applied at the start of the rope. Disable when the start must stay rigidly attached to a moving point. |
+| Smooth Rope End                | If `true`, smoothing is applied at the end of the rope. Disable when the end must stay rigidly attached to a moving point. |
+| Tube Segments                  | Number of segments around the tube’s circumference. Only used when `Mesh Type = Tube`. |
 | Subdivision Lod Distance       | If distance to the particle is greater than this value, the corresponding segment is not subdivided for rendering. |
 | Use Debug Particles            | Draws orientation axis from every actual particle positions when enabled. |
 | Use Visible On Screen Notifier | Creates a child `VisibleOnScreenNotifier3D` for the rope when enabled. Is only triggered on `_Ready` calls. |

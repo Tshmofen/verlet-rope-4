@@ -34,7 +34,8 @@ See pages on the following topics:
 
 ## Features
 **Currently, the addon provides the following features:**
-- **Adds `VerletRopeMesh` node** that generates flat-plane mesh using tessellation with Catmull-Rom splines *(Used internally by built-in nodes, but can be accessed directly in the code to generate a mesh manually).*
+- **Adds `VerletRopeMesh` node** that generates the rope mesh using tessellation with Catmull-Rom splines *(Used internally by built-in nodes, but can be accessed directly in the code to generate a mesh manually).*
+  * The rendering configuration allows to chose between flat camera‑facing ribbons or 3D tubes meshes with configurable segment count, both are optimized and support custom materials.
 - **Adds different variants of Rope nodes**:
   * `VerletRopeSimulated` - purely based on [verlet-integration](https://en.wikipedia.org/wiki/Verlet_integration) technique and provides beautiful rope-like movements with support for lightweight external collisions, but doesn't allow rope to affect other physical bodies.
   * `VerletRopeRigid` - relies on engine physics for rope movement (using pre-generated bodies and joints) and allows full two-way interaction with the environment, but is less rope-like and is more performance heavy. 
@@ -42,7 +43,7 @@ See pages on the following topics:
   * `VerletJointSimulated` - Allows connecting `VerletRopeSimulated` ends to `Node3D` and/or to `PhysicsBody3D` objects. When physics objects are connected, it also allows to create `CustomDistanceJoint` internally (see description below).
   * `VerletJointRigid` - Allows connecting `VerletRopeRigid` ends to `Node3D` and/or to `PhysicsBody3D` objects. Uses engine's built-in `PinJoint3D` internally to connect physics bodies.
   * `DistanceForceJoint` - General purpose node implementing a distance joint between two physics objects, it is pulling them with specified force when set max distance is exceeded.
-- **Exposes many adjustable parameters for ropes**: particle & segment counts; length & width; custom simulation rates; wind & gravity forces; customizable damping; customizable visuals; and other fine-tunning settings specific to each rope variant.
+- **Exposes many adjustable parameters for ropes**: particle & segment counts; length & width; custom simulation rates; wind & gravity forces; self-collisions; customizable damping; customizable visuals; and other fine-tunning settings specific to each rope variant.
 - **Provides `VisibleOnScreenNotifier3D` support** (optional, integrated and automatic) for performance improvement when needed.
 - **Implements advanced performance-friendly slide collisions** (for `VerletRopeSimulated`) with static mode `O(n)` and dynamic mode `O(n*m)` raycasts complexity (where `n` - rope particles, `m` - affected dynamic bodies).
 - **Provides editor-specific tooling** to make ropes configuration easier, such as: different `[Tool]` buttons for quick joint creation, rope resets, structure copying, quick configuration presets, etc.; internal meta-stamping for ropes duplications/copypaste support; custom editor-collisions for precise rope click-selectors.
