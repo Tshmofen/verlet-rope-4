@@ -16,7 +16,6 @@ public class RopeMeshTubeTool : IRopeMeshTool
 
     #region Utility Methods
 
-    // Retrieve or create the cos/sin arrays for the given number of tube segments.
     private static (float[] Cos, float[] Sin) GetRingTrig(int segments)
     {
         if (RingTrigCache.TryGetValue(segments, out var trig))
@@ -30,7 +29,7 @@ public class RopeMeshTubeTool : IRopeMeshTool
             {
                 return trig;
             }
-            
+
             var cos = new float[segments];
             var sin = new float[segments];
 
@@ -40,7 +39,7 @@ public class RopeMeshTubeTool : IRopeMeshTool
                 cos[j] = Mathf.Cos(angle);
                 sin[j] = Mathf.Sin(angle);
             }
-            
+
             RingTrigCache[segments] = trig = (cos, sin);
             return trig;
         }
@@ -101,25 +100,35 @@ public class RopeMeshTubeTool : IRopeMeshTool
         var particles = context.Particles;
         var cameraPos = context.CurrentCamera?.GlobalPosition ?? Vector3.Zero;
         var globalPos = context.GlobalPosition;
-        
+
         var tubeSegments = context.TubeSegments;
         var (ringCos, ringSin) = GetRingTrig(tubeSegments);
+
+        // Pre-allocate two sets of buffers for current and previous rings
+        var ringBufferA = new Vector3[tubeSegments];
+        var normalsBufferA = new Vector3[tubeSegments];
+        var ringBufferB = new Vector3[tubeSegments];
+        var normalsBufferB = new Vector3[tubeSegments];
+
+        // Buffer for storing the first ring (separate from rotating buffers)
+        var firstRing = new Vector3[tubeSegments];
+        var firstNormals = new Vector3[tubeSegments];
 
         var hasPrevFrame = false;
         var prevTangent = Vector3.Zero;
         var prevNormal = Vector3.Zero;
-        Vector3[] prevRing = null;
-        Vector3[] prevNormals = null;
+
+        // Initialize buffers: previous points to A, current to B
+        var prevRing = ringBufferA;
+        var prevNormals = normalsBufferA;
+        var ring = ringBufferB;
+        var normals = normalsBufferB;
+        var hasPrevRing = false;
 
         var startCenter = Vector3.Zero;
         var startTangent = Vector3.Zero;
-        Vector3[] firstRing = null;
-        Vector3[] firstNormals = null;
-
         var endCenter = Vector3.Zero;
         var endTangent = Vector3.Zero;
-        Vector3[] lastRing = null;
-        Vector3[] lastNormals = null;
 
         // Generate tubes
         for (var i = 0; i < particles.Count - 1; i++)
@@ -155,9 +164,7 @@ public class RopeMeshTubeTool : IRopeMeshTool
                     hasPrevFrame = true;
                 }
 
-                // Build ring for current segment
-                var ring = new Vector3[tubeSegments];
-                var normals = new Vector3[tubeSegments];
+                // Fill current ring buffer
                 for (var j = 0; j < tubeSegments; j++)
                 {
                     var radial = ringCos[j] * prevNormal + ringSin[j] * prevBinormal;
@@ -165,8 +172,8 @@ public class RopeMeshTubeTool : IRopeMeshTool
                     normals[j] = radial;
                 }
 
-                // Render triangles
-                if (prevRing != null)
+                // Render triangles if we have a valid previous ring
+                if (hasPrevRing)
                 {
                     surfaceTool.SetTangent(new Plane(tangent, 1.0f));
                     for (var j = 0; j < tubeSegments; j++)
@@ -204,30 +211,37 @@ public class RopeMeshTubeTool : IRopeMeshTool
                     }
                 }
 
-                // Preserve ends for caps
+                // Capture the first ring data (for start cap)
                 if (i == 0 && t == 0f)
                 {
+                    for (var j = 0; j < tubeSegments; j++)
+                    {
+                        firstRing[j] = ring[j];
+                        firstNormals[j] = normals[j];
+                    }
                     startCenter = localCenter;
                     startTangent = tangent;
-                    firstRing = ring;
-                    firstNormals = normals;
-                }
-                else
-                {
-                    endCenter = localCenter;
-                    endTangent = tangent;
-                    lastRing = ring;
-                    lastNormals = normals;
                 }
 
+                // Always update the end values; after the loop they will hold the last ring's data
+                endCenter = localCenter;
+                endTangent = tangent;
+
+                // Swap buffers: current becomes previous, previous becomes current
+                var tempRing = prevRing;
+                var tempNormals = prevNormals;
                 prevRing = ring;
                 prevNormals = normals;
+                ring = tempRing;
+                normals = tempNormals;
+
+                hasPrevRing = true;
                 t += step;
             }
         }
 
-        // Generate closing caps (only if enough segments)
-        if (firstRing != null && lastRing != null && tubeSegments >= 3)
+        // Generate closing caps
+        if (tubeSegments >= 3)
         {
             // Start cap
             for (var j = 0; j < tubeSegments; j++)
@@ -250,25 +264,25 @@ public class RopeMeshTubeTool : IRopeMeshTool
                 surfaceTool.AddVertex(firstRing[next]);
             }
 
-            // End cap
+            // End cap (using the final prevRing/prevNormals)
             for (var j = 0; j < tubeSegments; j++)
             {
                 var next = (j + 1) % tubeSegments;
 
                 surfaceTool.SetNormal(endTangent);
-                surfaceTool.SetTangent(new Plane(lastNormals[0], 1.0f));
+                surfaceTool.SetTangent(new Plane(prevNormals[0], 1.0f));
                 surfaceTool.SetUV(new Vector2(0.5f, 0.5f));
                 surfaceTool.AddVertex(endCenter);
 
                 surfaceTool.SetNormal(endTangent);
-                surfaceTool.SetTangent(new Plane(lastNormals[j], 1.0f));
+                surfaceTool.SetTangent(new Plane(prevNormals[j], 1.0f));
                 surfaceTool.SetUV(new Vector2(0.5f + 0.5f * ringCos[j], 0.5f + 0.5f * ringSin[j]));
-                surfaceTool.AddVertex(lastRing[j]);
+                surfaceTool.AddVertex(prevRing[j]);
 
                 surfaceTool.SetNormal(endTangent);
-                surfaceTool.SetTangent(new Plane(lastNormals[next], 1.0f));
+                surfaceTool.SetTangent(new Plane(prevNormals[next], 1.0f));
                 surfaceTool.SetUV(new Vector2(0.5f + 0.5f * ringCos[next], 0.5f + 0.5f * ringSin[next]));
-                surfaceTool.AddVertex(lastRing[next]);
+                surfaceTool.AddVertex(prevRing[next]);
             }
         }
 
