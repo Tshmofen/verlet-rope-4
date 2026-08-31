@@ -115,9 +115,9 @@ public class RopeMeshTubeTool : IRopeMeshTool
                 var localCenter = center - globalPos;
 
                 builder.UpdateFrame(tangent, out var binormal);
-                builder.BuildRing(localCenter, builder.PrevNormal, binormal, context.RopeWidth);
+                builder.BuildRing(localCenter, binormal, context.RopeWidth);
 
-                if (builder.HasPrevRing)
+                if (builder.CanGenerateTriangles)
                 {
                     builder.AddTubeTriangles(tangent, t - step, t);
                 }
@@ -127,72 +127,66 @@ public class RopeMeshTubeTool : IRopeMeshTool
                     builder.CaptureFirstRing(localCenter, tangent);
                 }
 
-                builder.CaptureEnd(localCenter, tangent);
+                builder.CaptureEndRing(localCenter, tangent);
                 builder.SwapBuffers();
-
                 t += step;
             }
         }
 
-        if (tubeSegments >= 3)
-        {
-            builder.AddCap(builder.StartCenter, builder.StartTangent, builder.FirstRing, builder.FirstNormals, true);
-            builder.AddCap(builder.EndCenter, builder.EndTangent, builder.PrevRing, builder.PrevNormals, false);
-        }
-
+        builder.AddCaps();
         surfaceTool.Commit(context.ArrayMesh);
     }
 }
 
 file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] ringCos, float[] ringSin)
 {
-    // Frame state
-    private bool _hasPrevFrame = false;
+    // State
+    private bool _hasPrevRing = false;
     private Vector3 _prevTangent = Vector3.Zero;
-    public Vector3 PrevNormal { get; private set; } = Vector3.Zero;
+    private Vector3 _prevNormal = Vector3.Zero;
 
-    // Active ring references
+    // Ring references
     private Vector3[] _currentRing = new Vector3[tubeSegments];
     private Vector3[] _currentNormals = new Vector3[tubeSegments];
-    public Vector3[] FirstRing { get; } = new Vector3[tubeSegments];
-    public Vector3[] FirstNormals { get; } = new Vector3[tubeSegments];
-    public Vector3[] PrevRing { get; private set; } = new Vector3[tubeSegments];
-    public Vector3[] PrevNormals { get; private set; } = new Vector3[tubeSegments];
-    public bool HasPrevRing { get; private set; } = false;
+    private readonly Vector3[] _firstRing  = new Vector3[tubeSegments];
+    private readonly Vector3[] _firstNormals = new Vector3[tubeSegments];
+    private Vector3[] _prevRing = new Vector3[tubeSegments];
+    private Vector3[] _prevNormals = new Vector3[tubeSegments];
 
     // Cap data
-    public Vector3 StartCenter { get; private set; } = Vector3.Zero;
-    public Vector3 StartTangent { get; private set; } = Vector3.Zero;
-    public Vector3 EndCenter { get; private set; } = Vector3.Zero;
-    public Vector3 EndTangent { get; private set; } = Vector3.Zero;
+    private Vector3 _startCenter = Vector3.Zero;
+    private Vector3 _startTangent = Vector3.Zero;
+    private Vector3 _endCenter = Vector3.Zero;
+    private Vector3 _endTangent = Vector3.Zero;
+
+    public bool CanGenerateTriangles => _hasPrevRing;
 
     public void UpdateFrame(Vector3 tangent, out Vector3 binormal)
     {
-        if (_hasPrevFrame)
+        if (_hasPrevRing)
         {
             var rotation = new Quaternion(_prevTangent, tangent);
-            var newNormal = rotation * PrevNormal;
+            var newNormal = rotation * _prevNormal;
             newNormal = (newNormal - tangent * tangent.Dot(newNormal)).Normalized();
             binormal = tangent.Cross(newNormal).Normalized();
 
             _prevTangent = tangent;
-            PrevNormal = newNormal;
+            _prevNormal = newNormal;
         }
         else
         {
             var up = Mathf.Abs(tangent.Dot(Vector3.Up)) > 0.99f ? Vector3.Right : Vector3.Up;
-            PrevNormal = (up - tangent * tangent.Dot(up)).Normalized();
-            binormal = tangent.Cross(PrevNormal).Normalized();
+            _prevNormal = (up - tangent * tangent.Dot(up)).Normalized();
+            binormal = tangent.Cross(_prevNormal).Normalized();
             _prevTangent = tangent;
-            _hasPrevFrame = true;
         }
     }
 
-    public void BuildRing(Vector3 center, Vector3 normal, Vector3 binormal, float ropeWidth)
+    public void BuildRing(Vector3 center, Vector3 binormal, float ropeWidth)
     {
         for (var j = 0; j < tubeSegments; j++)
         {
-            var radial = ringCos[j] * normal + ringSin[j] * binormal;
+            var radial = ringCos[j] * _prevNormal + ringSin[j] * binormal;
             _currentRing[j] = center + ropeWidth * radial;
             _currentNormals[j] = radial;
         }
@@ -200,6 +194,11 @@ file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] r
 
     public void AddTubeTriangles(Vector3 tangent, float u0, float u1)
     {
+        if (!_hasPrevRing)
+        {
+            return;
+        }
+
         surfaceTool.SetTangent(new Plane(tangent, 1.0f));
 
         for (var j = 0; j < tubeSegments; j++)
@@ -209,9 +208,9 @@ file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] r
             var v1 = (j + 1) / (float)tubeSegments;
 
             // First triangle
-            surfaceTool.SetNormal(PrevNormals[j]);
+            surfaceTool.SetNormal(_prevNormals[j]);
             surfaceTool.SetUV(new Vector2(u0, v0));
-            surfaceTool.AddVertex(PrevRing[j]);
+            surfaceTool.AddVertex(_prevRing[j]);
 
             surfaceTool.SetNormal(_currentNormals[j]);
             surfaceTool.SetUV(new Vector2(u1, v0));
@@ -222,21 +221,34 @@ file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] r
             surfaceTool.AddVertex(_currentRing[next]);
 
             // Second triangle
-            surfaceTool.SetNormal(PrevNormals[j]);
+            surfaceTool.SetNormal(_prevNormals[j]);
             surfaceTool.SetUV(new Vector2(u0, v0));
-            surfaceTool.AddVertex(PrevRing[j]);
+            surfaceTool.AddVertex(_prevRing[j]);
 
             surfaceTool.SetNormal(_currentNormals[next]);
             surfaceTool.SetUV(new Vector2(u1, v1));
             surfaceTool.AddVertex(_currentRing[next]);
 
-            surfaceTool.SetNormal(PrevNormals[next]);
+            surfaceTool.SetNormal(_prevNormals[next]);
             surfaceTool.SetUV(new Vector2(u0, v1));
-            surfaceTool.AddVertex(PrevRing[next]);
+            surfaceTool.AddVertex(_prevRing[next]);
         }
     }
 
-    public void AddCap(Vector3 center, Vector3 tangent, Vector3[] ring, Vector3[] normals, bool isStartCap)
+    public void AddCaps()
+    {
+        if (tubeSegments < 3 || !_hasPrevRing)
+        {
+            return;
+        }
+
+        AddCap(_startCenter, _startTangent, _firstRing, _firstNormals, true);
+        AddCap(_endCenter, _endTangent, _prevRing, _prevNormals, false);
+    }
+
+    #region Utils
+
+    private void AddCap(Vector3 center, Vector3 tangent, Vector3[] ring, Vector3[] normals, bool isStartCap)
     {
         var normal = isStartCap ? -tangent : tangent;
         var firstNormal = normals[0];
@@ -262,7 +274,7 @@ file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] r
             }
         }
     }
-
+    
     private void AddCapVertex(Vector3 normal, Vector3 tangent, Vector2 uv, Vector3 position)
     {
         surfaceTool.SetNormal(normal);
@@ -273,33 +285,35 @@ file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] r
 
     public void SwapBuffers()
     {
-        var tempRing = PrevRing;
-        var tempNormals = PrevNormals;
+        var tempRing = _prevRing;
+        var tempNormals = _prevNormals;
 
-        PrevRing = _currentRing;
-        PrevNormals = _currentNormals;
+        _prevRing = _currentRing;
+        _prevNormals = _currentNormals;
 
         _currentRing = tempRing;
         _currentNormals = tempNormals;
 
-        HasPrevRing = true;
+        _hasPrevRing = true;
     }
 
     public void CaptureFirstRing(Vector3 center, Vector3 tangent)
     {
         for (var j = 0; j < tubeSegments; j++)
         {
-            FirstRing[j] = _currentRing[j];
-            FirstNormals[j] = _currentNormals[j];
+            _firstRing[j] = _currentRing[j];
+            _firstNormals[j] = _currentNormals[j];
         }
 
-        StartCenter = center;
-        StartTangent = tangent;
+        _startCenter = center;
+        _startTangent = tangent;
     }
 
-    public void CaptureEnd(Vector3 center, Vector3 tangent)
+    public void CaptureEndRing(Vector3 center, Vector3 tangent)
     {
-        EndCenter = center;
-        EndTangent = tangent;
+        _endCenter = center;
+        _endTangent = tangent;
     }
+
+    #endregion
 }
