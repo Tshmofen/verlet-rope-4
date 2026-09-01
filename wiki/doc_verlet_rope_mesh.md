@@ -1,7 +1,7 @@
 # `VerletRopeMesh` Node
 **This node is a dedicated visual component that generates and renders a dynamic rope mesh from a provided set of points.** It handles all aspects of the rope's appearance, but contains no physical logic itself - physics to be driven by a simulation provider, which calculates particle positions externally and updates them every frame. 
 
-This node works by generating plane mesh in relation to the current main `Camera3D` position and the distance to it. It will not produce any results without external programmatic access (checkout corresponding section below for details). Also, see properties below for allowed behavior configuration.
+This node works by generating a mesh - either a 2D ribbon or 3D tube - in relation to the current main `Camera3D` position and the distance to it. It will not produce any results without external programmatic access (checkout corresponding section below for details). Also, see properties below for allowed behavior configuration.
 
 <img width=440 src="https://github.com/Tshmofen/verlet-rope-4/blob/master/images/example_physics_03.gif"/>
 
@@ -65,8 +65,6 @@ This structure holds the data for a single particle in the rope simulation. It i
 > [!NOTE]
 > **\*** *All `bookmark` properties are here only for external simulation provider bookkeeping and only indicate how it have to be handled on the following steps, the only properties provided from outside that are used by mesh generation are `PositionCurrent` (for physics) and `PositionRender` (for rendering). The mesh node will automatically populate `PositionRender` based on `PositionCurrent` and the smoothing settings..*  
 > **\*** *All `internal` properties are being calculated and assigned by the Mesh generator, they can be fetched and used if needed, but should not be assigned from outside.*
-
-<sup>(TODO: Make providers implement interface/base with only `PositionCurrent`, so that bookmark properties were not exposed when not needed)</sup>
 
 ### Simulation Logic
 
