@@ -6,7 +6,6 @@ using VerletRope4.Data;
 using VerletRope4.Physics.Joints;
 using VerletRope4.Physics.Presets;
 using VerletRope4.Utility;
-using static Godot.BaseButton;
 
 namespace VerletRope4.Physics;
 

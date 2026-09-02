@@ -109,6 +109,11 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
 
     protected void TryDrawRope(bool isPhysics = true)
     {
+        if (ParticleData == null || ParticleData.Count == 0)
+        {
+            return;
+        }
+
         if (isPhysics && RenderMode == RopeRenderMode.Process)
         {
             return;
@@ -156,6 +161,8 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
             CreateRope();
             RopeMesh.UpdateRopeVisibility(ParticleData);
         }
+
+        _previousGlobalPosition = GlobalPosition;
     }
 
     #region Joint / Attachment
