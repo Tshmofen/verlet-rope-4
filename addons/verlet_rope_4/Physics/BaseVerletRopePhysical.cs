@@ -127,6 +127,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
 
         RopeMesh.DrawRopeParticles(ParticleData);
         RopeMesh.UpdateRopeVisibility(ParticleData);
+        _skipPhysicsRender = !isPhysics;
     }
     
     public override void _Process(double delta)
