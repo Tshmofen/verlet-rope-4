@@ -236,11 +236,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
             }
         }
 
-        if (InterpolationType != RopeInterpolationType.Always)
-        {
-            RopeMesh.DrawRopeParticles(ParticleData);
-            RopeMesh.UpdateRopeVisibility(ParticleData);
-        }
+        TryDrawRope();
 
         #if TOOLS
         UpdateEditorCollision(ParticleData);

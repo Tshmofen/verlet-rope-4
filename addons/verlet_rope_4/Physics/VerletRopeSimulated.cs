@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Godot;
+using System;
 using System.Collections.Generic;
-using Godot;
 using System.Linq;
 using VerletRope4.Data;
 using VerletRope4.Physics.Joints;
 using VerletRope4.Physics.Presets;
 using VerletRope4.Utility;
+using static Godot.BaseButton;
 
 namespace VerletRope4.Physics;
 
@@ -603,12 +604,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         ApplyForces();
         VerletProcess(simulationDeltaF);
         ApplyConstraints(simulationDeltaF);
-
-        if (InterpolationType != RopeInterpolationType.Always)
-        {
-            RopeMesh.DrawRopeParticles(ParticleData);
-            RopeMesh.UpdateRopeVisibility(ParticleData);
-        }
+        TryDrawRope();
 
         EmitSignalSimulationStep(_simulationDelta);
         _simulationDelta = 0;
