@@ -82,11 +82,14 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
         var segmentShape = new CapsuleShape3D { Height = segmentLength, Radius = RopeWidth + CollisionWidthMargin };
         var segmentMesh = ShowCollisionShapeDebug ? new CapsuleMesh { Height = segmentLength, Radius = RopeWidth + CollisionWidthMargin } : null;
 
-        var startPosition = StartNode != null
-            ? ToLocal(StartNode.GlobalPosition)
+        var nodeStartPosition = StartNode.GetSafeGlobalPosition();
+        var startPosition = nodeStartPosition != null
+            ? ToLocal(nodeStartPosition.Value)
             : Vector3.Zero;
-        var endPosition = EndNode != null
-            ? ToLocal(EndNode.GlobalPosition)
+
+        var nodeEndPosition = EndNode.GetSafeGlobalPosition();
+        var endPosition = nodeEndPosition != null
+            ? ToLocal(nodeEndPosition.Value)
             : startPosition + Vector3.Right * segmentLength * (SimulationSegments + 1);
 
         var positions = SegmentPlaceUtility.ConnectPoints(startPosition, endPosition, Vector3.Forward, segmentLength, SimulationSegments);
@@ -151,7 +154,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
             segmentBodies[0].AddChild(SetPinParameters(new PinJoint3D
             {
                 Position = Vector3.Zero,
-                NodeA = StartBody?.GetPath(),
+                NodeA = StartBody.GetSafePath(),
                 NodeB = segmentBodies[0].GetPath()
             }));
         }
@@ -176,7 +179,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
             {
                 Position = jointPosition,
                 NodeA = segmentBodies[^1].GetPath(),
-                NodeB = EndBody?.GetPath()
+                NodeB = EndBody.GetSafePath()
             }));
         }
     }

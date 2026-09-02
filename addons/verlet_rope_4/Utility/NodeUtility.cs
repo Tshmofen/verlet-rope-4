@@ -81,5 +81,15 @@ public static class NodeUtility
         {
             SetSubtreeOwner(child, owner);
         }
-    } 
+    }
+
+    public static Vector3? GetSafeGlobalPosition(this Node3D node)
+    {
+        return node?.IsInsideTree() == true ? node.GlobalPosition : null;
+    }
+
+    public static NodePath GetSafePath(this Node3D node)
+    {
+        return node?.IsInsideTree() == true ? node.GetPath() : null;
+    }
 }

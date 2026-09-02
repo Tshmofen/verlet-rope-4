@@ -93,7 +93,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         RopeMesh.TubeSegments = TubeSegments;
         RopeMesh.MaterialOverride = MaterialOverride;
 
-        _previousGlobalPosition = StartNode?.GlobalPosition ?? GlobalPosition;
+        _previousGlobalPosition = StartNode.GetSafeGlobalPosition() ?? GlobalPosition;
     }
 
     /// <summary> Removes underlying particles data and disables rendering. Rope should be created using `CreateRope` to start working again. </summary>
@@ -139,7 +139,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
 
         if (RenderMode == RopeRenderMode.PhysicsAndMovement)
         {
-            var currentGlobalPosition = StartNode?.GlobalPosition ?? GlobalPosition;
+            var currentGlobalPosition = StartNode.GetSafeGlobalPosition() ?? GlobalPosition;
             var changeDelta = currentGlobalPosition - _previousGlobalPosition;
             _previousGlobalPosition = currentGlobalPosition;
 

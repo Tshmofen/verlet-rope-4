@@ -1,5 +1,6 @@
 ﻿using System;
 using Godot;
+using VerletRope4.Utility;
 
 namespace VerletRope4.Physics.Joints;
 
@@ -64,8 +65,8 @@ public partial class DistanceForceJoint : Node, IVerletExported
             return;
         }
 
-        var a = CustomLocationA?.GlobalPosition ?? BodyA?.GlobalPosition;
-        var b = CustomLocationB?.GlobalPosition ?? BodyB?.GlobalPosition;
+        var a = CustomLocationA.GetSafeGlobalPosition() ?? BodyA.GetSafeGlobalPosition();
+        var b = CustomLocationB.GetSafeGlobalPosition() ?? BodyB.GetSafeGlobalPosition();
 
         if (a == null || b == null)
         {

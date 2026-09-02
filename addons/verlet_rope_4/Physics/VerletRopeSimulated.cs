@@ -591,12 +591,12 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         }
         
         ref var start = ref ParticleData![0];
-        start.PositionCurrent = StartNode?.GlobalPosition ?? GlobalPosition;
+        start.PositionCurrent = StartNode.GetSafeGlobalPosition() ?? GlobalPosition;
         
         ref var end = ref ParticleData![ParticleData.Count - 1];
-        if (end.IsAttached && EndNode != null)
+        if (end.IsAttached)
         {
-            end.PositionCurrent = EndNode.GlobalPosition;
+            end.PositionCurrent = EndNode.GetSafeGlobalPosition() ?? end.PositionCurrent;
         }
 
         var simulationDeltaF = (float)_simulationDelta;
@@ -641,8 +641,8 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
         _restSegmentLength = RopeMesh.RopeLength / (ParticleData?.Count ?? SimulationParticles - 1);
         var acceleration = Gravity * GravityScale;
-        var startLocation = StartNode?.GlobalPosition ?? GlobalPosition;
-        var endLocation = EndNode?.GlobalPosition ?? startLocation;
+        var startLocation = StartNode.GetSafeGlobalPosition() ?? GlobalPosition;
+        var endLocation = EndNode.GetSafeGlobalPosition() ?? startLocation;
         ParticleData = RopeParticleData.GenerateParticleData(startLocation, endLocation, acceleration, SimulationParticles, _restSegmentLength);
 
         if (ConnectedJoint is VerletJointSimulated simulatedJoint)
