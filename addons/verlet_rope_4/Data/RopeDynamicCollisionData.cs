@@ -2,10 +2,10 @@
 
 namespace VerletRope4.Data;
 
-public class RopeDynamicCollisionData
+public readonly struct RopeDynamicCollisionData
 {
-    public RigidBody3D Body { get; set; }
-    public Vector3 Movement { get; set; }
-    public Vector3 PreviousPosition { get; set; }
-    public ulong TrackingStamp { get; set; }
+    public RigidBody3D Body { get; init; }
+    public Vector3 Movement { get; init; }
+    public Vector3 PreviousPosition { get; init; }
+    public ulong TrackingStamp { get; init; }
 }

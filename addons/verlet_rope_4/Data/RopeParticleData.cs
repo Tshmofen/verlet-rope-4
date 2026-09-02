@@ -32,13 +32,13 @@ public sealed class RopeParticleData
             data[i] = new RopeParticle();
             ref var particle = ref data[i];
             particle.Tangent = particle.Normal = particle.Binormal = Vector3.Zero;
-            particle.PositionCurrent = particle.PositionPrevious = startLocation + (direction * segmentLength * i);
+            particle.PositionCurrent = particle.PositionRender = particle.PositionPrevious = startLocation + (direction * segmentLength * i);
             particle.Acceleration = initialAcceleration;
             particle.IsAttached = false;
 
             if (isUnwrapping)
             {
-                particle.PositionPrevious = particle.PositionCurrent = new Vector3(
+                particle.PositionPrevious = particle.PositionCurrent = particle.PositionRender = new Vector3(
                     particle.PositionCurrent.X + Random.RandfRange(-UnwrappingJitter, UnwrappingJitter),
                     particle.PositionCurrent.Y + Random.RandfRange(-UnwrappingJitter, UnwrappingJitter),
                     particle.PositionCurrent.Z + Random.RandfRange(-UnwrappingJitter, UnwrappingJitter)
@@ -58,7 +58,7 @@ public sealed class RopeParticleData
             data[i] = new RopeParticle();
             ref var particle = ref data[i];
             particle.Tangent = particle.Normal = particle.Binormal = Vector3.Zero;
-            particle.PositionCurrent = particle.PositionPrevious = particlePositions[i];
+            particle.PositionCurrent = particle.PositionRender = particle.PositionPrevious = particlePositions[i];
             particle.Acceleration = Vector3.Zero;
             particle.IsAttached = false;
         }
@@ -67,14 +67,16 @@ public sealed class RopeParticleData
     }
 }
 
-// TODO: Make providers implement interface/base with only PositionCurrent, so that bookmark properties were not exposed when not needed
 public struct RopeParticle
 {
-    /// <summary> The current position of the particle for this frame - used for mesh generation. </summary>
+    /// <summary> Bookmark provider property - The position of the particle from the previous frame. used to calculate velocity. </summary>
     public Vector3 PositionPrevious { get; set; }
 
-    /// <summary> Bookmark provider property - The position of the particle from the previous frame. used to calculate velocity. </summary>
+    /// <summary>The current position of the particle for this frame - used for actual position tracking. </summary>
     public Vector3 PositionCurrent { get; set; }
+
+    /// <summary> The current smoothed position of the particle for this frame - used for rendering. </summary>
+    public Vector3 PositionRender { get; set; }
 
     /// <summary> Bookmark provider property - The acceleration applied to this particle (i.e. combined from gravity, wind or any other forces). </summary>
     public Vector3 Acceleration { get; set; }

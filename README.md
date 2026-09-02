@@ -33,7 +33,7 @@ This addon allows creation of dynamic and physics-based ropes, specifically offe
 </p>
 
 ## Features
-1. **Generation of flat-plane rope meshes** using tessellation with Catmull-Rom splines.
+1. **Generation of rope meshes** - either 2D ribbons or 3D tube meshes - using tessellation with Catmull-Rom splines.
 2. **Two variants of rope simulation**: fully verlet-based (optionally affected by other bodies) and built-in physics-based (both affects and is affected by other bodies).
 3. **Integrated joint nodes** allowing to connect ropes to other nodes and physical bodies, constraining their movement.
 4. **Many adjustable parameters**: particle & segment counts; lengths & widths; custom simulation rates; wind & gravity forces; customizable damping; customizable visuals; and other fine-tuning settings specific to each rope variant.

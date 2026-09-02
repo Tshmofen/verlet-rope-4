@@ -1,0 +1,1 @@
+*Unfortunately property descriptions available at this Wiki are not shown within the Godot editor until <https://github.com/godotengine/godot-proposals/issues/8269> gets implemented, please refer to this documentation for details until then.*

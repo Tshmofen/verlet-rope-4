@@ -1,5 +1,6 @@
-﻿using System;
-using Godot;
+﻿using Godot;
+using System;
+using VerletRope.Data;
 using VerletRope4.Data;
 using VerletRope4.Physics.Joints;
 using VerletRope4.Rendering;
@@ -14,6 +15,8 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     private EditorUndoRedoManager _undoRedoManager;
     #endif
 
+    private bool _skipPhysicsRender;
+    private Vector3 _previousGlobalPosition;
     private Vector3[] _editorVertexPositions = [];
     private VerletRopeMesh _ropeMesh;
 
@@ -35,22 +38,35 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
 
     /// <summary> Returns whether rope is created at the moment, managed via <see cref="CreateRope"/> and <see cref="DestroyRope"/>. </summary>
     public abstract bool IsRopeCreated { get; }
-    
+
     // Properties have the same default values as on `RopeMesh`
-    /// <inheritdoc cref="VerletRopeMesh.RopeLength"/>
+    /// <inheritdoc cref="RopeMeshType"/>
     [ExportGroup("Visuals")]
+    [Export] public RopeMeshType MeshType { get; set; } = RopeMeshType.Ribbon;
+    /// <inheritdoc cref="VerletRopeMesh.RopeLength"/>
     [Export] public float RopeLength { get; set; } = 3.0f;
     /// <inheritdoc cref="VerletRopeMesh.RopeWidth"/>
     [Export] public float RopeWidth { get; set; } = 0.07f;
+
+    /// <inheritdoc cref="RopeRenderMode"/>
+    [Export] public RopeRenderMode RenderMode { get; set; } = RopeRenderMode.PhysicsAndMovement;
+    /// <inheritdoc cref="VerletRopeMesh.RopeSmoothing"/>
+    [Export(PropertyHint.Range, "0,0.99,0.01")] public float RopeSmoothing { get; set; } = 0.7f;
+    /// <inheritdoc cref="VerletRopeMesh.IsSmoothRopeStart"/>
+    [Export] public bool IsSmoothRopeStart { get; set; } = true;
+    /// <inheritdoc cref="VerletRopeMesh.IsSmoothRopeEnd"/>
+    [Export] public bool IsSmoothRopeEnd { get; set; } = true;
     /// <inheritdoc cref="VerletRopeMesh.SubdivisionLodDistance"/>
     [Export] public float SubdivisionLodDistance { get; set; } = 15.0f;
     /// <inheritdoc cref="VerletRopeMesh.UseVisibleOnScreenNotifier"/>
     [Export] public bool UseVisibleOnScreenNotifier { get; set; } = true;
     /// <inheritdoc cref="VerletRopeMesh.UseDebugParticles"/>
     [Export] public bool UseDebugParticles { get; set; } = false;
+    /// <inheritdoc cref="VerletRopeMesh.TubeSegments"/>
+    [Export(PropertyHint.Range, "3,32")] public int TubeSegments { get; set; } = 6;
     /// <inheritdoc cref="VerletRopeMesh.MaterialOverride"/>
     [Export] public Material MaterialOverride { get; set; }
-    
+
     /// <summary> Resets the rope and all corresponding properties, have to be called after any property changes. It is being called when you press `Reset Rope` quick button. </summary>
     public virtual void CreateRope(bool forceReset = true)
     {
@@ -65,12 +81,19 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
             );
         }
 
+        RopeMesh.MeshType = MeshType;
         RopeMesh.RopeLength = RopeLength;
         RopeMesh.RopeWidth = RopeWidth;
+        RopeMesh.RopeSmoothing = RopeSmoothing;
+        RopeMesh.IsSmoothRopeStart = IsSmoothRopeStart;
+        RopeMesh.IsSmoothRopeEnd = IsSmoothRopeEnd;
         RopeMesh.SubdivisionLodDistance = SubdivisionLodDistance;
         RopeMesh.UseVisibleOnScreenNotifier = UseVisibleOnScreenNotifier;
         RopeMesh.UseDebugParticles = UseDebugParticles;
+        RopeMesh.TubeSegments = TubeSegments;
         RopeMesh.MaterialOverride = MaterialOverride;
+
+        _previousGlobalPosition = StartNode.GetSafeGlobalPosition() ?? GlobalPosition;
     }
 
     /// <summary> Removes underlying particles data and disables rendering. Rope should be created using `CreateRope` to start working again. </summary>
@@ -84,7 +107,53 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         return $"verlet_rope_physical_{action}";
     }
 
-    #region Joint / Attachment
+    protected void TryDrawRope(bool isPhysics = true)
+    {
+        if (ParticleData == null || ParticleData.Count == 0)
+        {
+            return;
+        }
+
+        if (isPhysics && RenderMode == RopeRenderMode.Process)
+        {
+            return;
+        }
+
+        if (isPhysics && _skipPhysicsRender)
+        {
+            _skipPhysicsRender = false;
+            return;
+        }
+
+        RopeMesh.DrawRopeParticles(ParticleData);
+        RopeMesh.UpdateRopeVisibility(ParticleData);
+        _skipPhysicsRender = !isPhysics;
+    }
+    
+    public override void _Process(double delta)
+    {
+        if (RenderMode == RopeRenderMode.Physics || ParticleData == null || ParticleData.Count == 0)
+        {
+            return;
+        }
+
+        if (RenderMode == RopeRenderMode.PhysicsAndMovement)
+        {
+            var currentGlobalPosition = StartNode.GetSafeGlobalPosition() ?? GlobalPosition;
+            var changeDelta = currentGlobalPosition - _previousGlobalPosition;
+            _previousGlobalPosition = currentGlobalPosition;
+
+            if (changeDelta.IsZeroApprox())
+            {
+                return;
+            }
+        }
+
+        // Sync the mesh render to ensure no flickering when node is moved between physics frames.
+        // The mesh origin updates immediately when the parent moves, but the particle positions are
+        // only updated on physics ticks – redrawing in _Process prevents a one‑frame misalignment.
+        TryDrawRope(false);
+    }
 
     public override void _Ready()
     {
@@ -93,8 +162,12 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
             CreateRope();
             RopeMesh.UpdateRopeVisibility(ParticleData);
         }
+
+        _previousGlobalPosition = GlobalPosition;
     }
 
+    #region Joint / Attachment
+    
     private void SetAttachmentPointsInternal(PhysicsBody3D startBody, Node3D startLocation, PhysicsBody3D endBody, Node3D endLocation)
     {
         PreviousStart = StartNode ?? StartBody;

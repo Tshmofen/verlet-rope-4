@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://bota3ppynjsu1"]
+[gd_scene format=4 uid="uid://bota3ppynjsu1"]
 
 [ext_resource type="Script" uid="uid://cmi6i20suro26" path="res://demo/scripts/RotatingCameraDemo.cs" id="1_tdg64"]
 [ext_resource type="PackedScene" uid="uid://cqnic6frw022r" path="res://demo/objects/ground.tscn" id="1_ykvhj"]
@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://2ob0knp0cjht" path="res://demo/objects/moving_cylinder.tscn" id="6_xm42s"]
 [ext_resource type="Script" uid="uid://cuw8dk3lkvm2n" path="res://addons/verlet_rope_4/Physics/Joints/VerletJointRigid.cs" id="7_s1s6j"]
 [ext_resource type="PackedScene" uid="uid://blrqcmax3ddjm" path="res://demo/objects/moving_box.tscn" id="7_tdg64"]
+[ext_resource type="Texture2D" uid="uid://bdyrap1xas7ne" path="res://demo/textures/rope-seamless.png" id="8_fy1p0"]
 [ext_resource type="Script" uid="uid://bpkliplhsl25q" path="res://addons/verlet_rope_4/Rendering/VerletRopeMesh.cs" id="8_nk31j"]
 [ext_resource type="PackedScene" uid="uid://cxvtuenfotsv0" path="res://demo/objects/enclosure.tscn" id="9_1rqa4"]
 [ext_resource type="PackedScene" uid="uid://x5fpe8w6qchm" path="res://demo/objects/moving_box_small.tscn" id="12_xm42s"]
@@ -44,9 +45,8 @@ albedo_color = Color(0.419608, 0.345098, 1, 1)
 cull_mode = 2
 albedo_color = Color(0, 0.909527, 0.380237, 1)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ykvhj"]
-cull_mode = 2
-albedo_color = Color(0, 0.537301, 0.892989, 1)
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fy1p0"]
+albedo_texture = ExtResource("8_fy1p0")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nk31j"]
 albedo_color = Color(0.873917, 0.609853, 0, 1)
@@ -55,9 +55,18 @@ albedo_color = Color(0.873917, 0.609853, 0, 1)
 cull_mode = 2
 albedo_color = Color(0.789868, 0.610247, 0, 1)
 
-[sub_resource type="ImmediateMesh" id="ImmediateMesh_nk31j"]
+[sub_resource type="ArrayMesh" id="ArrayMesh_fy1p0"]
 resource_local_to_scene = true
-metadata/verlet_rope_internal_stamp = 17436745208425
+_surfaces = [{
+"aabb": AABB(-0.16980368, -0.19924799, -0.0362218, 0.626269, 0.250102, 0.5803193),
+"attribute_data": PackedByteArray("AAAAAAAAAAAAAIA/AAAAAAAAgD8AAIA/AAAAAAAAAAAAAIA/AACAPwAAAAAAAIA/AACAPwAAAAAAAIA/AAAAAAAAgD8AAIA/AACAPwAAAAAAAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAAA/AAAAAAAAAD8AAIA/AAAAAAAAAAAAAAA/AACAPwAAAAAAAIA/AAAAPwAAAAAAAIA/AAAAAAAAgD8AAIA/AAAAPwAAAAAAAIA/AACAPwAAAD8AAIA/AACAPwAAAAAAAIA/AAAAAAAAgD8AAIA/AACAPwAAAAAAAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAAA/AAAAAAAAAD8AAIA/AAAAAAAAAAAAAAA/AACAPwAAAAAAAIA/AAAAPwAAAAAAAIA/AAAAAAAAgD8AAIA/AAAAPwAAAAAAAIA/AACAPwAAAD8AAIA/AACAPwAAAAAAAIA/AAAAAAAAgD8AAIA/AACAPwAAAAAAAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAAA/AAAAAAAAAD8AAIA/AAAAAAAAAAAAAAA/AACAPwAAAAAAAIA/AAAAPwAAAAAAAIA/AAAAAAAAgD8AAIA/AAAAPwAAAAAAAIA/AACAPwAAAD8AAIA/AACAPwAAAAAAAIA/AAAAAAAAgD8AAIA/AACAPwAAAAAAAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAAA/AAAAAAAAAD8AAIA/AAAAAAAAAAAAAAA/AACAPwAAAAAAAIA/AAAAPwAAAAAAAIA/AAAAAAAAgD8AAIA/AAAAPwAAAAAAAIA/AACAPwAAAD8AAIA/AACAPwAAAAAAAIA/AAAAAAAAgD8AAIA/AACAPwAAAAAAAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAAA/AAAAAAAAAD8AAIA/AAAAAAAAAAAAAAA/AACAPwAAAAAAAIA/AAAAPwAAAAAAAIA/AAAAAAAAgD8AAIA/AAAAPwAAAAAAAIA/AACAPwAAAD8AAIA/AACAPwAAAAAAAIA/AAAAAAAAgD8AAIA/AACAPwAAAAAAAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAAA/AAAAAAAAAD8AAIA/AAAAAAAAAAAAAAA/AACAPwAAAAAAAIA/AAAAPwAAAAAAAIA/AAAAAAAAgD8AAIA/AAAAPwAAAAAAAIA/AACAPwAAAD8AAIA/AACAPwAAAAAAAIA/AAAAAAAAgD8AAIA/AACAPwAAAAAAAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAAA/AAAAAAAAAD8AAIA/AAAAAAAAAAAAAAA/AACAPwAAAAAAAIA/AAAAPwAAAAAAAIA/AAAAAAAAgD8AAIA/AAAAPwAAAAAAAIA/AACAPwAAAD8AAIA/AACAPwAAAAAAAIA/AAAAAAAAgD8AAIA/AACAPwAAAAAAAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAIA/AAAAAAAAgD8AAIA/AAAAAAAAAAAAAIA/AACAPwAAAAAAAIA/AACAPwAAAAAAAIA/AAAAAAAAgD8AAIA/AACAPwAAAAAAAIA/AACAPwAAgD8AAIA/"),
+"format": 34359738391,
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 150,
+"vertex_data": PackedByteArray("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")
+}]
+metadata/verlet_rope_internal_stamp = 33705510901975
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1rqa4"]
 albedo_color = Color(0.582917, 0, 0.0906055, 1)
@@ -118,6 +127,7 @@ SimulationBehavior = 2
 ApplyWind = true
 WindDirection = Vector3(40, 0, 100)
 WindNoise = SubResource("FastNoiseLite_oeqrt")
+RopeSmoothing = 0.75
 MaterialOverride = SubResource("StandardMaterial3D_onvmd")
 metadata/VerletRopeObject = true
 
@@ -134,6 +144,7 @@ SimulationBehavior = 2
 ApplyWind = true
 WindDirection = Vector3(0, 0, 100)
 WindNoise = SubResource("FastNoiseLite_oeqrt")
+RopeSmoothing = 0.75
 MaterialOverride = SubResource("StandardMaterial3D_onvmd")
 metadata/_custom_type_script = "uid://c3oxgehluk75x"
 metadata/VerletRopeObject = true
@@ -145,6 +156,7 @@ SimulationBehavior = 2
 ApplyWind = true
 WindDirection = Vector3(0, 0, 100)
 WindNoise = SubResource("FastNoiseLite_oeqrt")
+RopeSmoothing = 0.75
 MaterialOverride = SubResource("StandardMaterial3D_oeqrt")
 metadata/_custom_type_script = "uid://c3oxgehluk75x"
 metadata/VerletRopeObject = true
@@ -170,6 +182,7 @@ RopeCollisionType = 2
 RopeCollisionBehavior = 1
 StaticCollisionMask = 3
 DynamicCollisionMask = 2
+RopeSmoothing = 0.75
 MaterialOverride = SubResource("StandardMaterial3D_u10mr")
 metadata/VerletRopeObject = true
 
@@ -188,7 +201,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 7.35137e-08, 0, -7.35137e-08, 1, 0, -1.42
 transform = Transform3D(1, 0, 0, 0, 1, 7.35137e-08, 0, -7.35137e-08, 1, 0, 1.43101, 0.425)
 
 [node name="VerletRopeStatic" type="Node3D" parent="RopeDemos/MovingRopes" unique_id=1197775409]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.35236, 3.68133, 5.42262)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.4002213, 4.4033, 5.2826195)
 script = ExtResource("2_lows4")
 SimulationParticles = 30
 SimulationBehavior = 2
@@ -197,8 +210,11 @@ RopeCollisionType = 2
 RopeCollisionBehavior = 1
 StaticCollisionMask = 3
 DynamicCollisionMask = 2
+IsSelfColliding = true
+MeshType = 1
 RopeLength = 5.0
-MaterialOverride = SubResource("StandardMaterial3D_ykvhj")
+RopeWidth = 0.04
+MaterialOverride = SubResource("StandardMaterial3D_fy1p0")
 metadata/VerletRopeObject = true
 
 [node name="MovingBox" parent="RopeDemos/MovingRopes" unique_id=1591645862 instance=ExtResource("7_tdg64")]
@@ -212,7 +228,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.04854, 1.85273, 6.91196)
 script = ExtResource("2_lows4")
 IsDisabledWhenInvisible = false
 SimulationBehavior = 2
+MeshType = 1
 RopeLength = 1.2
+RopeSmoothing = 0.75
 MaterialOverride = SubResource("StandardMaterial3D_nk31j")
 metadata/_custom_type_script = "uid://c3oxgehluk75x"
 
@@ -239,6 +257,7 @@ IgnoreCollisionStretch = 3.0
 StaticCollisionMask = 7
 DynamicCollisionMask = 2
 RopeLength = 0.75
+RopeSmoothing = 0.75
 MaterialOverride = SubResource("StandardMaterial3D_onu7k")
 metadata/VerletRopeObject = true
 
@@ -255,9 +274,10 @@ metadata/VerletRopeObject = true
 [node name="Node3D" type="MeshInstance3D" parent="RopeDemos/PhysicsJointRope/VerletRope" unique_id=1848378827]
 transform = Transform3D(1.0000001, 0, 0, 0, 1, 0, 0, 0, 1.0000001, 0, 0, 0)
 material_override = SubResource("StandardMaterial3D_onu7k")
-mesh = SubResource("ImmediateMesh_nk31j")
+mesh = SubResource("ArrayMesh_fy1p0")
 script = ExtResource("8_nk31j")
 RopeLength = 0.75
+RopeSmoothing = 0.75
 
 [node name="MovingBoxStart" parent="RopeDemos/PhysicsJointRope" unique_id=1483220757 instance=ExtResource("7_tdg64")]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, -2.32936, 0.133589, 2.83518)
@@ -282,6 +302,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.3075945, 3.36653, 6.790944
 script = ExtResource("5_onu7k")
 CollisionLayer = 7
 CollisionMask = 7
+MeshType = 1
+RopeSmoothing = 0.75
+IsSmoothRopeEnd = false
 MaterialOverride = SubResource("StandardMaterial3D_1rqa4")
 
 [node name="JointRigid" type="Node" parent="RopeDemos/RigidRope/VerletRopeRigid" unique_id=706813709 node_paths=PackedStringArray("VerletRope", "EndBody", "EndCustomLocation")]

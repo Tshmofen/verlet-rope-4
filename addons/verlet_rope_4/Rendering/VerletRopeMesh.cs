@@ -1,5 +1,9 @@
 using Godot;
 using System.Collections.Generic;
+using VerletRope.Data;
+using VerletRope.Rendering;
+using VerletRope.Rendering.Tools;
+using VerletRope.Utility;
 using VerletRope4.Data;
 
 namespace VerletRope4.Rendering;
@@ -15,21 +19,38 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
     private const string DefaultMaterialPath = "res://addons/verlet_rope_4/Materials/rope_default.material";
     private const string CreationStampMeta = "verlet_rope_internal_stamp";
 
-    private static readonly float Cos5Deg = Mathf.Cos(Mathf.DegToRad(5.0f));
-    private static readonly float Cos15Deg = Mathf.Cos(Mathf.DegToRad(15.0f));
-    private static readonly float Cos30Deg = Mathf.Cos(Mathf.DegToRad(30.0f));
+    private static readonly RopeMeshDebugTool MeshDebugTool = new();
+    private static readonly Dictionary<RopeMeshType, IRopeMeshTool> MeshTools = new()
+    {
+        { RopeMeshType.Ribbon, new RopeMeshRibbonTool() },
+        { RopeMeshType.Tube, new RopeMeshTubeTool() }
+    };
     
     private bool _useVisibleOnScreenNotifier = true;
     private VisibleOnScreenNotifier3D _visibleNotifier;
-    private ImmediateMesh _mesh;
-    private Camera3D _camera;
     private double _simulationDelta;
     
-    /// <summary> Determines total target length of the rope, it is just a base value and actual length might be different depending on physics and configured behavior. </summary>
+    private SurfaceTool _surfaceTool;
+    private ArrayMesh _arrayMesh;
+
+    #region Exported Properties
+    
+    /// <inheritdoc cref="RopeMeshType"/>
     [ExportGroup("Visuals")]
+    [Export] public RopeMeshType MeshType { get; set; } = RopeMeshType.Ribbon;
+    /// <summary> Determines total target length of the rope, it is just a base value and actual length might be different depending on physics and configured behavior. </summary>
     [Export] public float RopeLength { get; set; } = 3.0f;
     /// <summary> Determines visual width of the rope, does not affect rope behavior. </summary>
     [Export] public float RopeWidth { get; set; } = 0.07f;
+    /// <summary>
+    /// The amount of rope smoothing, bigger values make rope more gentle, but also less responsive.
+    /// When set to 0, the smoothing is completely disabled and might lead to jitter.
+    /// </summary>
+    [Export(PropertyHint.Range, "0,0.99,0.01")] public float RopeSmoothing { get; set; } = 0.7f;
+    /// <summary> Determines whether start of the rope should be smoothed. Might be disabled when it should be attached to a moving point very rigidly. </summary>
+    [Export] public bool IsSmoothRopeStart { get; set; } = true;
+    /// <summary> Determines whether end of the rope should be smoothed. Might be disabled when it should be attached to a moving point very rigidly. </summary>
+    [Export] public bool IsSmoothRopeEnd { get; set; } = true;
     /// <summary> If distance to particle is greater than <see cref="SubdivisionLodDistance"/>, the corresponding segment is not subdivided for rendering. </summary>
     [Export] public float SubdivisionLodDistance { get; set; } = 15.0f;
     /// <summary> Creates a child <see cref="VisibleOnScreenNotifier3D"/> when enabled. Is only triggered on <see cref="_Ready"/> calls. </summary>
@@ -40,29 +61,16 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
     }
     /// <summary> Draws orientation axis from every actual particle position when enabled. </summary>
     [Export] public bool UseDebugParticles { get; set; } = false;
-    
+    /// <summary> Determines amount of segments of each cylinder when <see cref="RopeMeshType.Tube"/> is used, does not affect rope behavior. </summary>
+    [Export(PropertyHint.Range, "3,32")] public int TubeSegments { get; set; } = 6;
+
     /// <summary> If <see cref="VisibleOnScreenNotifier3D"/> is being used, returns if rope is actually visible - otherwise always returns <b>true</b>. </summary>
     public bool IsRopeVisible => _visibleNotifier?.IsOnScreen() ?? true;
 
+    #endregion
+
     #region Util
-
-    private (Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3) GetSimulationParticles(RopeParticleData particles, int index)
-    {
-        var p0 = (index == 0)
-            ? particles[index].PositionCurrent - (particles[index].Tangent * GetAverageSegmentLength(particles.Count))
-            : particles[index - 1].PositionCurrent;
-
-        var p1 = particles[index].PositionCurrent;
-
-        var p2 = particles[index + 1].PositionCurrent;
-
-        var p3 = index == particles.Count - 2
-            ? particles[index + 1].PositionCurrent + (particles[index + 1].Tangent * GetAverageSegmentLength(particles.Count))
-            : particles[index + 2].PositionCurrent;
-
-        return (p0, p1, p2, p3);
-    }
-
+    
     private float GetAverageSegmentLength(int particleCount)
     {
         return RopeLength / (particleCount - 1);
@@ -75,174 +83,96 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
         GlobalTransform = new Transform3D(Basis.Identity, GlobalPosition);
     }
 
-    #endregion
-
-    private static void CatmullInterpolate(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float tension, float t, out Vector3 point, out Vector3 tangent)
+    private MeshRenderContext GetMeshRenderContext(RopeParticleData particles)
     {
-        // Fast catmull spline
-        var tSqr = t * t;
-        var tCube = tSqr * t;
-
-        var m1 = (1f - tension) / 2f * (p2 - p0);
-        var m2 = (1f - tension) / 2f * (p3 - p1);
-
-        var a = (2f * (p1 - p2)) + m1 + m2;
-        var b = (-3f * (p1 - p2)) - (2f * m1) - m2;
-
-        point = (a * tCube) + (b * tSqr) + (m1 * t) + p1;
-        tangent = ((3f * a * tSqr) + (2f * b * t) + m1).Normalized();
-    }
-
-    private void DrawQuad(IReadOnlyList<Vector3> vertices, Vector3 normal, float uvx0, float uvx1)
-    {
-        // NOTE: still may need tangents setup for normal mapping, not tested
-        // SetTangent(new Plane(-t, 0.0f));
-        _mesh.SurfaceSetNormal(normal);
-        _mesh.SurfaceSetUV(new Vector2(uvx0, 0.0f));
-        _mesh.SurfaceAddVertex(vertices[0]);
-        _mesh.SurfaceSetUV(new Vector2(uvx1, 0.0f));
-        _mesh.SurfaceAddVertex(vertices[1]);
-        _mesh.SurfaceSetUV(new Vector2(uvx1, 1.0f));
-        _mesh.SurfaceAddVertex(vertices[2]);
-        _mesh.SurfaceSetUV(new Vector2(uvx0, 0.0f));
-        _mesh.SurfaceAddVertex(vertices[0]);
-        _mesh.SurfaceSetUV(new Vector2(uvx1, 1.0f));
-        _mesh.SurfaceAddVertex(vertices[2]);
-        _mesh.SurfaceSetUV(new Vector2(uvx0, 1.0f));
-        _mesh.SurfaceAddVertex(vertices[3]);
-    }
-
-    private float GetDrawSubdivisionStep(RopeParticleData particles, Vector3 cameraPosition, int particleIndex)
-    {
-        var camDistParticle = cameraPosition - particles[particleIndex].PositionCurrent;
-        if (camDistParticle.LengthSquared() > SubdivisionLodDistance * SubdivisionLodDistance)
+        return new MeshRenderContext
         {
-            return 1.0f;
-        }
-
-        var tangentDots = particles[particleIndex].Tangent.Dot(particles[particleIndex + 1].Tangent);
-        return
-            tangentDots >= Cos5Deg ? 1.0f :
-            tangentDots >= Cos15Deg ? 0.5f :
-            tangentDots >= Cos30Deg ? 0.33333f :
-            0.25f;
+            Particles = particles,
+            RopeWidth = RopeWidth,
+            ArrayMesh = _arrayMesh,
+            SurfaceTool = _surfaceTool,
+            TubeSegments = TubeSegments,
+            GlobalPosition = GlobalPosition,
+            CurrentCamera = GetCurrentCamera(),
+            SubdivisionLodDistance = SubdivisionLodDistance,
+            AverageSegmentLength = GetAverageSegmentLength(particles.Count)
+        };
     }
 
-    private void CalculateRopeCameraOrientation(RopeParticleData particles)
+    private Camera3D GetCurrentCamera()
     {
-        var cameraPosition = _camera?.GlobalPosition ?? Vector3.Zero;
+        #if TOOLS
+        return Engine.IsEditorHint()
+            ? EditorInterface.Singleton.GetEditorViewport3D().GetCamera3D()
+            : GetViewport().GetCamera3D();
+        #else
+        return GetViewport().GetCamera3D();
+        #endif
+    }
+
+    private static void CalculateRopeCameraOrientation(MeshRenderContext context)
+    {
+        var cameraPosition = context.CurrentCamera?.GlobalPosition ?? Vector3.Zero;
+        var particles = context.Particles;
 
         ref var start = ref particles[0];
-        start.Tangent = (particles[1].PositionCurrent - start.PositionCurrent).Normalized();
-        start.Normal = (start.PositionCurrent - cameraPosition).Normalized();
+        start.Tangent = (particles[1].PositionRender - start.PositionRender).Normalized();
+        start.Normal = (start.PositionRender - cameraPosition).Normalized();
         start.Binormal = start.Normal.Cross(start.Tangent).Normalized();
 
         ref var end = ref particles[particles.Count - 1];
-        end.Tangent = (end.PositionCurrent - particles[particles.Count - 2].PositionCurrent).Normalized();
-        end.Normal = (end.PositionCurrent - cameraPosition).Normalized();
+        end.Tangent = (end.PositionRender - particles[particles.Count - 2].PositionRender).Normalized();
+        end.Normal = (end.PositionRender - cameraPosition).Normalized();
         end.Binormal = end.Normal.Cross(end.Tangent).Normalized();
 
         for (var i = 1; i < particles.Count - 1; i++)
         {
             ref var particle = ref particles[i];
-            particle.Tangent = (particles[i + 1].PositionCurrent - particles[i - 1].PositionCurrent).Normalized();
-            particle.Normal = (particles[i].PositionCurrent - cameraPosition).Normalized();
+            particle.Tangent = (particles[i + 1].PositionRender - particles[i - 1].PositionRender).Normalized();
+            particle.Normal = (particles[i].PositionRender - cameraPosition).Normalized();
             particle.Binormal = particles[i].Normal.Cross(particles[i].Tangent).Normalized();
         }
     }
 
-    private void DrawCurve(RopeParticleData particles)
+    private void CalculateRopeParticlesRenderPositions(MeshRenderContext context)
     {
-        _mesh.ClearSurfaces();
-        _mesh.SurfaceBegin(Mesh.PrimitiveType.Triangles);
-
-        var cameraPosition = _camera?.GlobalPosition ?? Vector3.Zero;
-
-        for (var i = 0; i < particles.Count - 1; i++)
-        {
-            var (p0, p1, p2, p3) = GetSimulationParticles(particles, i);
-            var step = GetDrawSubdivisionStep(particles, cameraPosition, i);
-            var t = 0.0f;
-
-            while (t <= 1.0f)
-            {
-                CatmullInterpolate(p0, p1, p2, p3, 0.0f, t, out var currentPosition, out var currentTangent);
-                CatmullInterpolate(p0, p1, p2, p3, 0.0f, Mathf.Min(t + step, 1.0f), out var nextPosition, out var nextTangent);
-
-                var currentNormal = (currentPosition - cameraPosition).Normalized();
-                var currentBinormal = currentNormal.Cross(currentTangent).Normalized();
-                currentPosition -= GlobalPosition;
-
-                var nextNormal = (nextPosition - cameraPosition).Normalized();
-                var nextBinormal = nextNormal.Cross(nextTangent).Normalized();
-                nextPosition -= GlobalPosition;
-
-                var vs = new[]
-                {
-                    currentPosition - (currentBinormal * RopeWidth),
-                    nextPosition - (nextBinormal * RopeWidth),
-                    nextPosition + (nextBinormal * RopeWidth),
-                    currentPosition + (currentBinormal * RopeWidth)
-                };
-
-                DrawQuad(vs, -currentBinormal, t, t + step);
-                t += step;
-            }
-        }
-
-        _mesh.SurfaceEnd();
-    }
-
-    private void DrawRopeDebugParticles(RopeParticleData particles)
-    {        
-        if (!IsRopeVisible || !IsInsideTree())
-        {
-            return;
-        }
-
-        const float debugParticleLength = 0.3f;
-        _mesh.SurfaceBegin(Mesh.PrimitiveType.Lines);
+        var particles = context.Particles;
+        var smoothFactor = 1.0f - RopeSmoothing;
 
         for (var i = 0; i < particles.Count; i++)
         {
-            var particle = particles[i];
-            var localPosition = particle.PositionCurrent - GlobalPosition;
+            ref var particle = ref particles[i];
 
-            _mesh.SurfaceAddVertex(localPosition);
-            _mesh.SurfaceAddVertex(localPosition + (debugParticleLength * particle.Tangent));
-
-            _mesh.SurfaceAddVertex(localPosition);
-            _mesh.SurfaceAddVertex(localPosition + (debugParticleLength * particle.Normal));
-
-            _mesh.SurfaceAddVertex(localPosition);
-            _mesh.SurfaceAddVertex(localPosition + (debugParticleLength * particle.Binormal));
+            if (RopeSmoothing == 0 || (i == 0 && !IsSmoothRopeStart) || (i == particles.Count - 1 && !IsSmoothRopeEnd))
+            {
+                particle.PositionRender = particle.PositionCurrent;
+                continue;
+            }
+            
+            particle.PositionRender = MathUtility.Lerp(particle.PositionRender, particle.PositionCurrent, smoothFactor);
         }
-
-        _mesh.SurfaceEnd();
     }
 
+    #endregion
+    
     public void DrawRopeParticles(RopeParticleData particles)
     {
-        if (!IsRopeVisible || !IsInsideTree())
+        if (!IsRopeVisible || !IsInsideTree() || particles == null || particles.Count < 2)
         {
             return;
         }
-
-        #if TOOLS
-        _camera = Engine.IsEditorHint()
-            ? EditorInterface.Singleton.GetEditorViewport3D().GetCamera3D()
-            : GetViewport().GetCamera3D();
-        #else
-        _camera = GetViewport().GetCamera3D();
-        #endif
-
-        CalculateRopeCameraOrientation(particles);
+        
+        var renderContext = GetMeshRenderContext(particles);
+        CalculateRopeParticlesRenderPositions(renderContext);
+        CalculateRopeCameraOrientation(renderContext);
         ResetRopeRotation();
-        DrawCurve(particles);
+        
+        _arrayMesh.ClearSurfaces();
+        MeshTools[MeshType].DrawParticles(renderContext);
 
         if (UseDebugParticles)
         {
-            DrawRopeDebugParticles(particles);
+            MeshDebugTool.DrawParticles(renderContext);
         }
     }
 
@@ -259,8 +189,8 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
         for (var i = 0; i < particles.Count; i++)
         {
             ref var particle = ref particles[i];
-            minPosition = minPosition.Min(particle.PositionCurrent);
-            maxPosition = maxPosition.Max(particle.PositionCurrent);
+            minPosition = minPosition.Min(particle.PositionRender);
+            maxPosition = maxPosition.Max(particle.PositionRender);
         }
 
         _visibleNotifier.Aabb = new Aabb(_visibleNotifier.ToLocal(minPosition), _visibleNotifier.ToLocal(maxPosition - minPosition)).Abs();
@@ -275,13 +205,14 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
 
     public override void _Ready()
     {
-        _mesh = Mesh as ImmediateMesh;
+        _surfaceTool = new SurfaceTool();
+        _arrayMesh = Mesh as ArrayMesh;
 
-        if (_mesh == null || _mesh.GetMeta(CreationStampMeta, 0ul).AsUInt64() != GetInstanceId())
+        if (_arrayMesh == null || _arrayMesh.GetMeta(CreationStampMeta, 0ul).AsUInt64() != GetInstanceId())
         {
-            Mesh = _mesh = new ImmediateMesh();
-            _mesh.SetMeta(CreationStampMeta, GetInstanceId());
-            _mesh.ResourceLocalToScene = true;
+            Mesh = _arrayMesh = new ArrayMesh();
+            _arrayMesh.ResourceLocalToScene = true;
+            _arrayMesh.SetMeta(CreationStampMeta, GetInstanceId());
         }
 
         if (UseVisibleOnScreenNotifier && !Engine.IsEditorHint())
