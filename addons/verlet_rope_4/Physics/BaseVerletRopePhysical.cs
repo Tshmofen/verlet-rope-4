@@ -15,6 +15,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     private EditorUndoRedoManager _undoRedoManager;
     #endif
 
+    private Vector3 _previousGlobalPosition;
     private Vector3[] _editorVertexPositions = [];
     private VerletRopeMesh _ropeMesh;
 
@@ -45,6 +46,9 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     [Export] public float RopeLength { get; set; } = 3.0f;
     /// <inheritdoc cref="VerletRopeMesh.RopeWidth"/>
     [Export] public float RopeWidth { get; set; } = 0.07f;
+
+    /// <inheritdoc cref="RopeInterpolationType"/>
+    [Export] public RopeInterpolationType InterpolationType { get; set; } = RopeInterpolationType.GlobalMovement;
     /// <inheritdoc cref="VerletRopeMesh.RopeSmoothing"/>
     [Export(PropertyHint.Range, "0,0.99,0.01")] public float RopeSmoothing { get; set; } = 0.7f;
     /// <inheritdoc cref="VerletRopeMesh.IsSmoothRopeStart"/>
@@ -87,6 +91,8 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         RopeMesh.UseDebugParticles = UseDebugParticles;
         RopeMesh.TubeSegments = TubeSegments;
         RopeMesh.MaterialOverride = MaterialOverride;
+
+        _previousGlobalPosition = StartNode?.GlobalPosition ?? GlobalPosition;
     }
 
     /// <summary> Removes underlying particles data and disables rendering. Rope should be created using `CreateRope` to start working again. </summary>
@@ -99,8 +105,35 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     {
         return $"verlet_rope_physical_{action}";
     }
+    
+    public override void _Process(double delta)
+    {
+        if (InterpolationType == RopeInterpolationType.None || ParticleData == null || ParticleData.Count == 0)
+        {
+            return;
+        }
 
-    #region Joint / Attachment
+        if (InterpolationType == RopeInterpolationType.GlobalMovement)
+        {
+            var currentGlobalPosition = StartNode?.GlobalPosition ?? GlobalPosition;
+            var changeDelta = currentGlobalPosition - _previousGlobalPosition;
+            _previousGlobalPosition = currentGlobalPosition;
+
+            if (changeDelta.IsZeroApprox())
+            {
+                return;
+            }
+        }
+        
+        // Sync the mesh render to ensure no flickering when node is moved between physics frames.
+        RopeMesh.DrawRopeParticles(ParticleData);
+        RopeMesh.UpdateRopeVisibility(ParticleData);
+
+        #if TOOLS
+        UpdateEditorCollision(ParticleData);
+        UpdateGizmos();
+        #endif
+    }
 
     public override void _Ready()
     {
@@ -111,6 +144,8 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         }
     }
 
+    #region Joint / Attachment
+    
     private void SetAttachmentPointsInternal(PhysicsBody3D startBody, Node3D startLocation, PhysicsBody3D endBody, Node3D endLocation)
     {
         PreviousStart = StartNode ?? StartBody;

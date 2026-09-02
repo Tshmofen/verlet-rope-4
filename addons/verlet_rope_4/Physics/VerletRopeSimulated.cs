@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Godot;
 using System.Linq;
@@ -603,8 +603,12 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         ApplyForces();
         VerletProcess(simulationDeltaF);
         ApplyConstraints(simulationDeltaF);
-        RopeMesh.DrawRopeParticles(ParticleData);
-        RopeMesh.UpdateRopeVisibility(ParticleData);
+
+        if (InterpolationType != RopeInterpolationType.Always)
+        {
+            RopeMesh.DrawRopeParticles(ParticleData);
+            RopeMesh.UpdateRopeVisibility(ParticleData);
+        }
 
         EmitSignalSimulationStep(_simulationDelta);
         _simulationDelta = 0;
