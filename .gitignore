@@ -17,3 +17,5 @@ mono_crash.*.json
 
 #Specific Addons
 addons/debug_draw_3d/
+
+.local-docs/
