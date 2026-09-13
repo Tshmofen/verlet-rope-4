@@ -1,5 +1,5 @@
-﻿using System;
-using Godot;
+﻿using Godot;
+using System;
 using VerletRope4.Utility;
 
 namespace VerletRope4.Physics.Joints;
@@ -16,12 +16,12 @@ public partial class DistanceForceJoint : Node, IVerletExported
     [Export] public PhysicsBody3D BodyA { get; set; }
     /// <summary> A custom location for <see cref="BodyA"/> joint, used in distance calculations. </summary>
     [Export] public Node3D CustomLocationA { get; set; }
-    
+
     /// <summary> Physical body used in joint calculations, by default <see cref="Node3D.GlobalPosition"/> is used as connection point. If is instance of <see cref="RigidBody3D"/>, the joint force will be applied to it. </summary>
     [Export] public PhysicsBody3D BodyB { get; set; }
     /// <summary> A custom location for <see cref="BodyB"/> joint, used in distance calculations. </summary>
     [Export] public Node3D CustomLocationB { get; set; }
-    
+
     /// <summary> The distance before joint force is start being applied. When is set to zero - constraint is not applied. </summary>
     [ExportCategory("Movement Settings")]
     [Export] public float MaxDistance { get; set; } = 1f;
@@ -80,11 +80,11 @@ public partial class DistanceForceJoint : Node, IVerletExported
         {
             return;
         }
-        
+
         var currentScale = Mathf.Ease(connectionDistance / MaxDistance - 1.0f, ForceEasing);
         var pullForce = connectionDirection.Normalized() * Mathf.Clamp(currentScale * MaxForce, 0.0f, MaxForce);
 
         ApplyPullForce(BodyA, CustomLocationA, pullForce);
         ApplyPullForce(BodyB, CustomLocationB, -pullForce);
     }
-} 
+}

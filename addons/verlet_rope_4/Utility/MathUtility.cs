@@ -1,6 +1,6 @@
 ﻿using Godot;
 
-namespace VerletRope.Utility;
+namespace VerletRope4.Utility;
 
 public static class MathUtility
 {

@@ -1,7 +1,7 @@
 ﻿using Godot;
 using VerletRope4.Data;
 
-namespace VerletRope.Rendering;
+namespace VerletRope4.Rendering;
 
 public class MeshRenderContext
 {

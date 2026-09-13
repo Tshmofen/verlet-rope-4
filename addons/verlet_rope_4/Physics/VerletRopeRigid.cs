@@ -1,5 +1,5 @@
-﻿using System;
-using Godot;
+﻿using Godot;
+using System;
 using System.Collections.Generic;
 using VerletRope4.Data;
 using VerletRope4.Physics.Joints;
@@ -18,11 +18,11 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     private static readonly StringName InternalMetaStamp = "verlet_rope_rigid_body";
     private List<RigidBody3D> _segmentBodies;
 
-    #if TOOLS
+#if TOOLS
     [ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(() => CreateRope());
     [ExportToolButton("Clone Rigid Bodies")] public Callable CloneBodiesButton => Callable.From(CloneRigidBodiesAction);
     [ExportToolButton("Add Rigid Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
-    #endif
+#endif
 
     public override bool IsRopeCreated => ParticleData is { Count: > 0 } && _segmentBodies is { Count: > 0 };
 
@@ -30,7 +30,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     [Export] public override bool IsCreatedOnReady { get; set; } = true;
     /// <summary> Determines amount of separate <see cref="RigidBody3D"/> segments that will constitute the rope. </summary>
     [Export(PropertyHint.Range, "1,100")] public int SimulationSegments { get; set; } = 10;
-    
+
     /// <summary> Adjusts the radius of rope segment collision. Final collision width equals to <see cref="BaseVerletRopePhysical.RopeWidth"/> with added <see cref="CollisionWidthMargin"/>. </summary>
     [ExportGroup("Physics")]
     [ExportSubgroup("Collision")]
@@ -57,11 +57,11 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     [ExportSubgroup("Joints")]
     [Export] public bool IsStartPinned { get; set; } = true;
     /// <summary> Determines <see cref="PinJoint3D.Param.Bias"/> for each separate joint <see cref="PinJoint3D"/>. Only works with default Physics engine. </summary>
-    [Export(PropertyHint.Range,"0.01,0.99,0.01")] public float PinBias { get; set; } = 0.3f;
+    [Export(PropertyHint.Range, "0.01,0.99,0.01")] public float PinBias { get; set; } = 0.3f;
     /// <summary> Determines <see cref="PinJoint3D.Param.Damping"/> for each separate joint <see cref="PinJoint3D"/>. Only works with default Physics engine. </summary>
-    [Export(PropertyHint.Range,"0.01,8,0.01")] public float PinDamping { get; set; } = 1.0f;
+    [Export(PropertyHint.Range, "0.01,8,0.01")] public float PinDamping { get; set; } = 1.0f;
     /// <summary> Determines <see cref="PinJoint3D.Param.ImpulseClamp"/> for each separate joint <see cref="PinJoint3D"/>. Only works with default Physics engine. </summary>
-    [Export(PropertyHint.Range,"0.0,64,0.05")] public float PinImpulseClamp { get; set; } = 0.0f;
+    [Export(PropertyHint.Range, "0.0,64,0.05")] public float PinImpulseClamp { get; set; } = 0.0f;
 
     #region Util
 
@@ -131,7 +131,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
 
         for (var i = 0; i < segmentBodies.Count; i++)
         {
-            var body = segmentBodies[i]; 
+            var body = segmentBodies[i];
             body.LookAt(ToGlobal(positions[i + 1]));
             body.RotateObjectLocal(Vector3.Right, -Mathf.Pi / 2);
         }
@@ -158,7 +158,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
                 NodeB = segmentBodies[0].GetPath()
             }));
         }
-        
+
         var jointPosition = new Vector3(0, GetSegmentLength(), 0);
         for (var i = 0; i < segmentBodies.Count - 1; i++)
         {
@@ -194,7 +194,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
 
     #endregion
 
-    #if TOOLS
+#if TOOLS
     #region Editor
 
     private void CloneRigidBodiesAction()
@@ -216,7 +216,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     }
 
     #endregion
-    #endif
+#endif
 
     public override void _PhysicsProcess(double delta)
     {
@@ -241,10 +241,10 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
 
         TryDrawRope();
 
-        #if TOOLS
+#if TOOLS
         UpdateEditorCollision(ParticleData);
         UpdateGizmos();
-        #endif
+#endif
     }
 
     /// <summary>
@@ -290,7 +290,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
         var joint = this.CreateChild<VerletJointRigid>("JointRigid");
         joint.SetMeta(metaName, actionId);
     }
-    
+
     /// <inheritdoc cref="BaseVerletRopePhysical.CreateRope"/>
     public override void CreateRope(bool forceReset = true)
     {
@@ -312,7 +312,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
         PinSegmentBodies(_segmentBodies);
         ParticleData = GenerateParticleData(_segmentBodies);
     }
-    
+
     /// <inheritdoc cref="BaseVerletRopePhysical.DestroyRope"/>
     public override void DestroyRope()
     {

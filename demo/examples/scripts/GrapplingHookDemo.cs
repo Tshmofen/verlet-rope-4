@@ -1,4 +1,4 @@
-using Godot;
+﻿using Godot;
 
 namespace VerletRope4.Demo.Examples;
 
@@ -21,7 +21,7 @@ public partial class GrapplingHookDemo : Node
 
     private CyclePhase _phase = CyclePhase.Waiting;
     private float _phaseTime;
-    
+
     /// <summary> Hook that is being cycled. </summary>
     [Export] public GrapplingHookRig Rig { get; set; }
 

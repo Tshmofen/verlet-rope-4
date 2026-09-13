@@ -1,6 +1,6 @@
 ﻿using Godot;
 
-namespace VerletRope.Rendering.Tools;
+namespace VerletRope4.Rendering.Tools;
 
 public class RopeMeshDebugTool : IRopeMeshTool
 {
@@ -8,7 +8,6 @@ public class RopeMeshDebugTool : IRopeMeshTool
 
     public void DrawParticles(MeshRenderContext context)
     {
-
         var surfaceTool = context.SurfaceTool;
         surfaceTool.Clear();
         surfaceTool.Begin(Mesh.PrimitiveType.Lines);

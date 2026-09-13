@@ -1,4 +1,4 @@
-﻿namespace VerletRope.Rendering;
+﻿namespace VerletRope4.Rendering;
 
 public interface IRopeMeshTool
 {

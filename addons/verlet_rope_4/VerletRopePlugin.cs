@@ -1,4 +1,4 @@
-#if TOOLS
+﻿#if TOOLS
 
 using Godot;
 using VerletRope4.Physics;

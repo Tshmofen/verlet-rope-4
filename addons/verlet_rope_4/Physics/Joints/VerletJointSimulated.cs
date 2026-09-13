@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Godot;
+using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using VerletRope4.Utility;
 
 namespace VerletRope4.Physics.Joints;
@@ -14,28 +14,28 @@ public partial class VerletJointSimulated : BaseVerletJoint, IVerletExported
     public static string ExportedType => nameof(VerletJointSimulated);
 
     private DistanceForceJoint _joint;
-    
-    #if TOOLS
+
+#if TOOLS
     [ExportToolButton("Reset Joint (Apply Changes)")] public Callable ResetJointButton => Callable.From(() => ResetJoint());
-    #endif
+#endif
 
     /// <summary> A <see cref="VerletRopeSimulated"/> node instance to which join constraints will be applied to. Automatically assigns current parent if it is of needed type and the value is currently unset. </summary>
     [ExportCategory("Attachment Settings")]
     [Export] public VerletRopeSimulated VerletRope { get; set; }
-    
+
     /// <inheritdoc/>
     [ExportSubgroup("Rope Start")]
-    [Export] public override  PhysicsBody3D StartBody { get; set; }
+    [Export] public override PhysicsBody3D StartBody { get; set; }
     /// <inheritdoc/>
-    [Export] public override  Node3D StartCustomLocation{ get; set; }
+    [Export] public override Node3D StartCustomLocation { get; set; }
     /// <summary> Determines whether rope will collide with the connected <see cref="StartBody"/>. </summary>
     [Export] public bool IgnoreStartBodyCollision { get; set; } = true;
-    
+
     /// <inheritdoc/>
-    [ExportSubgroup("Rope End")] 
-    [Export] public override  PhysicsBody3D EndBody { get; set; }
+    [ExportSubgroup("Rope End")]
+    [Export] public override PhysicsBody3D EndBody { get; set; }
     /// <inheritdoc/>
-    [Export] public override Node3D EndCustomLocation{ get; set; }
+    [Export] public override Node3D EndCustomLocation { get; set; }
     /// <summary> Determines whether rope will collide with the connected  <see cref="EndBody"/>. </summary>
     [Export] public bool IgnoreEndBodyCollision { get; set; } = true;
 
@@ -108,7 +108,7 @@ public partial class VerletJointSimulated : BaseVerletJoint, IVerletExported
 
         if (VerletRope == null)
         {
-            warnings.Add("Joint will do nothing without an associated rope, please assign one."); 
+            warnings.Add("Joint will do nothing without an associated rope, please assign one.");
         }
 
         if (JointMaxDistance > 0 && StartBody is null && EndBody is null)

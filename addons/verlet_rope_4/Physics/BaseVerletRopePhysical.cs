@@ -1,6 +1,5 @@
 ﻿using Godot;
 using System;
-using VerletRope.Data;
 using VerletRope4.Data;
 using VerletRope4.Physics.Joints;
 using VerletRope4.Rendering;
@@ -11,9 +10,9 @@ namespace VerletRope4.Physics;
 [Tool]
 public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationListener
 {
-    #if TOOLS
+#if TOOLS
     private EditorUndoRedoManager _undoRedoManager;
-    #endif
+#endif
 
     private bool _skipPhysicsRender;
     private Vector3 _previousGlobalPosition;
@@ -23,15 +22,15 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     protected RopeParticleData ParticleData { get; set; }
     protected BaseVerletJoint ConnectedJoint { get; private set; }
     protected VerletRopeMesh RopeMesh => _ropeMesh ??= this.FindOrCreateChild<VerletRopeMesh>();
-    
+
     protected Node3D PreviousStart { get; private set; }
     protected PhysicsBody3D StartBody { get; private set; }
     protected Node3D StartNode { get; private set; }
-    
+
     protected Node3D PreviousEnd { get; private set; }
     protected PhysicsBody3D EndBody { get; private set; }
     protected Node3D EndNode { get; private set; }
-    
+
     // Note: Is not using [Export] to be properly grouped in actual inherited properties.
     /// <summary> Determines whether rope is immediately created on <see cref="_Ready"/> call or have to be manually created via <see cref="CreateRope"/>. </summary>
     public abstract bool IsCreatedOnReady { get; set; }
@@ -129,7 +128,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         RopeMesh.UpdateRopeVisibility(ParticleData);
         _skipPhysicsRender = !isPhysics;
     }
-    
+
     public override void _Process(double delta)
     {
         if (RenderMode == RopeRenderMode.Physics || ParticleData == null || ParticleData.Count == 0)
@@ -167,7 +166,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     }
 
     #region Joint / Attachment
-    
+
     private void SetAttachmentPointsInternal(PhysicsBody3D startBody, Node3D startLocation, PhysicsBody3D endBody, Node3D endLocation)
     {
         PreviousStart = StartNode ?? StartBody;
@@ -233,7 +232,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
 
     #endregion
 
-    #if TOOLS
+#if TOOLS
     #region Editor
 
     protected void CommitEditorAction(string actionName, Action<EditorUndoRedoManager, int> undoRedoAction)
@@ -249,7 +248,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         undoRedoAction.Invoke(_undoRedoManager, actionId);
         _undoRedoManager.CommitAction();
     }
-    
+
     protected void UpdateEditorCollision(RopeParticleData particleData)
     {
         if (particleData.Count != _editorVertexPositions?.Length)
@@ -277,9 +276,9 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     {
         return _editorVertexPositions;
     }
-    
+
     #endregion
-    #endif
+#endif
 
     #region Script Reload
 

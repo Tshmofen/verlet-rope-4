@@ -1,7 +1,7 @@
 ﻿using Godot;
 using System.Collections.Generic;
 
-namespace VerletRope.Rendering.Tools;
+namespace VerletRope4.Rendering.Tools;
 
 public class RopeMeshTubeTool : IRopeMeshTool
 {
@@ -148,7 +148,7 @@ file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] r
     // Ring references
     private Vector3[] _currentRing = new Vector3[tubeSegments];
     private Vector3[] _currentNormals = new Vector3[tubeSegments];
-    private readonly Vector3[] _firstRing  = new Vector3[tubeSegments];
+    private readonly Vector3[] _firstRing = new Vector3[tubeSegments];
     private readonly Vector3[] _firstNormals = new Vector3[tubeSegments];
     private Vector3[] _prevRing = new Vector3[tubeSegments];
     private Vector3[] _prevNormals = new Vector3[tubeSegments];
@@ -274,7 +274,7 @@ file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] r
             }
         }
     }
-    
+
     private void AddTubeCapVertex(Vector3 normal, Vector3 tangent, Vector2 uv, Vector3 position)
     {
         surfaceTool.SetNormal(normal);

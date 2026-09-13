@@ -1,10 +1,8 @@
-using Godot;
+﻿using Godot;
 using System.Collections.Generic;
-using VerletRope.Data;
-using VerletRope.Rendering;
-using VerletRope.Rendering.Tools;
-using VerletRope.Utility;
 using VerletRope4.Data;
+using VerletRope4.Rendering.Tools;
+using VerletRope4.Utility;
 
 namespace VerletRope4.Rendering;
 
@@ -25,16 +23,16 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
         { RopeMeshType.Ribbon, new RopeMeshRibbonTool() },
         { RopeMeshType.Tube, new RopeMeshTubeTool() }
     };
-    
+
     private bool _useVisibleOnScreenNotifier = true;
     private VisibleOnScreenNotifier3D _visibleNotifier;
     private double _simulationDelta;
-    
+
     private SurfaceTool _surfaceTool;
     private ArrayMesh _arrayMesh;
 
     #region Exported Properties
-    
+
     /// <inheritdoc cref="RopeMeshType"/>
     [ExportGroup("Visuals")]
     [Export] public RopeMeshType MeshType { get; set; } = RopeMeshType.Ribbon;
@@ -54,10 +52,15 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
     /// <summary> If distance to particle is greater than <see cref="SubdivisionLodDistance"/>, the corresponding segment is not subdivided for rendering. </summary>
     [Export] public float SubdivisionLodDistance { get; set; } = 15.0f;
     /// <summary> Creates a child <see cref="VisibleOnScreenNotifier3D"/> when enabled. Is only triggered on <see cref="_Ready"/> calls. </summary>
-    [Export] public bool UseVisibleOnScreenNotifier
+    [Export]
+    public bool UseVisibleOnScreenNotifier
     {
-        get => _useVisibleOnScreenNotifier; 
-        set { _useVisibleOnScreenNotifier = value; UpdateConfigurationWarnings(); }
+        get => _useVisibleOnScreenNotifier;
+        set
+        {
+            _useVisibleOnScreenNotifier = value;
+            UpdateConfigurationWarnings();
+        }
     }
     /// <summary> Draws orientation axis from every actual particle position when enabled. </summary>
     [Export] public bool UseDebugParticles { get; set; } = false;
@@ -70,7 +73,7 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
     #endregion
 
     #region Util
-    
+
     private float GetAverageSegmentLength(int particleCount)
     {
         return RopeLength / (particleCount - 1);
@@ -101,13 +104,13 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
 
     private Camera3D GetCurrentCamera()
     {
-        #if TOOLS
+#if TOOLS
         return Engine.IsEditorHint()
             ? EditorInterface.Singleton.GetEditorViewport3D().GetCamera3D()
             : GetViewport().GetCamera3D();
-        #else
+#else
         return GetViewport().GetCamera3D();
-        #endif
+#endif
     }
 
     private static void CalculateRopeCameraOrientation(MeshRenderContext context)
@@ -148,25 +151,25 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
                 particle.PositionRender = particle.PositionCurrent;
                 continue;
             }
-            
+
             particle.PositionRender = MathUtility.Lerp(particle.PositionRender, particle.PositionCurrent, smoothFactor);
         }
     }
 
     #endregion
-    
+
     public void DrawRopeParticles(RopeParticleData particles)
     {
         if (!IsRopeVisible || !IsInsideTree() || particles == null || particles.Count < 2)
         {
             return;
         }
-        
+
         var renderContext = GetMeshRenderContext(particles);
         CalculateRopeParticlesRenderPositions(renderContext);
         CalculateRopeCameraOrientation(renderContext);
         ResetRopeRotation();
-        
+
         _arrayMesh.ClearSurfaces();
         MeshTools[MeshType].DrawParticles(renderContext);
 
@@ -183,7 +186,7 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
             return;
         }
 
-        var minPosition =  new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+        var minPosition = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
         var maxPosition = new Vector3(float.MinValue, float.MinValue, float.MinValue);
 
         for (var i = 0; i < particles.Count; i++)

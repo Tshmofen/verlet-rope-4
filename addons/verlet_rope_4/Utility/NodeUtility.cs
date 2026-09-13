@@ -56,7 +56,7 @@ public static class NodeUtility
 
     public static bool IsEditorSelected(this Node node)
     {
-        #if TOOLS
+#if TOOLS
 
         if (!Engine.IsEditorHint())
         {
@@ -66,11 +66,11 @@ public static class NodeUtility
         var selectedNodes = EditorInterface.Singleton.GetSelection().GetSelectedNodes();
         return selectedNodes.Any(n => n == node);
 
-        #else
+#else
 
         return false;
 
-        #endif
+#endif
     }
 
     public static void SetSubtreeOwner(this Node node, Node owner)

@@ -1,6 +1,6 @@
 ﻿using Godot;
 
-namespace VerletRope.Demo;
+namespace VerletRope4.Demo;
 
 public partial class MovingBodyDemo : RigidBody3D
 {
@@ -10,7 +10,7 @@ public partial class MovingBodyDemo : RigidBody3D
 
     [Export] public float MovementForce { get; set; } = 20f;
     [Export] public float DirectionChangePeriod { get; set; } = 0.5f;
-    
+
     private Vector3 GenerateRandomDirection()
     {
         var x = _randomNumberGenerator.RandfRange(-1, 1);
@@ -26,13 +26,13 @@ public partial class MovingBodyDemo : RigidBody3D
     public override void _PhysicsProcess(double delta)
     {
         _periodTime += (float)delta;
-        
+
         if (_periodTime >= DirectionChangePeriod)
         {
             _currentDirection = GenerateRandomDirection();
             _periodTime = 0f;
         }
-        
+
         ApplyCentralForce(_currentDirection * MovementForce);
     }
 }

@@ -1,0 +1,334 @@
+# EditorConfig for Verlet Rope 4 (Godot 4 .NET addon).
+#
+# Severity policy:
+#   warning    - enforced repository convention, the code in the repository satisfies it.
+#   suggestion - preferred, reported in the IDE only, never fails a build.
+#   silent     - pinned to the SDK default so a future SDK cannot change it unnoticed.
+#
+# Verify a change to this file with:
+#   dotnet format VerletRope.csproj --verify-no-changes --no-restore
+#   dotnet build VerletRope.csproj
+
+root = true
+
+# ---------------------------------------------------------------------------------------------
+# All files
+# ---------------------------------------------------------------------------------------------
+
+[*]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{csproj,props,targets,slnx,nuspec,config}]
+indent_size = 2
+
+[*.json]
+indent_size = 2
+
+# Markdown uses two trailing spaces for hard line breaks.
+[*.md]
+trim_trailing_whitespace = false
+
+# ---------------------------------------------------------------------------------------------
+# C# files
+# ---------------------------------------------------------------------------------------------
+
+[*.cs]
+indent_size = 4
+tab_width = 4
+
+# Most addon files carry a UTF-8 BOM; keep it.
+charset = utf-8-bom
+
+# ---------------------------------------------------------------------------------------------
+# Generated and vendored code - analyzed by nothing, formatted by nothing
+# ---------------------------------------------------------------------------------------------
+
+# addons/debug_draw_3d/ is a gitignored, local-only debugging addon whose C# API file is generated.
+[addons/debug_draw_3d/**]
+generated_code = true
+
+[*.generated.cs]
+generated_code = true
+
+# ---------------------------------------------------------------------------------------------
+# .NET coding conventions
+# ---------------------------------------------------------------------------------------------
+
+[*.cs]
+
+# Using directives: Godot first, then System, then VerletRope4 - plain alphabetical order, no
+# blank lines between the groups, always outside the namespace declaration.
+dotnet_separate_import_directive_groups = false
+dotnet_sort_system_directives_first = false
+csharp_using_directive_placement = outside_namespace:warning
+
+# this. and Me. preferences - `this.` is only used to call Godot node utility extensions.
+dotnet_style_qualification_for_event = false:warning
+dotnet_style_qualification_for_field = false:warning
+dotnet_style_qualification_for_method = false:warning
+dotnet_style_qualification_for_property = false:warning
+
+# Language keywords vs BCL type names.
+dotnet_style_predefined_type_for_locals_parameters_members = true:warning
+dotnet_style_predefined_type_for_member_access = true:warning
+
+# Parentheses - explicit grouping is welcome, never required.
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_other_operators = never_if_unnecessary:silent
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:silent
+
+# Modifiers - `public` is written out on interface members too (IVerletExported, IRopeMeshTool).
+dotnet_style_require_accessibility_modifiers = true:warning
+csharp_preferred_modifier_order = public,private,protected,internal,file,const,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async:warning
+
+# Null handling - explicit `== null` / `!= null` comparisons, `?.` and `??` fallbacks.
+dotnet_style_prefer_is_null_check_over_reference_equality_method = false:warning
+dotnet_style_null_propagation = true:warning
+dotnet_style_coalesce_expression = true:warning
+
+# Expression-level preferences.
+dotnet_style_collection_initializer = true:suggestion
+dotnet_style_explicit_tuple_names = true:warning
+# Not applicable: the project RootNamespace is `VerletRope` while the addon namespace root is
+# `VerletRope4`, and demo folders do not mirror `VerletRope4.Demo.Examples`.
+dotnet_style_namespace_match_folder = false:silent
+dotnet_style_object_initializer = true:warning
+dotnet_style_prefer_auto_properties = true:suggestion
+dotnet_style_prefer_collection_expression = when_types_loosely_match:suggestion
+dotnet_style_prefer_compound_assignment = true:warning
+dotnet_style_prefer_conditional_expression_over_assignment = true:suggestion
+dotnet_style_prefer_conditional_expression_over_return = true:suggestion
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:silent
+dotnet_style_prefer_inferred_tuple_names = true:silent
+dotnet_style_prefer_simplified_boolean_expressions = true:warning
+dotnet_style_prefer_simplified_interpolation = true:warning
+dotnet_style_operator_placement_when_wrapping = beginning_of_line
+
+# Fields and parameters.
+dotnet_style_readonly_field = true:warning
+dotnet_code_quality_unused_parameters = all:suggestion
+
+# Editor-only code sits behind `#if TOOLS`; there is no other conditional compilation.
+dotnet_remove_unnecessary_suppression_exclusions = none
+
+# ---------------------------------------------------------------------------------------------
+# C# coding conventions
+# ---------------------------------------------------------------------------------------------
+
+[*.cs]
+
+# `var` for every local; an explicit type only where inference is impossible.
+csharp_style_var_for_built_in_types = true:warning
+csharp_style_var_when_type_is_apparent = true:warning
+csharp_style_var_elsewhere = true:warning
+
+# Expression bodies: properties, indexers and accessors yes, methods no.
+csharp_style_expression_bodied_properties = true:warning
+csharp_style_expression_bodied_indexers = true:warning
+csharp_style_expression_bodied_accessors = true:warning
+csharp_style_expression_bodied_methods = false:warning
+csharp_style_expression_bodied_constructors = false:warning
+csharp_style_expression_bodied_operators = false:warning
+csharp_style_expression_bodied_local_functions = false:warning
+csharp_style_expression_bodied_lambdas = true:suggestion
+
+# Pattern matching. IDE0078 stays a suggestion: rewriting `x != null && x is not T` into
+# `x is not null and not T` bypasses Godot's overloaded != operator on freed objects.
+csharp_style_pattern_matching_over_as_with_null_check = true:warning
+csharp_style_pattern_matching_over_is_with_cast_check = true:warning
+csharp_style_prefer_extended_property_pattern = true:warning
+csharp_style_prefer_not_pattern = true:warning
+csharp_style_prefer_pattern_matching = true:suggestion
+csharp_style_prefer_switch_expression = true:warning
+
+# Null-checking.
+csharp_style_conditional_delegate_call = true:suggestion
+csharp_style_prefer_null_check_over_type_check = true:suggestion
+
+# Modifiers.
+csharp_prefer_static_anonymous_function = true:suggestion
+csharp_prefer_static_local_function = true:warning
+csharp_style_prefer_readonly_struct = true:suggestion
+csharp_style_prefer_readonly_struct_member = true:suggestion
+
+# Code blocks.
+csharp_prefer_braces = true:warning
+csharp_prefer_simple_using_statement = true:suggestion
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_style_prefer_method_group_conversion = true:silent
+csharp_style_prefer_primary_constructors = true:suggestion
+csharp_style_prefer_top_level_statements = false:silent
+
+# Expression-level preferences.
+csharp_prefer_simple_default_expression = true:suggestion
+csharp_style_deconstructed_variable_declaration = true:suggestion
+csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
+csharp_style_inlined_variable_declaration = true:warning
+csharp_style_prefer_index_operator = true:warning
+csharp_style_prefer_local_over_anonymous_function = true:suggestion
+csharp_style_prefer_range_operator = true:suggestion
+csharp_style_prefer_tuple_swap = true:suggestion
+csharp_style_prefer_utf8_string_literals = true:silent
+csharp_style_throw_expression = true:suggestion
+csharp_style_unused_value_assignment_preference = discard_variable:suggestion
+csharp_style_unused_value_expression_statement_preference = discard_variable:silent
+
+# ---------------------------------------------------------------------------------------------
+# C# formatting rules - enforced through IDE0055
+# ---------------------------------------------------------------------------------------------
+
+# New lines: braces on their own line, one member per line.
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true
+csharp_new_line_between_query_expression_clauses = true
+
+# Indentation: 4 spaces, braces not indented, single-line blocks preserved (`set { ... }`).
+csharp_indent_block_contents = true
+csharp_indent_braces = false
+csharp_indent_case_contents = true
+csharp_indent_case_contents_when_block = true
+csharp_indent_switch_labels = true
+csharp_indent_labels = one_less_than_current
+
+# Spacing.
+csharp_space_after_cast = false
+csharp_space_after_colon_in_inheritance_clause = true
+csharp_space_after_comma = true
+csharp_space_after_dot = false
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_space_after_semicolon_in_for_statement = true
+csharp_space_around_binary_operators = before_and_after
+csharp_space_around_declaration_statements = false
+csharp_space_before_colon_in_inheritance_clause = true
+csharp_space_before_comma = false
+csharp_space_before_dot = false
+csharp_space_before_open_square_brackets = false
+csharp_space_before_semicolon_in_for_statement = false
+csharp_space_between_empty_square_brackets = false
+csharp_space_between_method_call_empty_parameter_list_parentheses = false
+csharp_space_between_method_call_name_and_opening_parenthesis = false
+csharp_space_between_method_call_parameter_list_parentheses = false
+csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
+csharp_space_between_method_declaration_name_and_open_parenthesis = false
+csharp_space_between_method_declaration_parameter_list_parentheses = false
+csharp_space_between_parentheses = false
+csharp_space_between_square_brackets = false
+
+# Wrapping.
+csharp_preserve_single_line_blocks = true
+csharp_preserve_single_line_statements = false
+
+# Blank lines: one between members at most, none repeated, none directly after an opening brace.
+# IDE2003 is not enforced - switch cases put `break;` right after an if block and a local function
+# is followed by the statement that schedules it.
+dotnet_style_allow_multiple_blank_lines_experimental = false:warning
+dotnet_style_allow_statement_immediately_after_block_experimental = true:silent
+csharp_style_allow_blank_lines_between_consecutive_braces_experimental = false:warning
+csharp_style_allow_embedded_statements_on_same_line_experimental = false:warning
+
+# Formatting diagnostics. The whitespace, final-newline, charset and import-order fixes are the
+# ones `dotnet format` reports as WHITESPACE / FINALNEWLINE / CHARSET / IMPORTS.
+dotnet_diagnostic.IDE0055.severity = warning
+
+# IDE0005 (unused using) is deliberately left at its default: raising it makes the compiler emit the
+# EnableGenerateDocumentationFile warning - a build error now that warnings are errors - unless
+# GenerateDocumentationFile is turned on, which would then demand XML docs on every public member.
+# `dotnet format` still reports unused usings.
+
+# ---------------------------------------------------------------------------------------------
+# Naming
+# ---------------------------------------------------------------------------------------------
+
+# `_camelCase` private fields, `PascalCase` everything else, `camelCase` parameters and locals.
+dotnet_naming_rule.private_fields_should_be_underscore_camel_case.severity = warning
+dotnet_naming_rule.private_fields_should_be_underscore_camel_case.symbols = private_fields
+dotnet_naming_rule.private_fields_should_be_underscore_camel_case.style = underscore_camel_case
+
+dotnet_naming_rule.private_static_readonly_fields_should_be_pascal_case.severity = warning
+dotnet_naming_rule.private_static_readonly_fields_should_be_pascal_case.symbols = private_static_readonly_fields
+dotnet_naming_rule.private_static_readonly_fields_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_rule.private_constant_fields_should_be_pascal_case.severity = warning
+dotnet_naming_rule.private_constant_fields_should_be_pascal_case.symbols = private_constant_fields
+dotnet_naming_rule.private_constant_fields_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_rule.types_should_be_pascal_case.severity = warning
+dotnet_naming_rule.types_should_be_pascal_case.symbols = types
+dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_rule.interfaces_should_be_i_pascal_case.severity = warning
+dotnet_naming_rule.interfaces_should_be_i_pascal_case.symbols = interfaces
+dotnet_naming_rule.interfaces_should_be_i_pascal_case.style = i_pascal_case
+
+dotnet_naming_rule.members_should_be_pascal_case.severity = warning
+dotnet_naming_rule.members_should_be_pascal_case.symbols = members
+dotnet_naming_rule.members_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_rule.local_variables_should_be_camel_case.severity = warning
+dotnet_naming_rule.local_variables_should_be_camel_case.symbols = local_variables
+dotnet_naming_rule.local_variables_should_be_camel_case.style = camel_case
+
+dotnet_naming_rule.parameters_should_be_camel_case.severity = warning
+dotnet_naming_rule.parameters_should_be_camel_case.symbols = parameters
+dotnet_naming_rule.parameters_should_be_camel_case.style = camel_case
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private, protected, protected_internal, private_protected
+dotnet_naming_symbols.private_fields.required_modifiers =
+
+dotnet_naming_symbols.private_static_readonly_fields.applicable_kinds = field
+dotnet_naming_symbols.private_static_readonly_fields.applicable_accessibilities = private, protected, protected_internal, private_protected
+dotnet_naming_symbols.private_static_readonly_fields.required_modifiers = static, readonly
+
+dotnet_naming_symbols.private_constant_fields.applicable_kinds = field
+dotnet_naming_symbols.private_constant_fields.applicable_accessibilities = private, protected, protected_internal, private_protected
+dotnet_naming_symbols.private_constant_fields.required_modifiers = const
+
+dotnet_naming_symbols.types.applicable_kinds = class, struct, interface, enum, delegate
+dotnet_naming_symbols.types.applicable_accessibilities = *
+dotnet_naming_symbols.types.required_modifiers =
+
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_symbols.interfaces.applicable_accessibilities = *
+dotnet_naming_symbols.interfaces.required_modifiers =
+
+dotnet_naming_symbols.members.applicable_kinds = property, event, method
+dotnet_naming_symbols.members.applicable_accessibilities = *
+dotnet_naming_symbols.members.required_modifiers =
+
+dotnet_naming_symbols.local_variables.applicable_kinds = local
+dotnet_naming_symbols.local_variables.applicable_accessibilities = local
+dotnet_naming_symbols.local_variables.required_modifiers =
+
+dotnet_naming_symbols.parameters.applicable_kinds = parameter
+dotnet_naming_symbols.parameters.applicable_accessibilities = *
+dotnet_naming_symbols.parameters.required_modifiers =
+
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+dotnet_naming_style.pascal_case.required_prefix =
+dotnet_naming_style.pascal_case.required_suffix =
+dotnet_naming_style.pascal_case.word_separator =
+
+dotnet_naming_style.i_pascal_case.capitalization = pascal_case
+dotnet_naming_style.i_pascal_case.required_prefix = I
+dotnet_naming_style.i_pascal_case.required_suffix =
+dotnet_naming_style.i_pascal_case.word_separator =
+
+dotnet_naming_style.camel_case.capitalization = camel_case
+dotnet_naming_style.camel_case.required_prefix =
+dotnet_naming_style.camel_case.required_suffix =
+dotnet_naming_style.camel_case.word_separator =
+
+dotnet_naming_style.underscore_camel_case.capitalization = camel_case
+dotnet_naming_style.underscore_camel_case.required_prefix = _
+dotnet_naming_style.underscore_camel_case.required_suffix =
+dotnet_naming_style.underscore_camel_case.word_separator =

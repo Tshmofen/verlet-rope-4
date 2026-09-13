@@ -1,4 +1,4 @@
-﻿﻿#if TOOLS
+﻿#if TOOLS
 
 using Godot;
 using VerletRope4.Physics;
@@ -24,7 +24,10 @@ public partial class VerletRopeGizmoPlugin : EditorNode3DGizmoPlugin
         gizmo.AddCollisionSegments(editorSegments);
     }
 
-    public override string _GetGizmoName() => nameof(VerletRopeGizmoPlugin);
+    public override string _GetGizmoName()
+    {
+        return nameof(VerletRopeGizmoPlugin);
+    }
 
     public override void _Redraw(EditorNode3DGizmo gizmo)
     {

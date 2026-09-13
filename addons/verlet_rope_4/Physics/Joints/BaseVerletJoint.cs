@@ -14,7 +14,7 @@ public abstract partial class BaseVerletJoint : Node, ISerializationListener
     /// used as custom joint location for physics calculations - otherwise behaves as simple start particle <see cref="Node3D.GlobalPosition"/> constraint.
     /// </summary>
     public abstract Node3D StartCustomLocation { get; set; }
-    
+
     /// <summary> A body that will be joined to the end of the Rope - by default <see cref="Node3D.GlobalPosition"/> is used as connection point. </summary>
     public abstract PhysicsBody3D EndBody { get; set; }
 
@@ -22,7 +22,7 @@ public abstract partial class BaseVerletJoint : Node, ISerializationListener
     /// A custom location for the end of the Rope. If <see cref="EndBody"/> is specified,
     /// used as custom joint location for physics calculations - otherwise behaves as simple start particle <see cref="Node3D.GlobalPosition"/> constraint.
     /// </summary>
-    public abstract Node3D EndCustomLocation{ get; set; }
+    public abstract Node3D EndCustomLocation { get; set; }
 
     protected abstract BaseVerletRopePhysical TryFindVerletRope();
 
