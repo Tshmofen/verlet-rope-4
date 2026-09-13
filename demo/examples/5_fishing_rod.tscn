@@ -76,7 +76,7 @@ VerletRope = NodePath("..")
 StartCustomLocation = NodePath("../../Grip/RodTipAnchor")
 EndBody = NodePath("../../Hook")
 EndCustomLocation = NodePath("../../Hook/Attachment")
-JointMaxDistance = 0.5
+JointMaxDistance = 0.4
 JointMaxForce = 200.0
 
 [node name="Hook" type="RigidBody3D" parent="Rod" unique_id=1535697835]

@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://bvvq1jgot0pcs"]
 
 [ext_resource type="PackedScene" uid="uid://iaa1x6odyogo" path="res://demo/examples/example_environment.tscn" id="1_env"]
-[ext_resource type="Script" uid="uid://dja12uyulc7ee" path="res://addons/verlet_rope_4/Physics/VerletRopeRigid.cs" id="3_v7sdi"]
+[ext_resource type="Script" uid="uid://dja12uyulc7ee" path="res://addons/verlet_rope_4/Physics/VerletRopeRigid.cs" id="2_rope"]
+[ext_resource type="Script" uid="uid://cuw8dk3lkvm2n" path="res://addons/verlet_rope_4/Physics/Joints/VerletJointRigid.cs" id="3_joint"]
 [ext_resource type="Script" uid="uid://dndn70kslxcfv" path="res://demo/examples/scripts/TetherLeashDemo.cs" id="4_leash"]
-[ext_resource type="Script" uid="uid://cuw8dk3lkvm2n" path="res://addons/verlet_rope_4/Physics/Joints/VerletJointRigid.cs" id="4_sb65u"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_body"]
 size = Vector3(0.5, 0.5, 0.5)
@@ -20,7 +20,7 @@ albedo_color = Color(0.78, 0.5, 0.22, 1)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_post"]
 albedo_color = Color(0.35, 0.35, 0.35, 1)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_b1fmq"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rope"]
 albedo_color = Color(0.33027744, 0.47619957, 0.32663837, 1)
 
 [node name="TetherLeashExample" type="Node3D" unique_id=957203149]
@@ -74,19 +74,19 @@ collision_layer = 2
 collision_mask = 3
 size = Vector3(0.7529297, 0.39215088, 0.4)
 
-[node name="RigidLeashRope" type="Node3D" parent="." unique_id=1779223070]
-script = ExtResource("3_v7sdi")
+[node name="LeashRope" type="Node3D" parent="." unique_id=1779223070]
+script = ExtResource("2_rope")
 CollisionLayer = 2
 CollisionMask = 3
 TotalRopeMass = 5.0
 MeshType = 1
 RopeLength = 1.8
 RenderMode = 2
-MaterialOverride = SubResource("StandardMaterial3D_b1fmq")
+MaterialOverride = SubResource("StandardMaterial3D_rope")
 metadata/_custom_type_script = "uid://dja12uyulc7ee"
 
-[node name="JointRigid" type="Node" parent="RigidLeashRope" unique_id=136638633 node_paths=PackedStringArray("VerletRope", "StartBody", "StartCustomLocation", "EndBody", "EndCustomLocation")]
-script = ExtResource("4_sb65u")
+[node name="LeashJoint" type="Node" parent="LeashRope" unique_id=136638633 node_paths=PackedStringArray("VerletRope", "StartBody", "StartCustomLocation", "EndBody", "EndCustomLocation")]
+script = ExtResource("3_joint")
 VerletRope = NodePath("..")
 StartBody = NodePath("../../Walker")
 StartCustomLocation = NodePath("../../Walker/LeashPoint")

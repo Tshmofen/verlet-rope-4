@@ -4,7 +4,7 @@ This page provides practical step‑by‑step tutorials for common scenarios usi
 Each guide highlights a specific use case, explains which nodes and properties are involved, and includes code snippets where needed.
 
 > [!TIP]
-> Many of these examples can be found in the **demo scene** (`demo/demo.tscn`) – we recommend opening it alongside this guide to see the setups in action.
+> Every section below has a finished, self-demonstrating scene under `demo/examples/`, and the smaller **demo scene** (`demo/demo.tscn`) collects the basic setups – we recommend opening them alongside this guide to see the setups in action.
 
 ---
 
@@ -14,8 +14,7 @@ Each guide highlights a specific use case, explains which nodes and properties a
 2. [Tether / Leash](#2-tether--leash)  
 3. [Wrecking Ball](#3-wrecking-ball)  
 4. [Grappling Hook](#4-grappling-hook)  
-5. [Fishing Rod](#5-fishing-rod)  
-6. [Pulley / Winch](#6-pulley--winch)
+5. [Fishing Rod](#5-fishing-rod)
 
 ---
 
@@ -26,6 +25,9 @@ Each guide highlights a specific use case, explains which nodes and properties a
 **Nodes Required**
 - `VerletRopeSimulated`
 
+> [!TIP]
+> The finished setup is the `demo/examples/1_swinging_rope.tscn` scene, and it sways the branch the vine hangs from so it demonstrates itself - open it next to this section to see every value mentioned below in context. The vine itself has no script: the sway lives on the branch above it (`SwingingRopeDemo`), which is all the rope needs to move.
+
 **Step‑by‑Step Setup**
 1. Add a `VerletRopeSimulated` node to your scene (or as child to any `Node3D`).
    - Set `SimulationBehavior` to `Editor` if you want to see it move in the editor.
@@ -33,17 +35,22 @@ Each guide highlights a specific use case, explains which nodes and properties a
 2. The rope’s start point will be anchored to the node’s `GlobalPosition`. You can freely move the node or parent it to another object – the rope will follow.
    - A `VerletJointSimulated` is only needed if you want to attach both ends to separate objects.
 3. Enable wind by checking `ApplyWind` and creating a new `FastNoiseLite` resource for `WindNoise`. Adjust its `Frequency` to control turbulence.
+   - The same noise resource can be shared between ropes: it samples position, so each rope still gets its own motion out of it.
 
-**Key Settings**
-| Property | Recommended Value | Note |
-|----------|-------------------|------|
-| `SimulationParticles` | 10–20 | More particles give smoother curves. |
-| `ApplyGravity` | `true` | Essential for natural sagging. |
-| `ApplyWind` | `true` | Adds organic motion. |
-| `WindNoise` | `FastNoiseLite` | Required for wind; adjust `Frequency` for turbulence. Can be shared between ropes to use one unified wind setting (samples position, so will be different enough for each rope). |
+**Example Settings**
+| Node | Property | Value |
+|------|----------|-------|
+| Vine rope | `SimulationParticles` | 15 |
+| Vine rope | `RopeLength` | 3, the length the vine hangs at |
+| Vine rope | `RopeWidth` / `RopeSmoothing` | 0.06 / 0.75 |
+| Vine rope | `ApplyWind` / `WindNoise` | enabled / `FastNoiseLite` with `Frequency` 0.03 |
 
 **Troubleshooting**
 - If the rope does not appear or its behavior doesn't change, ensure `SimulationBehavior` is not `None` and that you have pressed **Reset Rope** after changes.
+
+**See Also**
+- [VerletRopeSimulated](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeSimulated)
+- [VerletRopeMesh – Material Override](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeMesh#material-override)
 
 ---
 
@@ -58,6 +65,9 @@ Each guide highlights a specific use case, explains which nodes and properties a
 > [!NOTE]
 > The leash is built from rigid segments here, because it has to physically interact with the bodies it connects. `VerletRopeSimulated` with `VerletJointSimulated` is the lighter option, and can be used instead whenever the rope is decorative, or when it only has to collide with static geometry.
 
+> [!TIP]
+> The finished setup is the `demo/examples/2_tether_leash.tscn` scene, and it walks the leashed body back and forth so it demonstrates itself - open it next to this section to see every value mentioned below in context. The walking lives on the leashed body itself (`TetherLeashDemo`), so the leash is driven exactly like it would be by real movement.
+
 **Step‑by‑Step Setup**
 1. Place a `VerletRopeRigid` node in the scene.
 2. Add a child `VerletJointRigid` (can be done via `Add Rigid Joint` button).
@@ -69,14 +79,13 @@ Each guide highlights a specific use case, explains which nodes and properties a
 5. Adjust `SimulationSegments` and `TotalRopeMass` to balance how smooth and how heavy the leash is.
 6. Ensure `CollisionLayer` and `CollisionMask` are set to interact with the environment and with the connected bodies.
 
-**Key Settings**
-| Property | Recommended Value | Note |
-|----------|-------------------|------|
-| `RopeLength` | 1–5 | The leash length, how far the bodies can drift apart before the rope pulls. |
-| `SimulationSegments` | 8–12 | More segments give a smoother leash, but are heavier. |
-| `TotalRopeMass` | 2–10 | Higher values make the leash heavier and its pull stronger. |
-| `CollisionLayer` / `Mask` | Match bodies | Essential for the leash to collide with obstacles and other bodies. |
-| `MeshType` | `Tube` | Renders the segments as a chain, matching their collision shapes. |
+**Example Settings**
+| Node | Property | Value |
+|------|----------|-------|
+| Leash rope | `RopeLength` | 1.8, the distance the bodies can drift apart before the leash pulls |
+| Leash rope | `SimulationSegments` / `TotalRopeMass` | 10 / 5, more segments are smoother but heavier, a heavier leash pulls harder |
+| Leash rope | `MeshType` | `Tube`, so the rendered segments match their collision shapes |
+| Leash rope | `CollisionLayer` / `CollisionMask` | 2 / 3, the layers the bodies and the obstacles sit on |
 
 **Troubleshooting**
 - If the bodies are not being pulled, make sure the rope actually goes taut - `RopeLength` should be close to the distance between the attachment points, otherwise the leash only hangs.
@@ -92,13 +101,16 @@ Each guide highlights a specific use case, explains which nodes and properties a
 
 ## 3. Wrecking Ball
 
-**Goal** – Create a heavy ball hanging on a rope that swings and physically knocks over objects - the ball does the damage, while the rope follows it.
+**Goal** – Create a heavy ball hanging on a rope that swings and physically knocks over objects – the ball does the damage, while the rope follows it.
 
 **Nodes Required**
 - `VerletRopeSimulated`
 - `VerletJointSimulated`
 - `RigidBody3D` (for the ball)
 - Optional: obstacles (crates, barrels, etc.) as `RigidBody3D`
+
+> [!TIP]
+> The finished setup is the `demo/examples/3_wrecking_ball.tscn` scene, and it kicks the ball on its first physics frame so it demonstrates itself - open it next to this section to see every value mentioned below in context. The kick lives on the ball itself (`WreckingBallDemo`).
 
 **Step‑by‑Step Setup**
 1. Add a `VerletRopeSimulated` node and place it as a child of a crane or a static anchor.
@@ -107,25 +119,26 @@ Each guide highlights a specific use case, explains which nodes and properties a
    - Leave `StartBody` unset to anchor the rope to its own position, or assign it if the rope start has to follow a moving anchor.
    - Assign `EndBody` to your ball's `RigidBody3D` and `EndCustomLocation` to an empty `Node3D` placed where the rope should attach to the ball.
 3. In the **Distance Joint** subsection of the joint:
-   - Set `JointMaxDistance` slightly below `RopeLength`, so the rope stays taut while the ball hangs.
+   - Set `JointMaxDistance` to the distance the ball should hang at - it is the joint that holds the ball, not the rope.
+   - Keep `RopeLength` at or below that distance, so the rope is stretched taut while the ball hangs instead of sagging around the joint.
    - Raise `JointMaxForce` until the ball is held in place - it has to counteract the ball's weight, as the ball is not attached to the rope in any other way.
-4. On the rope, set `SimulationParticles` to 10–20 and `RopeLength` to the length of the swing.
+4. On the rope, set `SimulationParticles` to 10–20. `RopeLength` does not have to cover the whole swing - the rope is stretched over the distance the joint allows.
 5. Add some obstacles (crates, barrels) with `RigidBody3D` and give them a collision layer that the ball can hit - the ball is a regular physics body, so it pushes them like any other collider.
 6. Release the ball off-axis, or apply an impulse to it, so it starts swinging.
 
-**Key Settings**
-| Property | Recommended Value | Note |
-|----------|-------------------|------|
-| `SimulationParticles` | 10–20 | More particles give a smoother curve. |
-| `RopeLength` | 2–5 | The length of the swing. |
-| `JointMaxDistance` | Slightly below `RopeLength` | The distance the ball can reach before the joint starts pulling. |
-| `JointMaxForce` | 1000+ | Has to hold the weight of the ball; higher values make it hang tighter. |
-| `Stiffness` / `StiffnessIterations` | 0.9 / 2–4 | Raise if the rope looks stretched while the ball swings. |
+**Example Settings**
+| Node | Property | Value |
+|------|----------|-------|
+| Wrecking rope | `SimulationParticles` / `RopeWidth` | 15 / 0.06 |
+| Wrecking rope | `RopeLength` | 1, well below the swing, so the rope is stretched taut |
+| Wrecking joint | `JointMaxDistance` | 2.3, the distance the ball hangs at |
+| Wrecking joint | `JointMaxForce` | 2000, enough to hold the `20` kg ball |
+| Wrecking ball / crates | `Mass` | 20 / 0.5, so the ball knocks the crates over |
 
 **Troubleshooting**
 - If the ball sinks too low, increase `JointMaxForce` - the joint is what holds the ball.
 - If the ball barely swings, check its `Mass` against the obstacles' - a ball that is too light bounces off instead of knocking them over.
-- If the rope appears stretched at the bottom of the swing, increase `StiffnessIterations`.
+- If the rope looks rubbery while the ball swings (its segments visibly stretching and snapping back), raise `StiffnessIterations`.
 - If the rope disappears while the ball swings off-screen, disable `IsDisabledWhenInvisible` on the rope.
 - If the rope does not appear or its behavior doesn't change, ensure that you have pressed **Reset Rope** (and/or **Reset Joint**) after changes.
 
@@ -197,7 +210,7 @@ Each step above belongs to one state of the hook, and the two lengths - the leas
 
 | Hook state | Hook body | `JointMaxDistance` | `RopeLength` |
 |------------|-----------|--------------------|------|
-| Parked in the hand | frozen kinematically, position copied from the hand | open `40` - length, so is not pulled nearby | retracted to `0.1` and hidden |
+| Parked in the hand | frozen kinematically, position copied from the hand | opened to `40`, so it cannot pull | retracted to `0.1` and hidden |
 | Flying | un-frozen, one impulse, `Continuous Cd` on | still open, so it cannot pull yet | at its working length (`2.0`) and shown |
 | Attached | frozen kinematically, hit position written once | set to the player to hook distance | untouched |
 | Reeling in | stays frozen, it is the anchor | animated down towards the hook | untouched |
@@ -209,7 +222,7 @@ Each step above belongs to one state of the hook, and the two lengths - the leas
 > [!WARNING]
 > Rebuilding the rope (`CreateRope()`) lays the particles out between the two bodies again. Call it after a launch, after a recall, and after teleporting any body that is tied to the rope - a rope that is not rebuilt has to travel to its new position particle by particle, which is what makes it appear in the spot it was in before.
 
-**Key Settings**
+**Example Settings**
 | Node | Property | Value |
 |------|----------|-------|
 | Rope | `SimulationParticles` | 20 |
@@ -239,7 +252,7 @@ Each step above belongs to one state of the hook, and the two lengths - the leas
 **Goal** – Simulate a fishing rod with a line that is payed out and reeled back in, and a hook hanging off the moving rod tip.
 
 **Nodes Required**
-- `MeshInstance3D` or any `Node3D` the rod itself.
+- `MeshInstance3D` (or any `Node3D`) for the rod itself.
 - `VerletRopeSimulated` for the fishing line.
 - `VerletJointSimulated` (leashes the hook to the rod tip and acts as the reel - it creates the `DistanceForceJoint` for you)
 - `RigidBody3D` (for the hook)
@@ -251,18 +264,19 @@ Each step above belongs to one state of the hook, and the two lengths - the leas
 
 1. **Rod Setup** – the rod, and the hand that holds it.
    - Add an empty `Node3D` for the hand, and a `MeshInstance3D` under it for the rod.
-   - Add an empty `Node3D` as a child of the hand at the tip of the rod. It is the point the line is tied to, and because the rod is a rigid, the marker follows it exactly.
+   - Add an empty `Node3D` as a child of the hand at the tip of the rod. It is the point the line is tied to, and because the rod is rigid, the marker follows it exactly.
    - Swing the rod by moving the hand only: the rod, the tip marker and the line all come along with it.
 
 2. **Line Setup**
-   - Add a `VerletRopeSimulated` and set `RopeLength` to the length the hook hangs at, which is the shortest the line ever gets. The line keeps that length for the rest of its life to not be hanging too much - it will be stretched automatically.
+   - Add a `VerletRopeSimulated` and set `RopeLength` to the length the hook hangs at, which is the shortest the line ever gets. The line keeps that length for the rest of its life, so it is only ever stretched, never slack.
+   - Set `RenderMode` to `Process` when the line is tied to a moving rod tip - the physics-only modes can leave the line a frame behind it.
    - Set `IsDisabledWhenInvisible` to `false` on the line: a joint is driving it, and a rope that pauses while it is off-screen de-syncs from the hook.
 
 3. **Hooking Up the Line**
    - Add a `RigidBody3D` hook and place it next to the Rod, configure a `Node3D` as a child to mark the connection of the line.
    - Add a child `VerletJointSimulated` to the line, set `EndBody` to the hook's `RigidBody3D` and `EndCustomLocation` to a mark on it - the rope end is pinned there, so the line follows the hook on its own.
-   - Set `JointMaxDistance` to the length the hook is meant to hang at and `JointMaxForce` high enough to hold it (the example uses `0.5` and `200` for a `0.5` kg hook).
-   - Set `StartCustomLocation` to the `Node3D` sitting at the rod tip`.
+   - Set `JointMaxDistance` to the length the hook is meant to hang at and `JointMaxForce` high enough to hold it (the example uses `0.4` and `200` for a `0.5` kg hook).
+   - Set `StartCustomLocation` to the `Node3D` sitting at the rod tip.
 
 4. **Casting**
    - Swing the hand by moving the node the rod is held by.
@@ -298,7 +312,7 @@ Every step above belongs to one state of the rod, and the line and the leash are
 | Line rope | `SimulationParticles` / `RopeWidth` | 16 / 0.01 |
 | Line rope | `RopeLength` | `0.4`, the length it hangs at, never changed at runtime |
 | Line rope | `DampingFactor` | 80 |
-| Line joint | `JointMaxDistance` | `0.5` while hanging, `30` while the hook is out, lowered below the hook's distance to reel in |
+| Line joint | `JointMaxDistance` | `0.4` while the hook hangs (the length of the line), `30` while the hook is out, lowered below the hook's distance to reel in |
 | Line joint | `JointMaxForce` | 200 |
 | Hook | `Mass` / `Can Sleep` | 0.5 / disabled |
 | Hook | `Angular Damp` | 4, so a landed hook stops rolling |
