@@ -90,6 +90,9 @@ You can see properties descriptions below to understand how to alter the rope's 
 > [!NOTE]
 > Dynamic collisions will provide best results with simple shapes like spheres, cylinders or capsules that are equally centered on itself, complex geometry might not collide very well.
 
+> [!NOTE]
+> Collisions of this node are one‑way: rope particles are pushed out of the bodies they hit, but those bodies are not pushed back, so the rope might visually pass through or overlap them. Whenever the rope is expected to physically interact with (or run through) `RigidBody3D` bodies, prefer [`VerletRopeRigid`](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeRigid) for proper simulation.
+
 ### Self Collision
 
 | Export variable | How it works |
