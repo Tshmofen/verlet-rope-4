@@ -19,9 +19,29 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     private Vector3[] _editorVertexPositions = [];
     private VerletRopeMesh _ropeMesh;
 
+    private RopeMeshType _meshType = RopeMeshType.Ribbon;
+    private float _ropeLength = 3.0f;
+    private float _ropeWidth = 0.07f;
+    private float _ropeSmoothing = 0.7f;
+    private bool _isSmoothRopeStart = true;
+    private bool _isSmoothRopeEnd = true;
+    private float _subdivisionLodDistance = 15.0f;
+    private bool _useVisibleOnScreenNotifier = true;
+    private bool _useDebugParticles;
+    private int _tubeSegments = 6;
+    private Material _materialOverride;
+
+    private bool _hasPendingStructure;
+    private int _appliedSimulationSegments;
+    private float _appliedRopeLength;
+    private float _appliedRopeWidth;
+
     protected RopeParticleData ParticleData { get; set; }
     protected BaseVerletJoint ConnectedJoint { get; private set; }
     protected VerletRopeMesh RopeMesh => _ropeMesh ??= this.FindOrCreateChild<VerletRopeMesh>();
+
+    /// <summary> The length a single segment of the rope is expected to have, which is what its constraints solve towards. </summary>
+    protected float _restSegmentLength;
 
     protected Node3D PreviousStart { get; private set; }
     protected PhysicsBody3D StartBody { get; private set; }
@@ -41,32 +61,63 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     // Properties have the same default values as on `RopeMesh`
     /// <inheritdoc cref="RopeMeshType"/>
     [ExportGroup("Visuals")]
-    [Export] public RopeMeshType MeshType { get; set; } = RopeMeshType.Ribbon;
-    /// <inheritdoc cref="VerletRopeMesh.RopeLength"/>
-    [Export] public float RopeLength { get; set; } = 3.0f;
+    [Export] public RopeMeshType MeshType { get => _meshType; set => SetMirroredProperty(ref _meshType, value); }
+    /// <summary>
+    /// Determines total target length of the rope, it is just a base value and actual length might be different depending on physics and configured behavior.
+    /// Applied at any time while the rope exists: <see cref="VerletRopeSimulated"/> solves towards the new length, while
+    /// <see cref="VerletRopeRigid"/> stores its length in its segment bodies and is rebuilt for it.
+    /// </summary>
+    [Export]
+    public float RopeLength
+    {
+        get => _ropeLength;
+        set
+        {
+            _ropeLength = value;
+            ApplyRopeMeshProperties();
+            ApplyRopeLengthChange();
+        }
+    }
+
     /// <inheritdoc cref="VerletRopeMesh.RopeWidth"/>
-    [Export] public float RopeWidth { get; set; } = 0.07f;
+    [Export]
+    public float RopeWidth
+    {
+        get => _ropeWidth;
+        set
+        {
+            _ropeWidth = value;
+            ApplyRopeMeshProperties();
+            ApplyRopeWidthChange();
+        }
+    }
 
     /// <inheritdoc cref="RopeRenderMode"/>
     [Export] public RopeRenderMode RenderMode { get; set; } = RopeRenderMode.PhysicsAndMovement;
     /// <inheritdoc cref="VerletRopeMesh.RopeSmoothing"/>
-    [Export(PropertyHint.Range, "0,0.99,0.01")] public float RopeSmoothing { get; set; } = 0.7f;
+    [Export(PropertyHint.Range, "0,0.99,0.01")]
+    public float RopeSmoothing { get => _ropeSmoothing; set => SetMirroredProperty(ref _ropeSmoothing, value); }
     /// <inheritdoc cref="VerletRopeMesh.IsSmoothRopeStart"/>
-    [Export] public bool IsSmoothRopeStart { get; set; } = true;
+    [Export] public bool IsSmoothRopeStart { get => _isSmoothRopeStart; set => SetMirroredProperty(ref _isSmoothRopeStart, value); }
     /// <inheritdoc cref="VerletRopeMesh.IsSmoothRopeEnd"/>
-    [Export] public bool IsSmoothRopeEnd { get; set; } = true;
+    [Export] public bool IsSmoothRopeEnd { get => _isSmoothRopeEnd; set => SetMirroredProperty(ref _isSmoothRopeEnd, value); }
     /// <inheritdoc cref="VerletRopeMesh.SubdivisionLodDistance"/>
-    [Export] public float SubdivisionLodDistance { get; set; } = 15.0f;
+    [Export] public float SubdivisionLodDistance { get => _subdivisionLodDistance; set => SetMirroredProperty(ref _subdivisionLodDistance, value); }
     /// <inheritdoc cref="VerletRopeMesh.UseVisibleOnScreenNotifier"/>
-    [Export] public bool UseVisibleOnScreenNotifier { get; set; } = true;
+    [Export] public bool UseVisibleOnScreenNotifier { get => _useVisibleOnScreenNotifier; set => SetMirroredProperty(ref _useVisibleOnScreenNotifier, value); }
     /// <inheritdoc cref="VerletRopeMesh.UseDebugParticles"/>
-    [Export] public bool UseDebugParticles { get; set; } = false;
+    [Export] public bool UseDebugParticles { get => _useDebugParticles; set => SetMirroredProperty(ref _useDebugParticles, value); }
     /// <inheritdoc cref="VerletRopeMesh.TubeSegments"/>
-    [Export(PropertyHint.Range, "3,32")] public int TubeSegments { get; set; } = 6;
+    [Export(PropertyHint.Range, "3,32")]
+    public int TubeSegments { get => _tubeSegments; set => SetMirroredProperty(ref _tubeSegments, value); }
     /// <inheritdoc cref="VerletRopeMesh.MaterialOverride"/>
-    [Export] public Material MaterialOverride { get; set; }
+    [Export] public Material MaterialOverride { get => _materialOverride; set => SetMirroredProperty(ref _materialOverride, value); }
 
-    /// <summary> Resets the rope and all corresponding properties, have to be called after any property changes. It is being called when you press `Reset Rope` quick button. </summary>
+    /// <summary>
+    /// Resets the rope and applies all corresponding properties - creates the rope if it does not exist yet, and re-lays
+    /// every particle if it does. Only needed to reset the shape: every property change is applied on its own while the
+    /// rope exists. It is being called when you press `Reset Rope` quick button.
+    /// </summary>
     public virtual void CreateRope(bool forceReset = true)
     {
         if (ConnectedJoint != null)
@@ -80,17 +131,9 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
             );
         }
 
-        RopeMesh.MeshType = MeshType;
-        RopeMesh.RopeLength = RopeLength;
-        RopeMesh.RopeWidth = RopeWidth;
-        RopeMesh.RopeSmoothing = RopeSmoothing;
-        RopeMesh.IsSmoothRopeStart = IsSmoothRopeStart;
-        RopeMesh.IsSmoothRopeEnd = IsSmoothRopeEnd;
-        RopeMesh.SubdivisionLodDistance = SubdivisionLodDistance;
-        RopeMesh.UseVisibleOnScreenNotifier = UseVisibleOnScreenNotifier;
-        RopeMesh.UseDebugParticles = UseDebugParticles;
-        RopeMesh.TubeSegments = TubeSegments;
-        RopeMesh.MaterialOverride = MaterialOverride;
+        ApplyRopeMeshProperties();
+        _appliedRopeLength = RopeLength;
+        _appliedRopeWidth = RopeWidth;
 
         _previousGlobalPosition = StartNode.GetSafeGlobalPosition() ?? GlobalPosition;
     }
@@ -202,6 +245,150 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         {
             CreateRope();
         }
+    }
+
+    #endregion
+
+    #region Live Apply
+
+    /// <summary>
+    /// Applies a written <see cref="RopeLength"/> to a rope that is already built: a rope type that solves towards its length takes it on at once,
+    /// one that stores its length in its structure is rebuilt for it. Before that, <see cref="CreateRope"/> is what turns the value into a structure.
+    /// </summary>
+    private void ApplyRopeLengthChange()
+    {
+        if (ParticleData == null || ParticleData.Count == 0)
+        {
+            return;
+        }
+
+        if (!IsRopeLengthStructural())
+        {
+            ApplyRopeLength();
+            return;
+        }
+
+        if (!Mathf.IsEqualApprox(RopeLength, _appliedRopeLength))
+        {
+            QueueRopeStructureApply();
+        }
+    }
+
+    /// <summary> Applies a written <see cref="RopeWidth"/> to the rope types whose structure is built from it - the shape and the joints of a segment chain. </summary>
+    private void ApplyRopeWidthChange()
+    {
+        if (ParticleData == null || ParticleData.Count == 0 || !IsRopeWidthStructural())
+        {
+            return;
+        }
+
+        if (!Mathf.IsEqualApprox(RopeWidth, _appliedRopeWidth))
+        {
+            QueueRopeStructureApply();
+        }
+    }
+
+    /// <summary> Returns whether the rope is configured with a different amount of particles than the one the current structure was built for. </summary>
+    protected bool IsSimulationSegmentsChanged()
+    {
+        return GetSimulationSegments() != _appliedSimulationSegments;
+    }
+
+    /// <summary>
+    /// Marks the currently configured structure as the one that is applied, called by a rope type once it has rebuilt itself.
+    /// A rebuild that is still queued would produce the same structure, so it is cancelled with it.
+    /// </summary>
+    protected void OnStructureApplied()
+    {
+        _appliedSimulationSegments = GetSimulationSegments();
+        _appliedRopeLength = RopeLength;
+        _appliedRopeWidth = RopeWidth;
+        _hasPendingStructure = false;
+    }
+
+    /// <summary> Returns whether <see cref="CreateRope"/> has to rebuild the rope, which is the case when the rope does not exist yet, its amount of particles changed or its attachment points moved. </summary>
+    protected bool IsRopeStructureOutdated(bool forceReset)
+    {
+        return forceReset || !IsRopeCreated || IsSimulationSegmentsChanged() || PreviousStart != StartNode || PreviousEnd != EndNode;
+    }
+
+    /// <summary> Sends the rope properties down to the <see cref="VerletRopeMesh"/> child, which is a presentation node that is not meant to be configured on its own. </summary>
+    private void ApplyRopeMeshProperties()
+    {
+        RopeMesh.MeshType = MeshType;
+        RopeMesh.RopeLength = RopeLength;
+        RopeMesh.RopeWidth = RopeWidth;
+        RopeMesh.RopeSmoothing = RopeSmoothing;
+        RopeMesh.IsSmoothRopeStart = IsSmoothRopeStart;
+        RopeMesh.IsSmoothRopeEnd = IsSmoothRopeEnd;
+        RopeMesh.SubdivisionLodDistance = SubdivisionLodDistance;
+        RopeMesh.UseVisibleOnScreenNotifier = UseVisibleOnScreenNotifier;
+        RopeMesh.UseDebugParticles = UseDebugParticles;
+        RopeMesh.TubeSegments = TubeSegments;
+        RopeMesh.MaterialOverride = MaterialOverride;
+    }
+
+    // ReSharper disable once RedundantAssignment
+    /// <summary> Stores a property the presentation child mirrors, and applies the mirror, which is the reaction every one of them shares. </summary>
+    private void SetMirroredProperty<T>(ref T field, T value)
+    {
+        field = value;
+        ApplyRopeMeshProperties();
+    }
+
+    /// <summary>
+    /// Rebuilds the underlying structure on the next frame, deferred so that a setter stays safe to call from a scene load,
+    /// an undoable editor action or a loop that writes several properties. A caller queues only a change its structure is
+    /// built from, and a rope that does not exist yet is built by <see cref="CreateRope"/> instead.
+    /// </summary>
+    protected void QueueRopeStructureApply()
+    {
+        if (ParticleData == null || ParticleData.Count == 0 || _hasPendingStructure)
+        {
+            return;
+        }
+
+        _hasPendingStructure = true;
+        Callable.From(ApplyRopeStructureDeferred).CallDeferred();
+    }
+
+    /// <summary> Rebuilds the rope for the amount of particles it is currently configured with, keeping the joint and the attachment points as they are. </summary>
+    protected abstract void ApplyRopeStructure();
+
+    /// <summary> Applies <see cref="RopeLength"/> to a rope that is already created. A rope type that stores its length as a separate structure rebuilds instead, see <see cref="ApplyRopeStructure"/>. </summary>
+    protected abstract void ApplyRopeLength();
+
+    /// <summary> Returns the amount of segments the rope is currently configured to have, the value that determines the particle data shape. </summary>
+    protected abstract int GetSimulationSegments();
+
+    /// <summary> Returns whether the rope has to be rebuilt to apply <see cref="RopeLength"/>, which is the case for a rope type that stores its length as a structure rather than solving towards it. </summary>
+    protected virtual bool IsRopeLengthStructural()
+    {
+        return false;
+    }
+
+    /// <summary> Returns whether the rope has to be rebuilt to apply <see cref="RopeWidth"/>, which is the case for a rope type that builds its collision shapes and joints from it. </summary>
+    protected virtual bool IsRopeWidthStructural()
+    {
+        return false;
+    }
+
+    /// <summary> Returns the length every segment of the rope is supposed to have, or zero when the rope has no segments to spread it across. </summary>
+    protected float GetTargetRestSegmentLength()
+    {
+        var simulationSegments = GetSimulationSegments();
+        return simulationSegments > 0 ? RopeLength / simulationSegments : 0f;
+    }
+
+    private void ApplyRopeStructureDeferred()
+    {
+        if (!_hasPendingStructure)
+        {
+            return;
+        }
+
+        _hasPendingStructure = false;
+        ApplyRopeStructure();
     }
 
     #endregion

@@ -17,6 +17,9 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
 
     private static readonly StringName InternalMetaStamp = "verlet_rope_rigid_body";
     private List<RigidBody3D> _segmentBodies;
+    private CapsuleShape3D _segmentShape;
+    private CapsuleMesh _segmentMesh;
+    private int _simulationSegments = 10;
 
 #if TOOLS
     [ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(() => CreateRope());
@@ -28,8 +31,20 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
 
     [ExportGroup("Simulation")]
     [Export] public override bool IsCreatedOnReady { get; set; } = true;
-    /// <summary> Determines amount of separate <see cref="RigidBody3D"/> segments that will constitute the rope. </summary>
-    [Export(PropertyHint.Range, "1,100")] public int SimulationSegments { get; set; } = 10;
+    /// <summary> Determines amount of separate <see cref="RigidBody3D"/> segments that will constitute the rope. Changing it while the rope exists rebuilds the chain on the next frame. </summary>
+    [Export(PropertyHint.Range, "1,100")]
+    public int SimulationSegments
+    {
+        get => _simulationSegments;
+        set
+        {
+            _simulationSegments = value;
+            if (IsSimulationSegmentsChanged())
+            {
+                QueueRopeStructureApply();
+            }
+        }
+    }
 
     /// <summary> Adjusts the radius of rope segment collision. Final collision width equals to <see cref="BaseVerletRopePhysical.RopeWidth"/> with added <see cref="CollisionWidthMargin"/>. </summary>
     [ExportGroup("Physics")]
@@ -79,8 +94,8 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
         var segmentBodies = new List<RigidBody3D>();
         var segmentLength = GetSegmentLength();
         var segmentPosition = new Vector3(0, segmentLength / 2.0f, 0);
-        var segmentShape = new CapsuleShape3D { Height = segmentLength, Radius = RopeWidth + CollisionWidthMargin };
-        var segmentMesh = ShowCollisionShapeDebug ? new CapsuleMesh { Height = segmentLength, Radius = RopeWidth + CollisionWidthMargin } : null;
+        _segmentShape = new CapsuleShape3D { Height = segmentLength, Radius = RopeWidth + CollisionWidthMargin };
+        _segmentMesh = ShowCollisionShapeDebug ? new CapsuleMesh { Height = segmentLength, Radius = RopeWidth + CollisionWidthMargin } : null;
 
         var nodeStartPosition = StartNode.GetSafeGlobalPosition();
         var startPosition = nodeStartPosition != null
@@ -112,15 +127,15 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
             body.AddChild(new CollisionShape3D
             {
                 Position = segmentPosition,
-                Shape = segmentShape
+                Shape = _segmentShape
             });
 
-            if (segmentMesh != null)
+            if (_segmentMesh != null)
             {
                 body.AddChild(new MeshInstance3D
                 {
                     Position = segmentPosition,
-                    Mesh = segmentMesh
+                    Mesh = _segmentMesh
                 });
             }
 
@@ -220,8 +235,6 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
 
     public override void _PhysicsProcess(double delta)
     {
-        base._PhysicsProcess(delta);
-
         if (ParticleData == null || ParticleData.Count == 0 || _segmentBodies == null || _segmentBodies.Count == 0)
         {
             return;
@@ -308,15 +321,56 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
         }
 
         base.CreateRope(forceReset);
+        ApplyRopeStructure();
+    }
+
+    /// <summary> Rebuilds the whole chain of segment bodies, as their length, width and amount are what the bodies and their joints are built from. </summary>
+    protected override void ApplyRopeStructure()
+    {
+        if (!IsInsideTree())
+        {
+            return;
+        }
+
+        DestroyRope();
         _segmentBodies = SpawnSegmentBodies(this);
         PinSegmentBodies(_segmentBodies);
         ParticleData = GenerateParticleData(_segmentBodies);
+        OnStructureApplied();
+    }
+
+    /// <inheritdoc cref="BaseVerletRopePhysical.ApplyRopeLength"/>
+    protected override void ApplyRopeLength()
+    {
+        // Left empty on purpose: the base only calls this for the rope types that solve towards a length, and a rigid rope
+        // reports IsRopeLengthStructural, so a new length is applied by ApplyRopeStructure above instead. There is nothing
+        // to adjust in place either way, as the length is what the segment bodies and their joints are built from.
+    }
+
+    /// <inheritdoc cref="BaseVerletRopePhysical.GetSimulationSegments"/>
+    protected override int GetSimulationSegments()
+    {
+        return SimulationSegments;
+    }
+
+    /// <inheritdoc cref="BaseVerletRopePhysical.IsRopeLengthStructural"/>
+    protected override bool IsRopeLengthStructural()
+    {
+        return true;
+    }
+
+    /// <inheritdoc cref="BaseVerletRopePhysical.IsRopeWidthStructural"/>
+    protected override bool IsRopeWidthStructural()
+    {
+        return true;
     }
 
     /// <inheritdoc cref="BaseVerletRopePhysical.DestroyRope"/>
     public override void DestroyRope()
     {
         _segmentBodies = null;
+        _segmentShape = null;
+        _segmentMesh = null;
 
         foreach (var child in GetChildren())
         {

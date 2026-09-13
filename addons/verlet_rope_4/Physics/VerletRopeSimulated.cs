@@ -25,8 +25,8 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
     private int _forcedFrames;
     private double _simulationDelta;
-    private float _restSegmentLength;
     private List<Rid> _collisionExceptions = [];
+    private int _simulationParticles = 10;
 
     private RayCast3D _rayCast;
     private BoxShape3D _collisionShape;
@@ -41,10 +41,22 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
     public override bool IsRopeCreated => ParticleData is { Count: > 0 };
 
-    /// <summary> Determines amount of separate particles used is simulations, total segments amount is <see cref="SimulationParticles"/> minus 1. </summary>
+    /// <summary> Determines amount of separate particles used is simulations, total segments amount is <see cref="SimulationParticles"/> minus 1. Changing it while the rope exists re-lays the rope on the next frame. </summary>
     [ExportGroup("Simulation")]
     [Export] public override bool IsCreatedOnReady { get; set; } = true;
-    [Export(PropertyHint.Range, "3,100")] public int SimulationParticles { get; set; } = 10;
+    [Export(PropertyHint.Range, "3,100")]
+    public int SimulationParticles
+    {
+        get => _simulationParticles;
+        set
+        {
+            _simulationParticles = value;
+            if (IsSimulationSegmentsChanged())
+            {
+                QueueRopeStructureApply();
+            }
+        }
+    }
     /// <summary> Determines target update rate for calculations (e.g. 30 updates per second) - but never exceeds physics tick rate. when value is set to 0 - the rope is updated every frame. </summary>
     [Export(PropertyHint.Range, "0,1000")] public int SimulationRate { get; set; } = 0;
     /// <summary> Akin to elasticity - it controls how much the verlet constraint corrects the rope to the expected positions. </summary>
@@ -570,8 +582,6 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
             return;
         }
 
-        base._PhysicsProcess(delta);
-
         if (IsDisabledWhenInvisible && !RopeMesh.IsRopeVisible)
         {
             return;
@@ -637,15 +647,26 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     {
         base.CreateRope(forceReset);
 
-        if (!forceReset && PreviousStart == StartNode && PreviousEnd == EndNode)
+        if (IsRopeStructureOutdated(forceReset))
         {
-            return;
+            ApplyRopeStructure();
         }
+    }
 
-        _restSegmentLength = RopeMesh.RopeLength / (ParticleData?.Count ?? SimulationParticles - 1);
+    /// <inheritdoc cref="BaseVerletRopePhysical.DestroyRope"/>
+    public override void DestroyRope()
+    {
+        base.DestroyRope();
+        ParticleData = null;
+    }
+
+    /// <summary> Re-lays every particle between the attachment points, which is the only way to change the amount of particles the rope is simulated with. </summary>
+    protected override void ApplyRopeStructure()
+    {
         var acceleration = Gravity * GravityScale;
         var startLocation = StartNode.GetSafeGlobalPosition() ?? GlobalPosition;
         var endLocation = EndNode.GetSafeGlobalPosition() ?? startLocation;
+        _restSegmentLength = GetTargetRestSegmentLength();
         ParticleData = RopeParticleData.GenerateParticleData(startLocation, endLocation, acceleration, SimulationParticles, _restSegmentLength);
 
         if (ConnectedJoint is VerletJointSimulated simulatedJoint)
@@ -676,12 +697,24 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         }
 
         _forcedFrames = PreprocessIterations;
+        OnStructureApplied();
     }
 
-    /// <inheritdoc cref="BaseVerletRopePhysical.DestroyRope"/>
-    public override void DestroyRope()
+    /// <summary> A simulated rope only has to solve towards the new length, so the constraint pull itself reels the rope in or pays it out without any particle being moved. </summary>
+    protected override void ApplyRopeLength()
     {
-        ParticleData = null;
-        SimulationParticles = 0;
+        var targetRestSegmentLength = GetTargetRestSegmentLength();
+        if (Mathf.IsEqualApprox(targetRestSegmentLength, _restSegmentLength))
+        {
+            return;
+        }
+
+        _restSegmentLength = targetRestSegmentLength;
+    }
+
+    /// <inheritdoc cref="BaseVerletRopePhysical.GetSimulationSegments"/>
+    protected override int GetSimulationSegments()
+    {
+        return SimulationParticles - 1;
     }
 }

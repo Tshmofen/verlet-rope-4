@@ -143,7 +143,6 @@ public partial class GrapplingHookRig : RigidBody3D
     private void SetRopeLength(float length)
     {
         GrappleJoint.VerletRope.RopeLength = length;
-        GrappleJoint.VerletRope.CreateRope();
     }
 
     private void SetRopeVisibility(bool isVisible)

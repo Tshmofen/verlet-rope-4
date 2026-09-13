@@ -46,7 +46,7 @@ Each guide highlights a specific use case, explains which nodes and properties a
 | Vine rope | `ApplyWind` / `WindNoise` | enabled / `FastNoiseLite` with `Frequency` 0.03 |
 
 **Troubleshooting**
-- If the rope does not appear or its behavior doesn't change, ensure `SimulationBehavior` is not `None` and that you have pressed **Reset Rope** after changes.
+- If the rope does not appear or its behavior doesn't change, ensure `SimulationBehavior` is not `None` - the editor only simulates a rope that is set to `Editor` or that is currently selected.
 
 **See Also**
 - [VerletRopeSimulated](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeSimulated)
@@ -91,7 +91,7 @@ Each guide highlights a specific use case, explains which nodes and properties a
 - If the bodies are not being pulled, make sure the rope actually goes taut - `RopeLength` should be close to the distance between the attachment points, otherwise the leash only hangs.
 - If the leash drags the attached body down, lower `TotalRopeMass`.
 - If the rope passes through obstacles, check `CollisionLayer` / `CollisionMask` and consider increasing `CollisionWidthMargin`.
-- If the rope does not appear or its behavior doesn't change, ensure that you have pressed **Reset Rope** (and/or **Reset Joint**) after changes.
+- If the rope does not appear or its behavior doesn't change, ensure that you have pressed **Reset Joint** after joint changes - a rope property applies itself.
 
 **See Also**
 - [VerletJointRigid](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletJointRigid)
@@ -140,7 +140,7 @@ Each guide highlights a specific use case, explains which nodes and properties a
 - If the ball barely swings, check its `Mass` against the obstacles' - a ball that is too light bounces off instead of knocking them over.
 - If the rope looks rubbery while the ball swings (its segments visibly stretching and snapping back), raise `StiffnessIterations`.
 - If the rope disappears while the ball swings off-screen, disable `IsDisabledWhenInvisible` on the rope.
-- If the rope does not appear or its behavior doesn't change, ensure that you have pressed **Reset Rope** (and/or **Reset Joint**) after changes.
+- If the rope does not appear or its behavior doesn't change, ensure that you have pressed **Reset Joint** after joint changes - a rope property applies itself.
 
 **See Also**
 - [VerletJointSimulated – Distance Joint section](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletJointSimulated#distance-joint-end)
@@ -196,12 +196,12 @@ Each guide highlights a specific use case, explains which nodes and properties a
 
 5. **Reeling In** – Only the leash changes here, the rope itself is left alone.
    - Animate `JointMaxDistance` down towards the hook and call `ResetJoint(false)` after every change - the joint needs it to pick up the new length, and passing `false` keeps the rope from being rebuilt.
-   - Do not reach for `RopeLength` and `CreateRope()` for this: rebuilding the rope re-spreads every particle, so doing it per frame pops visibly.
+   - Do not reel with `RopeLength` for this: changing it shortens the line itself and drags the whole rope after the hook, while the leash is what is supposed to move the player.
    - Make sure the pulled body has `Can Sleep` disabled, otherwise it might go to sleep while resting and silently ignores the joint.
 
 6. **Recalling and Cleanup** – Bring the hook home and put the rope away in that order.
    - Un-freeze the hook and move it back towards the hand, or teleport it home if you do not want to show it travelling.
-   - Retract the rope before hiding it: set `RopeLength` to a small value (the example uses `0.1`) and call `CreateRope()`. The hook is in the hand by then, so the rope collapses into it, while a rope that is put away at full length is bound to pop out of view.
+   - Retract the rope before hiding it: set `RopeLength` to a small value (the example uses `0.1`). The hook is in the hand by then, so the rope reels itself into it within a few frames, while a rope that is put away at full length is bound to pop out of view. Call `CreateRope()` as well only when the rope should be put away without any of it showing - that re-lays every particle in one go instead of letting the rope travel.
    - Only then hide the rope node and freeze the hook back in the hand, with `JointMaxDistance` opened up again. Freeing a node that is still assigned to `EndBody` / `EndCustomLocation` leaves the rope pointing at a destroyed body.
 
 **Keeping the Hook's States in Sync**
@@ -217,10 +217,10 @@ Each step above belongs to one state of the hook, and the two lengths - the leas
 | Retracting | un-frozen again, and no longer attached | stays at the reeled in length | untouched |
 
 > [!NOTE]
-> `JointMaxDistance` and `RopeLength` are both distances, but they do different jobs. The leash is what moves the player and can be changed as often as you like, while `RopeLength` is the shape of the rope and should only change at the moments the hook leaves the hand or comes back to it.
+> `JointMaxDistance` and `RopeLength` are both distances, but they do different jobs. The leash is what moves the player and can be changed as often as you like. `RopeLength` is the length of the rope itself - a simulated rope takes on a new one at any time and reels itself to it, which is what the example uses to gather the rope into the hand before hiding it.
 
 > [!WARNING]
-> Rebuilding the rope (`CreateRope()`) lays the particles out between the two bodies again. Call it after a launch, after a recall, and after teleporting any body that is tied to the rope - a rope that is not rebuilt has to travel to its new position particle by particle, which is what makes it appear in the spot it was in before.
+> Rebuilding the rope (`CreateRope()`) lays the particles out between the two bodies again, which is exactly what it is for - putting a rope that has drifted, or one that has been teleported past, back where it belongs in a single frame. It is not needed for a property change anymore, and doing it every frame makes the rope flicker between its simulated pose and a straight line.
 
 **Example Settings**
 | Node | Property | Value |
@@ -238,8 +238,8 @@ Each step above belongs to one state of the hook, and the two lengths - the leas
 **Troubleshooting**
 - If the hook snaps back to its starting position right after it attaches, re-apply its `GlobalPosition` after setting `Freeze`.
 - If the player is not being pulled, check `Can Sleep` on the pulled body first - a sleeping body ignores joint forces.
-- If the rope appears in the spot the hook was in before the recall, retract it (`RopeLength` and `CreateRope()`) before hiding it, and rebuild it again when the hook is fired.
-- If the rope snaps across the map after the player or the hook is teleported, rebuild the rope in the same frame - the particles are pulled towards their pinned ends and take their time to follow.
+- If the rope appears in the spot the hook was in before the recall, retract it (`RopeLength`) before hiding it, and set the working length back when the hook is fired.
+- If the rope snaps across the map after the player or the hook is teleported, call `CreateRope()` in the same frame - the particles are pulled towards their pinned ends and take their time to follow.
 
 **See Also**
 - [VerletJointSimulated – Distance Joint section](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletJointSimulated#distance-joint-end)
@@ -268,7 +268,7 @@ Each step above belongs to one state of the hook, and the two lengths - the leas
    - Swing the rod by moving the hand only: the rod, the tip marker and the line all come along with it.
 
 2. **Line Setup**
-   - Add a `VerletRopeSimulated` and set `RopeLength` to the length the hook hangs at, which is the shortest the line ever gets. The line keeps that length for the rest of its life, so it is only ever stretched, never slack.
+   - Add a `VerletRopeSimulated` and set `RopeLength` to the length the hook hangs at. The hook is parked under the rod tip at exactly that length, so the line is neither stretched nor slack while it waits - and if the hook is thrown further out than that, it simply pulls the line taut, which is what a line being payed out looks like.
    - Set `RenderMode` to `Process` when the line is tied to a moving rod tip - the physics-only modes can leave the line a frame behind it.
    - Set `IsDisabledWhenInvisible` to `false` on the line: a joint is driving it, and a rope that pauses while it is off-screen de-syncs from the hook.
 
@@ -284,9 +284,9 @@ Each step above belongs to one state of the hook, and the two lengths - the leas
    - Open up `JointMaxDistance` (e.g. `30`) and call `ResetJoint(false)` before the throw, otherwise the joint drags the hook back while it is still in the air.
    - Make sure the hook's `Can Sleep` is disabled - a sleeping body ignores the joint that is holding it.
 
-5. **Paying Out and Reeling In** – The leash is what pays the line out and reels it back in; the rope itself only gets stretched.
-   - Leave `RopeLength` alone once the line exists. It is as long as the hook hangs below the rod tip, and a hook thrown further out simply pulls it taut, which is what a line being payed out looks like.
-   - Do every length change through `JointMaxDistance`: open it up past the distance of the cast before the throw, and close it to the length of the line again while the hook hangs, so the hook is at the end of a line that is neither stretched nor slack.
+5. **Paying Out and Reeling In** – The leash is what pays the line out and reels it back in; the rope only gets stretched.
+   - `RopeLength` is the line's own length, and the line is the shortest it ever gets while the hook hangs under the tip - the joint then lowers the line at that same length, so the hook is at the end of a line that is neither stretched nor slack.
+   - Do every leash change through `JointMaxDistance`: open it up past the distance of the cast before the throw, and close it to the length of the line again while the hook hangs.
    - To reel in, lower `JointMaxDistance` a little below the current distance every frame - the joint drags the hook home behind it and the line stays taut as it comes.
    - Clamp the leash to the furthest you ever want the hook to reach, and put a hook that ends up further out than that back under the rod tip rather than dragging it across the whole map.
    - Damp the hook while it hangs (`LinearDamp`, `3` in the example) so a hook that was just reeled in stops swinging before the next cast. Clear the damping again when it is thrown.
@@ -304,13 +304,13 @@ Every step above belongs to one state of the rod, and the line and the leash are
 | Reeling | held | still pointing forward | shortens as the hook comes back, never going slack | dragged home by the leash, then parked under the tip |
 
 > [!NOTE]
-> `RopeLength` and `JointMaxDistance` are both distances, but only one of them is meant to move. `RopeLength` is the geometry of the rope, and changing it at runtime means rebuilding the rope - so the line keeps the one length it was created at, and a hook further away than that pulls it taut instead. `JointMaxDistance` is the leash that holds the hook and pulls it in: it can be changed as often as you like, and it is what actually pays the line out.
+> `RopeLength` and `JointMaxDistance` are both distances, but only one of them is meant to move every frame. `RopeLength` is the length of the line itself - a simulated rope can take on a new one at any time, but changing it reels the whole line in or pays it out, so the example pays the cast out with the leash instead. `JointMaxDistance` is the leash that holds the hook and pulls it in: it can be changed as often as you like, and it is what actually pays the line out.
 
 **Example Settings**
 | Node | Property | Value |
 |------|----------|-------|
 | Line rope | `SimulationParticles` / `RopeWidth` | 16 / 0.01 |
-| Line rope | `RopeLength` | `0.4`, the length it hangs at, never changed at runtime |
+| Line rope | `RopeLength` | `0.4`, the length it hangs at while the hook waits under the tip |
 | Line rope | `DampingFactor` | 80 |
 | Line joint | `JointMaxDistance` | `0.4` while the hook hangs (the length of the line), `30` while the hook is out, lowered below the hook's distance to reel in |
 | Line joint | `JointMaxForce` | 200 |
@@ -318,7 +318,7 @@ Every step above belongs to one state of the rod, and the line and the leash are
 | Hook | `Angular Damp` | 4, so a landed hook stops rolling |
 
 **Troubleshooting**
-- If the line looks like it is being reset while the hook flies, its `RopeLength` is being changed at runtime - every change rebuilds the rope and re-lays its particles. Keep the length fixed and move the leash instead.
+- If the line looks like it is being reset while the hook flies, its `RopeLength` is being changed - the line reels itself in or out towards the new length, which is not what a cast on a fixed line should look like. Keep the length fixed and move the leash instead.
 - If the line hangs in a loop while the hook waits under the rod tip, `RopeLength` is longer than the distance the hook hangs at. Make the two the same, so the line is only ever pulled tight.
 - If the landed hook keeps rolling away, raise its `Angular Damp`.
 - If the rod needs to bend as it is cast, that is a job for the mesh (curve it, or drive it with bones).

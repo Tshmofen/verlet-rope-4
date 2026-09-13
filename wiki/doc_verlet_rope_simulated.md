@@ -21,12 +21,12 @@ You can see properties descriptions below to understand how to alter the rope's 
 
 ## Export Description
 > [!WARNING]
-> The settings of this node only gonna be applied after `Reset Rope` tool button is clicked or the scene is reloaded. Make sure to do that once you change any settings to see them applied.
+> Only `Simulation Particles` is applied in a way that rebuilds the rope - it is re-laid between the attachment points one frame after the value changes, which resets its shape and its smoothing. Every other setting, `Rope Length` included, is applied to the existing rope while it exists.
 
 ### Actions
 | Button Action | How it works |
 |--|--|
-| Reset Rope (Apply Changes) | Propagates all updated values to the internal logic and resets the rope to the initial position. |
+| Reset Rope (Apply Changes) | Re-lays every particle along the straight line between the attachment points, resetting the rope shape to the initial state. Only needed to reset a rope that has settled in a pose you do not want anymore. |
 | Add Simulated Joint        | Adds a child `VerletJointSimulated` to the current rope node in the edited scene. |
 
 ### Simulation
@@ -116,7 +116,7 @@ This section is partially inherited from [VerletRopeMesh](https://github.com/Tsh
 | Export variable | How it works |
 |--|--|
 | Mesh Type                      | Determines the rope’s visual appearance: `Ribbon` (flat camera‑facing ribbon) or `Tube` (3D cylindrical mesh). |
-| Rope Length                    | Determines total target length of the rope, it is just a base value and actual length might be different depending on physics and configured behavior. |
+| Rope Length                    | Determines total target length of the rope, it is just a base value and actual length might be different depending on physics and configured behavior. Can be changed at any time while the rope exists - the rope solves towards the new length, reeling itself in or paying itself out, so it can be animated every frame (a winch, a payed out fishing line). |
 | Rope Width                     |  Determines visual width of the rope, does not affect rope behavior. Width effectively behaves as a diameter. |
 | RenderMode                     | Determines when the rope’s mesh is drawn. `Physics` – only during physics ticks, the most performant mode. `PhysicsAndMovement` – also redraws immediately in the process frame when the node’s global position changes, preventing flicker when dragged/moved in the editor or at runtime. `Process` – redraws every process frame, giving the smoothest response at a small performance cost. |
 | Rope Smoothing                 | Amount of smoothing applied to particle positions for rendering. Higher values make the rope appear gentler but less responsive. 0 disables smoothing. |
@@ -132,7 +132,7 @@ This section is partially inherited from [VerletRopeMesh](https://github.com/Tsh
 The rope can also be manipulated via code, it exposes all the properties mentioned above and the following public methods.
 | Method | How it works |
 |--|--|
-| `void CreateRope()` | Resets the rope and all corresponding properties, have to be called after any property changes. It is being called when you press `Reset Rope` quick button. |
+| `void CreateRope()` | Creates the rope if it does not exist yet, otherwise re-lays it along the straight line between the attachment points. Only needed to reset the shape - every property change is applied on its own. It is being called when you press `Reset Rope` quick button. |
 | `void DestroyRope()` | Removes underlying particles data and disables rendering. Rope should be created using `CreateRope` to start working again. |
 | `void CreateJoint()` | Creates child `VerletJointSimulated` node and adds it to the tree. Is being created via `Deferred`, so one frame have to be awaited to get the joint instance. |
 | `RopeParticle? GetParticle(int)` | Retrieves particle data by index, supports negative indexes. The corresponding returned object is described [here](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeMesh#ropeparticle-struct). |
@@ -142,7 +142,7 @@ The rope can also be manipulated via code, it exposes all the properties mention
 | `bool IsRopeCreated { get; }` | Returns whether rope is created at the moment, managed via `CreateRope` and `DestroyRope` methods. |
 
 > [!TIP]
-> Don't forget to call `CreateRope()` after any property change, otherwise it will only be applied after next rope reset or scene reload.
+> `RopeLength` is the rope's own length, so changing it makes the rope itself longer or shorter. To hold a body at a distance instead, change the connected joint's `JointMaxDistance` - the joint leash is what pulls bodies around.
 
 ## Related Pages
 * [VerletJointSimulated](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletJointSimulated) - is being created by embed `Add Simulated Joint` tool button and is used to connect this rope instance to other bodies.
