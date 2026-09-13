@@ -137,59 +137,81 @@ Each guide highlights a specific use case, explains which nodes and properties a
 
 ## 4. Grappling Hook
 
-**Goal** – Create a grappling hook that can be launched, attach to surfaces, retract/pull the player, and adjust its length dynamically.
+**Goal** – Create a grappling hook that can be launched, sticks to surfaces and reels the player in, with the rope following it on its own.
 
 **Nodes Required**
 - `VerletRopeSimulated`
-- `VerletJointSimulated` (to attach the rope to the player and the hook)
-- (Optional) `Area3D` / `RayCast3D` for detection.
+- `VerletJointSimulated` (to leash the rope to the player and the hook)
+- `RigidBody3D` (for the player and the hook)
 
 **Step‑by‑Step Setup**
 
-1. **Rope Setup**  
-   - Add a `VerletRopeSimulated` as a child of the player (or as a separate node).  
-   - Set `SimulationParticles` to 15–25 for a smooth rope.  
+1. **Rope Setup**
+   - Add a `VerletRopeSimulated` as a separate node, or as a child of the player.
+   - Set `SimulationParticles` to 15–25 for a smooth rope.
    - Enable `ApplyGravity` and adjust `Stiffness` to your taste.
+   - Set `RopeLength` shorter than the distance the hook travels, so the rope reads as taut while the hook is out, and keep it longer than the shortest distance you reel the player in to, so the rope does not end up in a loose pile.
 
-2. **Joint Setup**  
-   - Add a child `VerletJointSimulated` and assign:
-     - `StartBody` → the player's `RigidBody3D` (or use `StartCustomLocation` if the player is a `CharacterBody3D`).
-     - `EndBody` → the hook's `RigidBody3D` (or `EndCustomLocation` if the hook is a `Node3D`).
-   - Enable `IgnoreStartBodyCollision` and `IgnoreEndBodyCollision` to prevent rope‑body collisions.
+2. **Joint Setup**
+   - Add a child `VerletJointSimulated` to the rope - this is the node that pulls the player.
+   - Set `StartBody` to the player's `RigidBody3D`.
+   - Add an empty `Node3D` to the player, place it where the hand should be and set it as `StartCustomLocation`. Without it the rope starts in the middle of the player.
+   - Set `EndBody` to the hook's `RigidBody3D`.
+   - Add another empty `Node3D` to the hook, place it where the rope should hold it and set it as `EndCustomLocation`. The rope end follows this node, so the rope tracks the flying hook on its own.
+   - Keep `IgnoreStartBodyCollision` and `IgnoreEndBodyCollision` enabled, so the rope does not push the player or the hook around.
 
-3. **Launching & Attaching**  
-   - Write a script to **detach the end** of the rope when firing (set `end.IsAttached = false`), apply an initial velocity to the hook, and later, when the hook hits a surface, **re‑attach** the end to that surface (set `end.IsAttached = true` and `end.PositionCurrent = hitPoint`).
-   - Use `GetParticle(-1)` to access the end particle.
+   > [!NOTE]
+   > The joint can only move `RigidBody3D` bodies. If the player is a `CharacterBody3D`, set `StartCustomLocation` to the hand as usual, but pull the body with your own movement code instead.
 
-4. **Retracting / Pulling**  
-   - To retract, gradually reduce the `RopeLength` property and call `CreateRope()` (or update the particle positions manually if you need smooth animation).  
-   - Alternatively, apply a force to the player toward the hook point.
+3. **Launching**
+   - Apply an impulse to the hook with `ApplyCentralImpulse` when firing, aiming slightly above the target to compensate for the drop during the flight.
+   - Enable `Continuous Cd` on the hook, so a fast hook cannot tunnel through the surface it is supposed to hit.
+   - Open up `JointMaxDistance` (e.g. `40`) and call `ResetJoint(false)` before the launch, otherwise the joint starts pulling while the hook is still in flight.
 
-5. **Cleanup** – When the hook is detached, destroy the joint or reset the rope.
+4. **Attaching**
+   - Enable `Contact Monitor` and `Max Contacts Reported` on the hook and connect its `BodyEntered` signal.
+   - On hit, stop the hook: set `Freeze Mode` to `Kinematic` and `Freeze` to `true`, then write its `GlobalPosition` once more, as kinematic bodies take their transform from the node and the physics server can otherwise snap the hook back to the transform it buffered while it was parked.
+   - Set `JointMaxDistance` to the current player to hook distance and call `ResetJoint(false)`, so the rope goes taut and the player starts swinging instead of being yanked.
+
+5. **Retracting / Pulling**
+   - To retract, animate `JointMaxDistance` down towards the hook and call `ResetJoint(false)` after every change - the joint needs it to pick up the new length, and passing `false` keeps the rope from being rebuilt.
+   - Do not reach for `RopeLength` and `CreateRope()` for this: rebuilding the rope re-spreads every particle, so doing it per frame pops visibly.
+   - Make sure the pulled body has `Can Sleep` disabled, otherwise it might go to sleep while resting and silently ignores the joint.
+
+6. **Cleanup** – When the hook is recalled, freeze it back at the player's hand and open up `JointMaxDistance` again. Freeing a node that is still assigned to `EndBody` / `EndCustomLocation` leaves the rope pointing at a destroyed body.
 
 **Key Scripting Snippet**
 ```csharp
-// Example: Attach end particle to a hit point
-public void AttachHookEnd(Vector3 hitPoint)
+// Stick the hook to the surface it hit and use it as the winch anchor.
+private void Attach()
 {
-    var endParticle = rope.GetParticle(-1);
-    if (endParticle.HasValue)
-    {
-        var p = endParticle.Value;
-        p.IsAttached = true;
-        p.PositionCurrent = hitPoint;
-        p.PositionPrevious = hitPoint;
-        // Update particle data (rope.ParticleData is a reference)
-    }
+    var attachPoint = hook.GlobalPosition;
+    hook.FreezeMode = RigidBody3D.FreezeModeEnum.Kinematic;
+    hook.Freeze = true;
+    hook.GlobalPosition = attachPoint;
+    hook.LinearVelocity = Vector3.Zero;
+    hook.AngularVelocity = Vector3.Zero;
+
+    _attachedDistance = hand.GlobalPosition.DistanceTo(attachPoint);
+    SetLeashLength(_attachedDistance);
+}
+
+// Reeling in is only a joint length change, the rope follows on its own.
+private void SetLeashLength(float distance)
+{
+    joint.JointMaxDistance = distance;
+    joint.ResetJoint(false);
 }
 ```
 
 **Troubleshooting**
-- When retracting, the rope may become stretched; increase `StiffnessIterations` to compensate.
-- To avoid jitter, update particle positions in `_PhysicsProcess` and call `rope.CreateRope()` only when necessary.
+- If the hook snaps back to its starting position right after it attaches, re-apply its `GlobalPosition` after setting `Freeze`.
+- If the player is not being pulled, check `Can Sleep` on the pulled body first - a sleeping body ignores joint forces.
+- If the rope looks stretched while reeling in, increase `StiffnessIterations` to compensate.
 
 **See Also**
-- [RopeParticle struct](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeMesh#ropeparticle-struct)
+- [VerletJointSimulated – Distance Joint section](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletJointSimulated#distance-joint-end)
+- [VerletRopeSimulated](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeSimulated)
 
 ---
 
