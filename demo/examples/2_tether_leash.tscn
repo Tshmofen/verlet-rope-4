@@ -1,0 +1,95 @@
+[gd_scene format=3 uid="uid://bvvq1jgot0pcs"]
+
+[ext_resource type="PackedScene" uid="uid://iaa1x6odyogo" path="res://demo/examples/example_environment.tscn" id="1_env"]
+[ext_resource type="Script" uid="uid://dja12uyulc7ee" path="res://addons/verlet_rope_4/Physics/VerletRopeRigid.cs" id="3_v7sdi"]
+[ext_resource type="Script" uid="uid://dndn70kslxcfv" path="res://demo/examples/scripts/TetherLeashDemo.cs" id="4_leash"]
+[ext_resource type="Script" uid="uid://cuw8dk3lkvm2n" path="res://addons/verlet_rope_4/Physics/Joints/VerletJointRigid.cs" id="4_sb65u"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_body"]
+size = Vector3(0.5, 0.5, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_walker"]
+albedo_color = Color(0.28, 0.45, 0.75, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_body"]
+size = Vector3(0.5, 0.5, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_crate"]
+albedo_color = Color(0.78, 0.5, 0.22, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_post"]
+albedo_color = Color(0.35, 0.35, 0.35, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_b1fmq"]
+albedo_color = Color(0.33027744, 0.47619957, 0.32663837, 1)
+
+[node name="TetherLeashExample" type="Node3D" unique_id=957203149]
+
+[node name="Environment" parent="." unique_id=1748496991 instance=ExtResource("1_env")]
+
+[node name="Camera3D" type="Camera3D" parent="Environment" unique_id=64117923]
+transform = Transform3D(0.9780197, -0.031858854, 0.20606424, 0, 0.9882585, 0.15279111, -0.20851249, -0.14943272, 0.9665363, 1.8274529, 1.1281366, 2.8806276)
+current = true
+
+[node name="Walker" type="RigidBody3D" parent="." unique_id=533305902]
+transform = Transform3D(0.9730661, 0, 0.23052627, 0, 1, 0, -0.23052627, 0, 0.9730661, 0.016780687, 0.25, 0.07083236)
+collision_layer = 2
+collision_mask = 3
+mass = 10.0
+script = ExtResource("4_leash")
+metadata/_edit_group_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Walker" unique_id=788634565]
+mesh = SubResource("BoxMesh_body")
+surface_material_override/0 = SubResource("StandardMaterial3D_walker")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walker" unique_id=1692671701]
+shape = SubResource("BoxShape3D_body")
+
+[node name="LeashPoint" type="Node3D" parent="Walker" unique_id=78911918]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0, 0)
+
+[node name="Crate" type="RigidBody3D" parent="." unique_id=236547626]
+transform = Transform3D(0.9986683, 0, 0.05159056, 0, 1, 0, -0.05159056, 0, 0.9986683, 2, 0.25, -0.25728536)
+collision_layer = 2
+collision_mask = 3
+mass = 3.0
+metadata/_edit_group_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Crate" unique_id=1423432019]
+mesh = SubResource("BoxMesh_body")
+surface_material_override/0 = SubResource("StandardMaterial3D_crate")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Crate" unique_id=24221025]
+shape = SubResource("BoxShape3D_body")
+
+[node name="LeashPoint" type="Node3D" parent="Crate" unique_id=1753369105]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.2, 0, 0)
+
+[node name="Obstacle" type="CSGBox3D" parent="." unique_id=1290388843]
+transform = Transform3D(0.21661049, 0, -0.9762581, 0, 1, 0, 0.9762581, 0, 0.21661049, 1, 0.19607544, -0.67673886)
+material_override = SubResource("StandardMaterial3D_post")
+use_collision = true
+collision_layer = 2
+collision_mask = 3
+size = Vector3(0.7529297, 0.39215088, 0.4)
+
+[node name="RigidLeashRope" type="Node3D" parent="." unique_id=1779223070]
+script = ExtResource("3_v7sdi")
+CollisionLayer = 2
+CollisionMask = 3
+TotalRopeMass = 5.0
+MeshType = 1
+RopeLength = 1.8
+RenderMode = 2
+MaterialOverride = SubResource("StandardMaterial3D_b1fmq")
+metadata/_custom_type_script = "uid://dja12uyulc7ee"
+
+[node name="JointRigid" type="Node" parent="RigidLeashRope" unique_id=136638633 node_paths=PackedStringArray("VerletRope", "StartBody", "StartCustomLocation", "EndBody", "EndCustomLocation")]
+script = ExtResource("4_sb65u")
+VerletRope = NodePath("..")
+StartBody = NodePath("../../Walker")
+StartCustomLocation = NodePath("../../Walker/LeashPoint")
+EndBody = NodePath("../../Crate")
+EndCustomLocation = NodePath("../../Crate/LeashPoint")
+metadata/verlet_rope_physical_create_rigid_joint = 985779809
