@@ -1,0 +1,102 @@
+[gd_scene format=3 uid="uid://dc18qps3h34ha"]
+
+[ext_resource type="PackedScene" uid="uid://iaa1x6odyogo" path="res://demo/examples/example_environment.tscn" id="1_env"]
+[ext_resource type="Script" uid="uid://dvpc8k2t0jktb" path="res://demo/examples/scripts/FishingRodRig.cs" id="2_rod"]
+[ext_resource type="Script" uid="uid://c3oxgehluk75x" path="res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs" id="3_rope"]
+[ext_resource type="Script" uid="uid://cvxw3h20i7vjf" path="res://addons/verlet_rope_4/Physics/Joints/VerletJointSimulated.cs" id="4_joint"]
+[ext_resource type="Script" uid="uid://cy5ii42n1e5oc" path="res://demo/examples/scripts/FishingRodDemo.cs" id="5_demo"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_rod"]
+top_radius = 0.015
+bottom_radius = 0.032
+height = 1.3708007
+radial_segments = 16
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rod"]
+albedo_color = Color(0.45, 0.32, 0.18, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_line"]
+albedo_color = Color(0.9, 0.9, 0.86, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_hook"]
+radius = 0.09
+height = 0.18
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hook"]
+albedo_color = Color(0.72, 0.74, 0.78, 1)
+metallic = 0.8
+roughness = 0.3
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_hook"]
+radius = 0.09
+
+[node name="FishingRodExample" type="Node3D" unique_id=402825892]
+
+[node name="Environment" parent="." unique_id=725580587 instance=ExtResource("1_env")]
+
+[node name="Camera3D" type="Camera3D" parent="Environment" unique_id=202910122]
+transform = Transform3D(0.8491437, 0.05761869, -0.52500963, 0, 0.99403155, 0.10909285, 0.52816194, -0.092635505, 0.8440756, 0.2275641, 1.4653456, 3.2410822)
+current = true
+
+[node name="Rod" type="Node3D" parent="." unique_id=1424741469 node_paths=PackedStringArray("Grip", "RodTip", "LineRope", "LineJoint", "Hook")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1.95, 0)
+script = ExtResource("2_rod")
+Grip = NodePath("Grip")
+RodTip = NodePath("Grip/RodTipAnchor")
+LineRope = NodePath("LineRope")
+LineJoint = NodePath("LineRope/LineJoint")
+Hook = NodePath("Hook")
+
+[node name="Grip" type="Node3D" parent="Rod" unique_id=1490301019]
+
+[node name="RodMesh" type="MeshInstance3D" parent="Rod/Grip" unique_id=1702753450]
+transform = Transform3D(0.70710677, 0.70710677, 0, -0.70710677, 0.70710677, 0, 0, 0, 1, 0.115869045, 0.115869045, 0)
+mesh = SubResource("CylinderMesh_rod")
+surface_material_override/0 = SubResource("StandardMaterial3D_rod")
+
+[node name="RodTipAnchor" type="Node3D" parent="Rod/Grip" unique_id=1076914858]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.59205437, 0.5991727, 0)
+
+[node name="LineRope" type="Node3D" parent="Rod" unique_id=869440242]
+script = ExtResource("3_rope")
+SimulationParticles = 16
+IsDisabledWhenInvisible = false
+SimulationBehavior = 2
+DampingFactor = 80.0
+MeshType = 1
+RopeLength = 0.4
+RopeWidth = 0.01
+RenderMode = 2
+RopeSmoothing = 0.3
+MaterialOverride = SubResource("StandardMaterial3D_line")
+
+[node name="LineJoint" type="Node" parent="Rod/LineRope" unique_id=820042392 node_paths=PackedStringArray("VerletRope", "StartCustomLocation", "EndBody", "EndCustomLocation")]
+script = ExtResource("4_joint")
+VerletRope = NodePath("..")
+StartCustomLocation = NodePath("../../Grip/RodTipAnchor")
+EndBody = NodePath("../../Hook")
+EndCustomLocation = NodePath("../../Hook/Attachment")
+JointMaxDistance = 0.5
+JointMaxForce = 200.0
+
+[node name="Hook" type="RigidBody3D" parent="Rod" unique_id=1535697835]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0.1, 0)
+collision_layer = 2
+collision_mask = 3
+mass = 0.5
+can_sleep = false
+continuous_cd = true
+angular_damp = 4.0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Rod/Hook" unique_id=1680227515]
+mesh = SubResource("SphereMesh_hook")
+surface_material_override/0 = SubResource("StandardMaterial3D_hook")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rod/Hook" unique_id=1797293959]
+shape = SubResource("SphereShape3D_hook")
+
+[node name="Attachment" type="Node3D" parent="Rod/Hook" unique_id=1208525030]
+
+[node name="DemoCycle" type="Node" parent="." unique_id=648278452 node_paths=PackedStringArray("Rig")]
+script = ExtResource("5_demo")
+Rig = NodePath("../Rod")

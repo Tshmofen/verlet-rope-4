@@ -236,100 +236,83 @@ Each step above belongs to one state of the hook, and the two lengths - the leas
 
 ## 5. Fishing Rod
 
-**Goal** – Simulate a flexible fishing rod (short, stiff rope) with a line and a bobber that reacts to physics.
+**Goal** – Simulate a fishing rod with a line that is payed out and reeled back in, and a hook hanging off the moving rod tip.
 
 **Nodes Required**
-- `VerletRopeSimulated` (for the rod)
-- (Optional) `VerletRopeSimulated` (for the fishing line) – or use a single rope for both.
-- `DistanceForceJoint` (to connect the bobber to the line end)
+- `MeshInstance3D` or any `Node3D` the rod itself.
+- `VerletRopeSimulated` for the fishing line.
+- `VerletJointSimulated` (leashes the hook to the rod tip and acts as the reel - it creates the `DistanceForceJoint` for you)
+- `RigidBody3D` (for the hook)
+
+> [!TIP]
+> The finished setup is the `demo/examples/5_fishing_rod.tscn` scene, and it casts the rod on a timer so it demonstrates itself - open it next to this section to see every value mentioned below in context. The rod logic lives on the rod itself (`FishingRodRig`) and the timer in a separate `DemoCycle` node (`FishingRodDemo`), so the rod can be reused without the demo around it.
 
 **Step‑by‑Step Setup**
 
-1. **Rod Setup**  
-   - Add a `VerletRopeSimulated` with very few particles (e.g., 3–5) and a short `RopeLength` (e.g., 0.5–1.0).  
-   - Set `Stiffness` high (1.2–1.5) to make it rigid, and `RopeSmoothing` low to keep it responsive.  
-   - Attach the start to the player's hand (using `VerletJointSimulated`).
+1. **Rod Setup** – the rod, and the hand that holds it.
+   - Add an empty `Node3D` for the hand, and a `MeshInstance3D` under it for the rod.
+   - Add an empty `Node3D` as a child of the hand at the tip of the rod. It is the point the line is tied to, and because the rod is a rigid, the marker follows it exactly.
+   - Swing the rod by moving the hand only: the rod, the tip marker and the line all come along with it.
 
-2. **Line Setup**  
-   - Add a second `VerletRopeSimulated` (or use the same rope) with more particles and a longer length.  
-   - Attach its start to the tip of the rod (the end particle of the rod rope).
+2. **Line Setup**
+   - Add a `VerletRopeSimulated` and set `RopeLength` to the length the hook hangs at, which is the shortest the line ever gets. The line keeps that length for the rest of its life to not be hanging too much - it will be stretched automatically.
+   - Set `IsDisabledWhenInvisible` to `false` on the line: a joint is driving it, and a rope that pauses while it is off-screen de-syncs from the hook.
 
-3. **Bobber**  
-   - Add a `RigidBody3D` (the bobber) and connect it to the line's end particle using a `DistanceForceJoint` (or a `VerletJointSimulated` with Distance Joint).  
-   - The bobber can have its own gravity and buoyancy logic.
+3. **Hooking Up the Line**
+   - Add a `RigidBody3D` hook and place it next to the Rod, configure a `Node3D` as a child to mark the connection of the line.
+   - Add a child `VerletJointSimulated` to the line, set `EndBody` to the hook's `RigidBody3D` and `EndCustomLocation` to a mark on it - the rope end is pinned there, so the line follows the hook on its own.
+   - Set `JointMaxDistance` to the length the hook is meant to hang at and `JointMaxForce` high enough to hold it (the example uses `0.5` and `200` for a `0.5` kg hook).
+   - Set `StartCustomLocation` to the `Node3D` sitting at the rod tip`.
 
-4. **Visuals**  
-   - Use different materials for the rod (e.g., brown) and the line (e.g., transparent/white) via `MaterialOverride`.  
-   - Enable `UseDebugParticles` to inspect the rod's orientation.
-   - Consider setting `RenderMode` to `Process` for the rod to follow the hand smoothly without lag.
+4. **Casting**
+   - Swing the hand by moving the node the rod is held by.
+   - Treat the hook as a thrown body: set its `LinearVelocity` to the aim direction times the cast speed rather than adding an impulse, so the cast goes where the rod is pointed instead of on top of whatever swing the hook had while it was hanging, and clear its angular velocity in the same call.
+   - Open up `JointMaxDistance` (e.g. `30`) and call `ResetJoint(false)` before the throw, otherwise the joint drags the hook back while it is still in the air.
+   - Make sure the hook's `Can Sleep` is disabled - a sleeping body ignores the joint that is holding it.
 
-**Key Settings**
+5. **Paying Out and Reeling In** – The leash is what pays the line out and reels it back in; the rope itself only gets stretched.
+   - Leave `RopeLength` alone once the line exists. It is as long as the hook hangs below the rod tip, and a hook thrown further out simply pulls it taut, which is what a line being payed out looks like.
+   - Do every length change through `JointMaxDistance`: open it up past the distance of the cast before the throw, and close it to the length of the line again while the hook hangs, so the hook is at the end of a line that is neither stretched nor slack.
+   - To reel in, lower `JointMaxDistance` a little below the current distance every frame - the joint drags the hook home behind it and the line stays taut as it comes.
+   - Clamp the leash to the furthest you ever want the hook to reach, and put a hook that ends up further out than that back under the rod tip rather than dragging it across the whole map.
+   - Damp the hook while it hangs (`LinearDamp`, `3` in the example) so a hook that was just reeled in stops swinging before the next cast. Clear the damping again when it is thrown.
+
+**Keeping the Rod's States in Sync**
+
+Every step above belongs to one state of the rod, and the line and the leash are the two things that are easy to mix up:
+
+| Rod state | Hand | Rod | Line | Hook |
+|-----------|------|-----|------|------|
+| Hanging at rest | at rest | rigid, pointing where the hand aims | at its own length, neither stretched nor slack | hangs under the tip, damped until it stops swinging |
+| Backswing | drawn back and up | carried along as one piece | stretched a little as the hook lags behind | carried along by the tip, still on the short leash |
+| Cast | thrown forward | swept through the arc | pulled out straight behind the hook | thrown at `CastSpeed`, leash opened up |
+| Settling | held at the end of the throw | held where the throw ended it | stretched out to the landed hook | flies, lands, rolls to a stop |
+| Reeling | held | still pointing forward | shortens as the hook comes back, never going slack | dragged home by the leash, then parked under the tip |
+
+> [!NOTE]
+> `RopeLength` and `JointMaxDistance` are both distances, but only one of them is meant to move. `RopeLength` is the geometry of the rope, and changing it at runtime means rebuilding the rope - so the line keeps the one length it was created at, and a hook further away than that pulls it taut instead. `JointMaxDistance` is the leash that holds the hook and pulls it in: it can be changed as often as you like, and it is what actually pays the line out.
+
+**Example Settings**
 | Node | Property | Value |
 |------|----------|-------|
-| Rod rope | `SimulationParticles` | 4 |
-| Rod rope | `Stiffness` | 1.3 |
-| Rod rope | `RopeSmoothing` | 0.2 |
-| Rod rope | `RenderMode` | `Process` (for instant response) |
-| Line rope | `SimulationParticles` | 15 |
-| Line rope | `RopeLength` | 3–5 |
-
-**Scripting** – The rods can be controlled by updating the start particle position to follow the hand, and the line's start to follow the rod tip.
+| Line rope | `SimulationParticles` / `RopeWidth` | 16 / 0.01 |
+| Line rope | `RopeLength` | `0.4`, the length it hangs at, never changed at runtime |
+| Line rope | `DampingFactor` | 80 |
+| Line joint | `JointMaxDistance` | `0.5` while hanging, `30` while the hook is out, lowered below the hook's distance to reel in |
+| Line joint | `JointMaxForce` | 200 |
+| Hook | `Mass` / `Can Sleep` | 0.5 / disabled |
+| Hook | `Angular Damp` | 4, so a landed hook stops rolling |
 
 **Troubleshooting**
-- If the rod bends too much, increase `StiffnessIterations`.
-- To prevent the line from clipping through the rod, enable `RopeCollisionBehavior` with appropriate masks.
+- If the line looks like it is being reset while the hook flies, its `RopeLength` is being changed at runtime - every change rebuilds the rope and re-lays its particles. Keep the length fixed and move the leash instead.
+- If the line hangs in a loop while the hook waits under the rod tip, `RopeLength` is longer than the distance the hook hangs at. Make the two the same, so the line is only ever pulled tight.
+- If the landed hook keeps rolling away, raise its `Angular Damp`.
+- If the rod needs to bend as it is cast, that is a job for the mesh (curve it, or drive it with bones).
 
 **See Also**
+- [VerletJointSimulated – Distance Joint section](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletJointSimulated#distance-joint-end)
 - [VerletRopeMesh – Material Override](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeMesh#material-override)
-
----
-
-## 6. Pulley / Winch
-
-**Goal** – Redirect a rope over one or more pulleys, changing its direction, and allow it to lift a weight.
-
-**Nodes Required**
-- Multiple `VerletRopeSimulated` instances (one per rope segment between pulleys).
-- `VerletJointSimulated` (to connect segments end‑to‑start).
-- (Optional) `PinJoint3D` or `DistanceForceJoint` for mechanical coupling.
-
-**Step‑by‑Step Setup** (simple two‑pulley example)
-
-1. **Create Pulley Points** – Place `Node3D`s at the pulley locations (e.g., top left, top right, and a bottom weight).
-2. **Segment 1** – Rope from start anchor to first pulley.
-3. **Segment 2** – Rope from first pulley to second pulley.
-4. **Segment 3** – Rope from second pulley to the weight.
-5. **Connect segments** using `VerletJointSimulated`:
-   - For each joint, set `StartCustomLocation` to the start pulley point and `EndCustomLocation` to the next pulley point.
-   - Enable the Distance Joint only on the last segment if you want tension.
-6. **Sync movement** – To simulate a winch, adjust the start point of the first segment (e.g., move it along a path) and the rope will follow.
-
-**Alternative** – Use a single rope and apply custom constraints in code to force it through waypoints (more advanced).
-
-**Key Settings**
-- Each segment should have the same `RopeLength` and `SimulationParticles` to keep consistent tension.
-- Use `RopeCollisionBehavior = None` to avoid internal collisions between segments.
-- Set `RenderMode` to `PhysicsAndMovement` to prevent flicker when the pulley moves.
-
-**Scripting** – You may need to manually update the start/end particle positions each frame to match the pulley positions if you are not using joints.
-
-**Troubleshooting**
-- Ropes may drift between segments – use `Stiffness` and `StiffnessIterations` to keep them tight.
-- For a winch, gradually change the length of the first segment (by changing `RopeLength` and calling `CreateRope()`) to simulate spooling.
-
-**See Also**
-- [SegmentPlaceUtility](https://github.com/Tshmofen/verlet-rope-4/blob/master/addons/verlet_rope_4/Utility/SegmentPlaceUtility.cs) (for generating initial rope shapes)
-
----
-
-## Combining Use‑Cases
-
-Many complex interactions can be built by combining the above patterns. For example:
-
-- **Grappling hook + tow cable** – a hook that pulls the player and also tows a crate.
-- **Fishing rod + tether** – a line that can reel in a fish (simulating tension).
-
-Feel free to experiment and share your own creations!
+- [VerletRopeSimulated](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeSimulated)
 
 ---
 
