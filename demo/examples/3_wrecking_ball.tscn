@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://cvn0vw7d05hsf"]
 
 [ext_resource type="PackedScene" uid="uid://iaa1x6odyogo" path="res://demo/examples/example_environment.tscn" id="1_env"]
-[ext_resource type="Script" uid="uid://dja12uyulc7ee" path="res://addons/verlet_rope_4/Physics/VerletRopeRigid.cs" id="2_rigid"]
-[ext_resource type="Script" uid="uid://cuw8dk3lkvm2n" path="res://addons/verlet_rope_4/Physics/Joints/VerletJointRigid.cs" id="3_rigid_joint"]
+[ext_resource type="Script" uid="uid://c3oxgehluk75x" path="res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs" id="2_rope"]
+[ext_resource type="Script" uid="uid://cvxw3h20i7vjf" path="res://addons/verlet_rope_4/Physics/Joints/VerletJointSimulated.cs" id="3_joint"]
 [ext_resource type="Script" uid="uid://c7ngvwrma6q8r" path="res://demo/examples/scripts/WreckingBallDemo.cs" id="4_ball"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_metal"]
@@ -52,22 +52,25 @@ size = Vector3(3.4, 0.3, 0.3)
 
 [node name="WreckingRope" type="Node3D" parent="." unique_id=1456168166]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.8407207, 0)
-script = ExtResource("2_rigid")
-CollisionLayer = 2
-CollisionMask = 3
-TotalRopeMass = 20.0
+script = ExtResource("2_rope")
+SimulationParticles = 15
+IsDisabledWhenInvisible = false
+SimulationBehavior = 2
 MeshType = 1
-RopeLength = 2.5
+RopeLength = 1.0
 RopeWidth = 0.06
-RopeSmoothing = 0.5
+RenderMode = 2
+RopeSmoothing = 0.0
 IsSmoothRopeEnd = false
 MaterialOverride = SubResource("StandardMaterial3D_rope")
 
-[node name="JointRigid" type="Node" parent="WreckingRope" unique_id=28089646 node_paths=PackedStringArray("VerletRope", "EndBody", "EndCustomLocation")]
-script = ExtResource("3_rigid_joint")
+[node name="JointSimulated" type="Node" parent="WreckingRope" unique_id=28089646 node_paths=PackedStringArray("VerletRope", "EndBody", "EndCustomLocation")]
+script = ExtResource("3_joint")
 VerletRope = NodePath("..")
 EndBody = NodePath("../WreckingBall")
 EndCustomLocation = NodePath("../WreckingBall/Attachment")
+JointMaxDistance = 2.3
+JointMaxForce = 2000.0
 
 [node name="WreckingBall" type="RigidBody3D" parent="WreckingRope" unique_id=1725772137]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8042955, -2.280744, 0)
