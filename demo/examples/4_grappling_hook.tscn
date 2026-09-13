@@ -1,0 +1,150 @@
+[gd_scene format=3 uid="uid://bevrnmwfc4dcl"]
+
+[ext_resource type="PackedScene" uid="uid://iaa1x6odyogo" path="res://demo/examples/example_environment.tscn" id="1_env"]
+[ext_resource type="Script" uid="uid://c3oxgehluk75x" path="res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs" id="2_rope"]
+[ext_resource type="Script" uid="uid://cvxw3h20i7vjf" path="res://addons/verlet_rope_4/Physics/Joints/VerletJointSimulated.cs" id="3_joint"]
+[ext_resource type="Script" uid="uid://c1qfjvmhdr40j" path="res://demo/examples/scripts/GrapplingHookRig.cs" id="4_hook"]
+[ext_resource type="Script" uid="uid://c6nbdjekq2bak" path="res://demo/examples/scripts/GrapplingHookDemo.cs" id="5_demo"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_platform"]
+albedo_color = Color(0.42, 0.43, 0.46, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_metal"]
+albedo_color = Color(0.33, 0.35, 0.38, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_marker"]
+albedo_color = Color(0.8, 0.2, 0.15, 1)
+emission_enabled = true
+emission = Color(0.9, 0.25, 0.15, 1)
+emission_energy_multiplier = 1.5
+
+[sub_resource type="SphereMesh" id="SphereMesh_player"]
+radius = 0.4
+height = 0.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_player"]
+albedo_color = Color(0.28, 0.45, 0.75, 1)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_player"]
+radius = 0.4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rope"]
+albedo_color = Color(0.42, 0.3, 0.18, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_hook"]
+radius = 0.16
+height = 0.32
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_hook"]
+radius = 0.16
+
+[node name="GrapplingHookExample" type="Node3D" unique_id=727561907]
+
+[node name="Environment" parent="." unique_id=110668026 instance=ExtResource("1_env")]
+
+[node name="Camera3D" type="Camera3D" parent="Environment" unique_id=241414282]
+transform = Transform3D(0.95334566, 0.07836464, 0.29153222, 0, 0.96571946, -0.25958797, -0.30188087, 0.24747707, 0.9206644, 3.0661259, 2.8297956, 5.223804)
+current = true
+
+[node name="Platform" type="CSGBox3D" parent="." unique_id=1843152807]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 0.85, 0)
+material_override = SubResource("StandardMaterial3D_platform")
+use_collision = true
+size = Vector3(5, 1.7, 5)
+
+[node name="GantryPost" type="CSGBox3D" parent="." unique_id=104136037]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.2, 4.5, 0)
+material_override = SubResource("StandardMaterial3D_metal")
+use_collision = true
+size = Vector3(0.6, 9, 0.6)
+
+[node name="GantryArm" type="CSGBox3D" parent="." unique_id=599028956]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8253906, 8.75, 0)
+material_override = SubResource("StandardMaterial3D_metal")
+use_collision = true
+size = Vector3(3.2507813, 0.5, 0.6015625)
+
+[node name="AimMarker" type="CSGBox3D" parent="." unique_id=675988265]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 8.44, 0)
+material_override = SubResource("StandardMaterial3D_marker")
+size = Vector3(0.3, 0.06, 0.3)
+
+[node name="AimPoint" type="Node3D" parent="AimMarker" unique_id=522687743]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06000042, 0)
+
+[node name="Player" type="RigidBody3D" parent="." unique_id=1599174725]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 2.1, 0)
+collision_layer = 2
+axis_lock_angular_x = true
+axis_lock_angular_y = true
+axis_lock_angular_z = true
+mass = 30.0
+can_sleep = false
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Player" unique_id=1660909491]
+mesh = SubResource("SphereMesh_player")
+surface_material_override/0 = SubResource("StandardMaterial3D_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player" unique_id=1791113267]
+shape = SubResource("SphereShape3D_player")
+
+[node name="Hand" type="Node3D" parent="Player" unique_id=1343205545]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.34968963, 0)
+
+[node name="PlayerStart" type="Node3D" parent="." unique_id=1750671679]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 2.1, 0)
+
+[node name="GrappleRope" type="Node3D" parent="." unique_id=41917059]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 2.5, 0)
+script = ExtResource("2_rope")
+SimulationParticles = 20
+StiffnessIterations = 3
+IsDisabledWhenInvisible = false
+SimulationBehavior = 2
+RopeCollisionBehavior = 1
+RopeLength = 2.0
+RopeWidth = 0.05
+RenderMode = 2
+RopeSmoothing = 0.5
+IsSmoothRopeStart = false
+IsSmoothRopeEnd = false
+MaterialOverride = SubResource("StandardMaterial3D_rope")
+
+[node name="GrappleJoint" type="Node" parent="GrappleRope" unique_id=155102562 node_paths=PackedStringArray("VerletRope", "StartBody", "StartCustomLocation", "EndBody", "EndCustomLocation")]
+script = ExtResource("3_joint")
+VerletRope = NodePath("..")
+StartBody = NodePath("../../Player")
+StartCustomLocation = NodePath("../../Player/Hand")
+EndBody = NodePath("../../HookBody")
+EndCustomLocation = NodePath("../../HookBody/Attachment")
+JointMaxDistance = 40.0
+JointMaxForce = 3000.0
+
+[node name="HookBody" type="RigidBody3D" parent="." unique_id=833634190 node_paths=PackedStringArray("Hand", "AimPoint", "GrappleJoint")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 2.5, 0)
+collision_layer = 4
+mass = 2.0
+freeze = true
+freeze_mode = 1
+continuous_cd = true
+contact_monitor = true
+max_contacts_reported = 4
+script = ExtResource("4_hook")
+Hand = NodePath("../Player/Hand")
+AimPoint = NodePath("../AimMarker/AimPoint")
+GrappleJoint = NodePath("../GrappleRope/GrappleJoint")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="HookBody" unique_id=1174193530]
+mesh = SubResource("SphereMesh_hook")
+surface_material_override/0 = SubResource("StandardMaterial3D_metal")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HookBody" unique_id=475324281]
+shape = SubResource("SphereShape3D_hook")
+
+[node name="Attachment" type="Node3D" parent="HookBody" unique_id=1759911328]
+
+[node name="DemoCycle" type="Node" parent="." unique_id=881642156 node_paths=PackedStringArray("Rig", "Player", "PlayerStart")]
+script = ExtResource("5_demo")
+Rig = NodePath("../HookBody")
+Player = NodePath("../Player")
+PlayerStart = NodePath("../PlayerStart")

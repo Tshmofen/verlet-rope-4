@@ -1,0 +1,221 @@
+[gd_scene format=3 uid="uid://cvn0vw7d05hsf"]
+
+[ext_resource type="PackedScene" uid="uid://iaa1x6odyogo" path="res://demo/examples/example_environment.tscn" id="1_env"]
+[ext_resource type="Script" uid="uid://c3oxgehluk75x" path="res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs" id="2_rope"]
+[ext_resource type="Script" uid="uid://cvxw3h20i7vjf" path="res://addons/verlet_rope_4/Physics/Joints/VerletJointSimulated.cs" id="3_joint"]
+[ext_resource type="Script" uid="uid://c7ngvwrma6q8r" path="res://demo/examples/scripts/WreckingBallDemo.cs" id="4_ball"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_metal"]
+albedo_color = Color(0.33, 0.35, 0.38, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rope"]
+albedo_color = Color(0.32, 0.3, 0.28, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_ball"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ball"]
+albedo_color = Color(0.24, 0.24, 0.27, 1)
+metallic = 0.7
+roughness = 0.35
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_ball"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_crate"]
+size = Vector3(0.7, 0.7, 0.7)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_crate"]
+albedo_color = Color(0.72, 0.45, 0.2, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_crate"]
+size = Vector3(0.7, 0.7, 0.7)
+
+[node name="WreckingBallExample" type="Node3D" unique_id=1660107935]
+
+[node name="Environment" parent="." unique_id=1437794223 instance=ExtResource("1_env")]
+
+[node name="Camera3D" type="Camera3D" parent="Environment" unique_id=414890190]
+transform = Transform3D(0.9150639, -0.0789488, 0.39550614, 0, 0.9806533, 0.19575273, -0.40330884, -0.17912626, 0.89736044, 2.3441153, 2.5550992, 3.7094831)
+current = true
+
+[node name="CranePost" type="CSGBox3D" parent="." unique_id=1813954204]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8, 2, 0)
+material_override = SubResource("StandardMaterial3D_metal")
+use_collision = true
+size = Vector3(0.3, 4.2, 0.3)
+
+[node name="CraneArm" type="CSGBox3D" parent="." unique_id=308177836]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.25, 3.95, 0)
+material_override = SubResource("StandardMaterial3D_metal")
+use_collision = true
+collision_layer = 8
+size = Vector3(3.4, 0.3, 0.3)
+
+[node name="WreckingRope" type="Node3D" parent="." unique_id=1456168166]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.8407207, 0)
+script = ExtResource("2_rope")
+SimulationParticles = 15
+IsDisabledWhenInvisible = false
+SimulationBehavior = 2
+MeshType = 1
+RopeLength = 1.0
+RopeWidth = 0.06
+RenderMode = 2
+RopeSmoothing = 0.0
+IsSmoothRopeEnd = false
+MaterialOverride = SubResource("StandardMaterial3D_rope")
+
+[node name="JointSimulated" type="Node" parent="WreckingRope" unique_id=28089646 node_paths=PackedStringArray("VerletRope", "EndBody", "EndCustomLocation")]
+script = ExtResource("3_joint")
+VerletRope = NodePath("..")
+EndBody = NodePath("../WreckingBall")
+EndCustomLocation = NodePath("../WreckingBall/Attachment")
+JointMaxDistance = 2.3
+JointMaxForce = 2000.0
+
+[node name="WreckingBall" type="RigidBody3D" parent="WreckingRope" unique_id=1725772137]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8042955, -2.280744, 0)
+collision_layer = 2
+collision_mask = 3
+mass = 20.0
+script = ExtResource("4_ball")
+LaunchImpulse = Vector3(-2, 0, 0)
+metadata/_edit_group_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WreckingRope/WreckingBall" unique_id=1683389572]
+mesh = SubResource("SphereMesh_ball")
+surface_material_override/0 = SubResource("StandardMaterial3D_ball")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WreckingRope/WreckingBall" unique_id=71419493]
+shape = SubResource("SphereShape3D_ball")
+
+[node name="Attachment" type="Node3D" parent="WreckingRope/WreckingBall" unique_id=823285803]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.27500975, 0.3384533, 0)
+
+[node name="Crates" type="Node3D" parent="." unique_id=1024846925]
+transform = Transform3D(0.97250074, 0, 0.23289981, 0, 1, 0, -0.23289981, 0, 0.97250074, -0.6672862, 0, 0.0858884)
+
+[node name="Crate1" type="RigidBody3D" parent="Crates" unique_id=790947693]
+transform = Transform3D(0.9833678, 0, 0.1816254, 0, 1, 0, -0.1816254, 0, 0.9833678, 0, 0.35, 0)
+collision_layer = 2
+collision_mask = 3
+mass = 0.5
+metadata/_edit_group_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Crates/Crate1" unique_id=517705046]
+mesh = SubResource("BoxMesh_crate")
+surface_material_override/0 = SubResource("StandardMaterial3D_crate")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Crates/Crate1" unique_id=1660102690]
+shape = SubResource("BoxShape3D_crate")
+
+[node name="Crate2" type="RigidBody3D" parent="Crates" unique_id=415248209]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.41364282, 0.35, -0.9717674)
+collision_layer = 2
+collision_mask = 3
+mass = 0.5
+metadata/_edit_group_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Crates/Crate2" unique_id=1695643780]
+mesh = SubResource("BoxMesh_crate")
+surface_material_override/0 = SubResource("StandardMaterial3D_crate")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Crates/Crate2" unique_id=1871593105]
+shape = SubResource("BoxShape3D_crate")
+
+[node name="Crate3" type="RigidBody3D" parent="Crates" unique_id=1876330832]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 0.35, 0)
+collision_layer = 2
+collision_mask = 3
+mass = 0.5
+metadata/_edit_group_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Crates/Crate3" unique_id=491071964]
+mesh = SubResource("BoxMesh_crate")
+surface_material_override/0 = SubResource("StandardMaterial3D_crate")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Crates/Crate3" unique_id=740097423]
+shape = SubResource("BoxShape3D_crate")
+
+[node name="Crate4" type="RigidBody3D" parent="Crates" unique_id=1187638073]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7014494, 0.35, 0.7763735)
+collision_layer = 2
+collision_mask = 3
+mass = 0.5
+metadata/_edit_group_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Crates/Crate4" unique_id=793003552]
+mesh = SubResource("BoxMesh_crate")
+surface_material_override/0 = SubResource("StandardMaterial3D_crate")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Crates/Crate4" unique_id=387695959]
+shape = SubResource("BoxShape3D_crate")
+
+[node name="Crate5" type="RigidBody3D" parent="Crates" unique_id=236269136]
+transform = Transform3D(0.9635518, 0, -0.2675218, 0, 1, 0, 0.2675218, 0, 0.9635518, -0.53183645, 0.35, -0.8120624)
+collision_layer = 2
+collision_mask = 3
+mass = 0.5
+metadata/_edit_group_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Crates/Crate5" unique_id=212288573]
+mesh = SubResource("BoxMesh_crate")
+surface_material_override/0 = SubResource("StandardMaterial3D_crate")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Crates/Crate5" unique_id=953733783]
+shape = SubResource("BoxShape3D_crate")
+
+[node name="Crate6" type="RigidBody3D" parent="Crates" unique_id=1478992674]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.31809795, 1.0770761, 5.9604645e-08)
+collision_layer = 2
+collision_mask = 3
+mass = 0.5
+metadata/_edit_group_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Crates/Crate6" unique_id=1938648056]
+mesh = SubResource("BoxMesh_crate")
+surface_material_override/0 = SubResource("StandardMaterial3D_crate")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Crates/Crate6" unique_id=706899074]
+shape = SubResource("BoxShape3D_crate")
+
+[node name="Crate7" type="RigidBody3D" parent="Crates" unique_id=584330269]
+transform = Transform3D(0.9457651, 0, -0.3248516, 0, 1, 0, 0.3248516, 0, 0.9457651, 0.09081763, 1.0770761, -0.8009796)
+collision_layer = 2
+collision_mask = 3
+mass = 0.5
+metadata/_edit_group_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Crates/Crate7" unique_id=2045173858]
+mesh = SubResource("BoxMesh_crate")
+surface_material_override/0 = SubResource("StandardMaterial3D_crate")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Crates/Crate7" unique_id=643122827]
+shape = SubResource("BoxShape3D_crate")
+
+[node name="Crate8" type="RigidBody3D" parent="Crates" unique_id=2066309968]
+transform = Transform3D(0.111352205, 0, -0.9937811, 0, 1, 0, 0.9937811, 0, 0.111352205, -0.13976641, 1.7950808, -0.42182988)
+collision_layer = 2
+collision_mask = 3
+mass = 0.5
+metadata/_edit_group_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Crates/Crate8" unique_id=490137695]
+mesh = SubResource("BoxMesh_crate")
+surface_material_override/0 = SubResource("StandardMaterial3D_crate")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Crates/Crate8" unique_id=1525946730]
+shape = SubResource("BoxShape3D_crate")
+
+[node name="Crate9" type="RigidBody3D" parent="Crates" unique_id=321278263]
+transform = Transform3D(-0.7010745, 0, -0.7130882, 0, 1, 0, 0.7130882, 0, -0.7010745, -0.13976641, 2.5355554, -0.42182988)
+collision_layer = 2
+collision_mask = 3
+mass = 0.5
+metadata/_edit_group_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Crates/Crate9" unique_id=1655699121]
+mesh = SubResource("BoxMesh_crate")
+surface_material_override/0 = SubResource("StandardMaterial3D_crate")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Crates/Crate9" unique_id=44701912]
+shape = SubResource("BoxShape3D_crate")

@@ -1,0 +1,47 @@
+[gd_scene format=3 uid="uid://d0ihxirm8tupu"]
+
+[ext_resource type="PackedScene" uid="uid://iaa1x6odyogo" path="res://demo/examples/example_environment.tscn" id="1_env"]
+[ext_resource type="Script" uid="uid://c3oxgehluk75x" path="res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs" id="2_rope"]
+[ext_resource type="Script" uid="uid://w7p541fen313" path="res://demo/examples/scripts/SwingingRopeDemo.cs" id="3_sway"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wood"]
+albedo_color = Color(0.008704684, 0.024221323, 0.01013763, 1)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_wind"]
+frequency = 0.03
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vine"]
+albedo_color = Color(0.20221812, 0.38012642, 0.16431001, 1)
+
+[node name="SwingingRopeExample" type="Node3D" unique_id=1133285503]
+
+[node name="Environment" parent="." unique_id=557358473 instance=ExtResource("1_env")]
+
+[node name="Camera3D" type="Camera3D" parent="Environment" unique_id=801202743]
+transform = Transform3D(0.7309345, 0.09746991, 0.6754512, 0, 0.9897481, -0.14282402, -0.6824476, 0.10439501, 0.72344106, 4.4398513, 1.5011487, 3.0268116)
+current = true
+
+[node name="Trunk" type="CSGBox3D" parent="." unique_id=200650171]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+material_override = SubResource("StandardMaterial3D_wood")
+size = Vector3(0.25, 4, 0.25)
+
+[node name="Branch" type="Node3D" parent="." unique_id=979437431]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.8, 0)
+script = ExtResource("3_sway")
+
+[node name="BranchShape" type="CSGBox3D" parent="Branch" unique_id=392055267]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8, 0, 0)
+material_override = SubResource("StandardMaterial3D_wood")
+size = Vector3(1.8, 0.15, 0.15)
+
+[node name="Vine" type="Node3D" parent="Branch" unique_id=1022198027]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 0, 0)
+script = ExtResource("2_rope")
+SimulationParticles = 15
+SimulationBehavior = 2
+ApplyWind = true
+WindNoise = SubResource("FastNoiseLite_wind")
+RopeWidth = 0.06
+RopeSmoothing = 0.75
+MaterialOverride = SubResource("StandardMaterial3D_vine")

@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://iaa1x6odyogo"]
+
+[ext_resource type="PackedScene" uid="uid://cqnic6frw022r" path="res://demo/objects/ground.tscn" id="1_ground"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+
+[sub_resource type="Sky" id="Sky_env"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_env"]
+background_mode = 2
+sky = SubResource("Sky_env")
+tonemap_mode = 2
+glow_enabled = true
+
+[node name="ExampleEnvironment" type="Node3D" unique_id=706161258]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=267372552]
+environment = SubResource("Environment_env")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=738922715]
+transform = Transform3D(0.952619, -0.233005, 0.195514, 0.0514738, 0.757012, 0.65137, -0.299779, -0.610444, 0.733137, 0, 4, 0)
+light_color = Color(0.976471, 0.956863, 0.976471, 1)
+light_energy = 1.5
+shadow_enabled = true
+
+[node name="Ground" parent="." unique_id=2017372474 instance=ExtResource("1_ground")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
