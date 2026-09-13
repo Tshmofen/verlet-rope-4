@@ -4,13 +4,12 @@ using VerletRope4.Physics.Joints;
 namespace VerletRope4.Demo.Examples;
 
 /// <summary>
-/// A grappling hook body: it is parked in the hand, fired with an impulse, sticks to whatever it hits and is pulled
-/// back on recall. This is everything the hook itself needs - the loop that fires it on a timer lives in
-/// <see cref="GrapplingHookDemo"/>, so the hook can be dropped into a scene on its own.
+/// A grappling hook body: it is parked in the hand, fires with an impulse, sticks to whatever it hits and is pulled
+/// back on recall. The loop that fires it on a timer lives in <see cref="GrapplingHookDemo"/>.
+/// The hook itself can be dropped into a scene on its own if needed.
 /// </summary>
 public partial class GrapplingHookRig : RigidBody3D
 {
-    /// <summary> What the hook is currently doing. </summary>
     public enum HookPhase
     {
         Parked,
@@ -21,6 +20,9 @@ public partial class GrapplingHookRig : RigidBody3D
 
     /// <summary> Distance within the hook counts as back in the hand. </summary>
     private const float ParkDistance = 0.05f;
+
+    /// <summary> Rope length the rope node is set up with, restored whenever the hook is out of the hand. </summary>
+    private float _workingRopeLength;
 
     #region Hook Setup
 
@@ -44,22 +46,24 @@ public partial class GrapplingHookRig : RigidBody3D
     /// <summary> Leash length used while the hook is parked or in flight, effectively disabling the pull. </summary>
     [Export] public float FreeLeashLength { get; set; } = 40.0f;
 
+    /// <summary> Length the rope is retracted to while the hook sits in the hand, so that it is already small when it is hidden. </summary>
+    [ExportCategory("Rope")]
+    [Export] public float HiddenRopeLength { get; set; } = 0.1f;
+
     /// <summary> Speed the hook is pulled back to the hand with on recall. </summary>
     [ExportCategory("Recall")]
     [Export] public float RecallSpeed { get; set; } = 12.0f;
-
-    /// <summary> What the hook is currently doing. </summary>
+    
     public HookPhase Phase { get; private set; } = HookPhase.Parked;
-
-    /// <summary> Whether the hook is stuck in a surface. </summary>
+    
     public bool IsAttached => Phase == HookPhase.Attached;
 
-    /// <summary> Distance between the hand and the hook at the moment it attached. </summary>
+    /// <summary> Distance between the hand and the hook at the moment it is attached. </summary>
     public float AttachedDistance { get; private set; }
 
     #endregion
 
-    /// <summary> Freezes the hook back in the hand and hides the rope, which is what the player holds while it is idle. </summary>
+    /// <summary> Freezes the hook back in the hand and retracts the rope into it. </summary>
     public void Park()
     {
         FreezeMode = FreezeModeEnum.Kinematic;
@@ -70,11 +74,17 @@ public partial class GrapplingHookRig : RigidBody3D
         AngularVelocity = Vector3.Zero;
 
         SetLeashLength(FreeLeashLength);
-        SetRopeVisible(false);
+        SetRopeLength(HiddenRopeLength);
         Phase = HookPhase.Parked;
     }
 
-    /// <summary> Keeps the parked hook in the hand, for when the player keeps moving while the hook is not fired. </summary>
+    /// <summary> Hides the rope, usually for a hook that is parked with its rope already retracted. </summary>
+    public void HideRope()
+    {
+        SetRopeVisibility(false);
+    }
+
+    /// <summary> Keeps the parked hook in the hand, should be called when the player keeps moving while the hook is not fired. </summary>
     public void FollowHand()
     {
         GlobalPosition = Hand.GlobalPosition;
@@ -94,7 +104,8 @@ public partial class GrapplingHookRig : RigidBody3D
         ApplyCentralImpulse(aimDirection * LaunchSpeed * Mass);
 
         SetLeashLength(FreeLeashLength);
-        SetRopeVisible(true);
+        SetRopeLength(_workingRopeLength);
+        SetRopeVisibility(true);
         Phase = HookPhase.Flying;
     }
 
@@ -120,27 +131,23 @@ public partial class GrapplingHookRig : RigidBody3D
         return true;
     }
 
-    /// <summary> Re-lays the rope at the hand. Has to be called whenever the hand was moved on its own. </summary>
-    public void ResetRope()
-    {
-        GrappleJoint.VerletRope.CreateRope();
-    }
-
     /// <summary> Sets how far the joint lets the player and the hook drift apart. </summary>
     public void SetLeashLength(float distance)
     {
         GrappleJoint.JointMaxDistance = distance;
-
-        // Joint reconfiguration is what actually passes the new length to the underlying distance joint,
-        // and the rope is left untouched to keep the winch from rebuilding the simulation every frame.
         GrappleJoint.ResetJoint(false);
     }
 
     #region Hook Logic
 
-    private void SetRopeVisible(bool isVisible)
+    private void SetRopeLength(float length)
     {
-        // Hiding keeps the rope simulating, so it comes back already laid out instead of piling up in the hand.
+        GrappleJoint.VerletRope.RopeLength = length;
+        GrappleJoint.VerletRope.CreateRope();
+    }
+
+    private void SetRopeVisibility(bool isVisible)
+    {
         GrappleJoint.VerletRope.Visible = isVisible;
     }
 
@@ -175,7 +182,9 @@ public partial class GrapplingHookRig : RigidBody3D
 
     public override void _Ready()
     {
+        _workingRopeLength = GrappleJoint.VerletRope.RopeLength;
         BodyEntered += OnBodyEntered;
         Park();
+        HideRope();
     }
 }

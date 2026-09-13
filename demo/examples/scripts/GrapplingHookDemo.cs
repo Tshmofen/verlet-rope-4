@@ -3,12 +3,11 @@ using Godot;
 namespace VerletRope4.Demo.Examples;
 
 /// <summary>
-/// Fires the grappling hook on a timer and walks it through a full cycle, so the scene shows the hook on its own.
+/// Fires the grappling hook on a timer and walks it through a cycle, so the scene shows the hook on its own.
 /// Everything in here is demo only - the hook that is being cycled is <see cref="GrapplingHookRig"/>.
 /// </summary>
 public partial class GrapplingHookDemo : Node
 {
-    /// <summary> Step of the demo cycle the scene is currently in. </summary>
     private enum CyclePhase
     {
         Waiting,
@@ -22,17 +21,17 @@ public partial class GrapplingHookDemo : Node
 
     private CyclePhase _phase = CyclePhase.Waiting;
     private float _phaseTime;
-
-    #region Demo Cycle
-
+    
     /// <summary> Hook that is being cycled. </summary>
-    [ExportCategory("Demo Cycle")]
     [Export] public GrapplingHookRig Rig { get; set; }
 
     /// <summary> Player body that gets pulled by the hook. </summary>
     [Export] public RigidBody3D Player { get; set; }
 
+    #region Cycle Settings
+
     /// <summary> Position the player is put back to at the end of every cycle. </summary>
+    [ExportCategory("Demo Cycle")]
     [Export] public Node3D PlayerStart { get; set; }
 
     /// <summary> Distance the player is reeled in to. </summary>
@@ -79,10 +78,8 @@ public partial class GrapplingHookDemo : Node
         Player.Sleeping = false;
         Player.GlobalPosition = PlayerStart.GlobalPosition;
 
-        // The hook and the rope have to move over as well, otherwise the particles keep the shape they got on the
-        // other side of the map and snap across it once the player is put back.
         Rig.Park();
-        Rig.ResetRope();
+        Rig.HideRope();
     }
 
     #endregion

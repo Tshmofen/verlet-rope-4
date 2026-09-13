@@ -104,7 +104,10 @@ SimulationBehavior = 2
 RopeCollisionBehavior = 1
 RopeLength = 2.0
 RopeWidth = 0.05
-RopeSmoothing = 0.6
+RenderMode = 2
+RopeSmoothing = 0.5
+IsSmoothRopeStart = false
+IsSmoothRopeEnd = false
 MaterialOverride = SubResource("StandardMaterial3D_rope")
 
 [node name="GrappleJoint" type="Node" parent="GrappleRope" unique_id=155102562 node_paths=PackedStringArray("VerletRope", "StartBody", "StartCustomLocation", "EndBody", "EndCustomLocation")]
@@ -140,7 +143,7 @@ shape = SubResource("SphereShape3D_hook")
 
 [node name="Attachment" type="Node3D" parent="HookBody" unique_id=1759911328]
 
-[node name="DemoCycle" type="Node" parent="." node_paths=PackedStringArray("Rig", "Player", "PlayerStart")]
+[node name="DemoCycle" type="Node" parent="." unique_id=881642156 node_paths=PackedStringArray("Rig", "Player", "PlayerStart")]
 script = ExtResource("5_demo")
 Rig = NodePath("../HookBody")
 Player = NodePath("../Player")
