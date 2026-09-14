@@ -398,7 +398,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     /// <summary> Returns particle struct if it exists or null, supports negative indexes. </summary>
     public RopeParticle? GetParticle(int index)
     {
-        if (ParticleData == null || index < -ParticleData.Count || index > ParticleData.Count)
+        if (ParticleData == null || index < -ParticleData.Count || index >= ParticleData.Count)
         {
             return null;
         }
