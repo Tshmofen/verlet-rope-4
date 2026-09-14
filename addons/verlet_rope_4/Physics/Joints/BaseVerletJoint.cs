@@ -1,4 +1,5 @@
 ﻿using Godot;
+using VerletRope4.Utility;
 
 namespace VerletRope4.Physics.Joints;
 
@@ -29,6 +30,7 @@ public abstract partial class BaseVerletJoint : Node, ISerializationListener
     public override void _Ready()
     {
         ResetJoint();
+        this.PrintHeadlessWarnings(_GetConfigurationWarnings());
     }
 
     public override void _EnterTree()

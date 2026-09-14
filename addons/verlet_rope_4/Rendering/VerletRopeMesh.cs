@@ -224,5 +224,6 @@ public partial class VerletRopeMesh : MeshInstance3D, IVerletExported
         }
 
         MaterialOverride ??= GD.Load<StandardMaterial3D>(DefaultMaterialPath);
+        Callable.From(() => this.PrintHeadlessWarnings(_GetConfigurationWarnings())).CallDeferred();
     }
 }

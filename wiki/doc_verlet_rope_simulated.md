@@ -136,7 +136,9 @@ The rope can also be manipulated via code, it exposes all the properties mention
 | `void DestroyRope()` | Removes underlying particles data and disables rendering. Rope should be created using `CreateRope` to start working again. |
 | `void CreateJoint()` | Creates child `VerletJointSimulated` node and adds it to the tree. Is being created via `Deferred`, so one frame have to be awaited to get the joint instance. |
 | `RopeParticle? GetParticle(int)` | Retrieves particle data by index, supports negative indexes. The corresponding returned object is described [here](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeMesh#ropeparticle-struct). |
+| `Vector3 GetParticlePosition(int)` | Retrieves current physics position of a particle by index, supports negative indexes. Returns `Vector3.Zero` when there is no such particle. |
 | `int GetParticleCount()` | Returns current simulated particles amount. |
+| `float GetCurrentRopeLength()` | Returns the total length of the rope along its current particle positions, which under load is longer than the target `RopeLength`. |
 | `void SetAttachmentPoints(PhysicsBody3D startBody, Node3D startLocation, PhysicsBody3D endBody, Node3D endLocation)` | Manually sets attachment points of the Rope without using corresponding `VerletJoint` instance. Throws an exception if used when `VerletJoint` is already set. |
 | `void SetJoint(BaseVerletJoint joint, bool toResetRope = true)` | Configures current joint of the rope to determine which points are used as rope connections, and recreates the rope if requested and was already created. |
 | `bool IsRopeCreated { get; }` | Returns whether rope is created at the moment, managed via `CreateRope` and `DestroyRope` methods. |

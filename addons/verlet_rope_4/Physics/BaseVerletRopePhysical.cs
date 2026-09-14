@@ -411,6 +411,12 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         return ParticleData[index];
     }
 
+    /// <summary> Returns current physics position of a particle, supports negative indexes, returns <see cref="Vector3.Zero"/> when there is no such particle. </summary>
+    public Vector3 GetParticlePosition(int index)
+    {
+        return GetParticle(index)?.PositionCurrent ?? Vector3.Zero;
+    }
+
     /// <summary> Returns currently simulated particles amount. </summary>
     public int GetParticleCount()
     {

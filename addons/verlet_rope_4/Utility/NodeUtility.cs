@@ -5,6 +5,8 @@ namespace VerletRope4.Utility;
 
 public static class NodeUtility
 {
+    private const string HeadlessDisplayServerName = "headless";
+
     public static TNode FindOrCreateChild<TNode>(this Node node, string editorName = null) where TNode : Node, new()
     {
         var foundChild = FindChild<TNode>(node);
@@ -57,7 +59,6 @@ public static class NodeUtility
     public static bool IsEditorSelected(this Node node)
     {
 #if TOOLS
-
         if (!Engine.IsEditorHint())
         {
             return false;
@@ -65,12 +66,24 @@ public static class NodeUtility
 
         var selectedNodes = EditorInterface.Singleton.GetSelection().GetSelectedNodes();
         return selectedNodes.Any(n => n == node);
-
 #else
-
         return false;
-
 #endif
+    }
+
+    public static bool IsHeadless => DisplayServer.GetName() == HeadlessDisplayServerName;
+
+    public static void PrintHeadlessWarnings(this Node node, string[] warnings)
+    {
+        if (!IsHeadless)
+        {
+            return;
+        }
+
+        foreach (var warning in warnings)
+        {
+            GD.PushWarning($"`{node.GetType().Name}` configuration warning for `{node.Name}`: {warning}");
+        }
     }
 
     public static void SetSubtreeOwner(this Node node, Node owner)
