@@ -35,7 +35,7 @@ public abstract partial class BaseVerletJoint : Node, ISerializationListener
 
     public override void _EnterTree()
     {
-        ResetJoint();
+        ResetJoint(false);
     }
 
     public override void _ExitTree()
