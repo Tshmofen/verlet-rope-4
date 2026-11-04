@@ -33,6 +33,13 @@ public abstract partial class BaseVerletJoint : Node, ISerializationListener
 
     public override void _EnterTree()
     {
+        // ResetJoint() cannot be called from _EnterTree, as it calls AddChild()
+        // It seems that Godot can't resolve the virtual ResetJoint properly, so using this method to forward it on
+        CallDeferred(MethodName.EnterTreeDeferredReset);
+    }
+
+    private void EnterTreeDeferredReset()
+    {
         ResetJoint();
     }
 
