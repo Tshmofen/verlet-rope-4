@@ -135,7 +135,6 @@ public partial class GrapplingHookRig : RigidBody3D
     public void SetLeashLength(float distance)
     {
         GrappleJoint.JointMaxDistance = distance;
-        GrappleJoint.ResetJoint(false);
     }
 
     #region Hook Logic

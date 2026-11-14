@@ -332,7 +332,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         RopeMesh.UseVisibleOnScreenNotifier = UseVisibleOnScreenNotifier;
         RopeMesh.UseDebugParticles = UseDebugParticles;
         RopeMesh.TubeSegments = TubeSegments;
-        
+
         if (MaterialOverride != null)
         {
             RopeMesh.MaterialOverride = MaterialOverride;

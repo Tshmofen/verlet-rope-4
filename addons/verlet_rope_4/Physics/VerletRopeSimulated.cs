@@ -662,6 +662,22 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         }
     }
 
+    /// <summary>
+    /// Recomputes the bodies the rope ignores in collisions, without re-laying it - what a joint applies when only its
+    /// collision flags change. The list is re-read on every raycast, so replacing it is all it takes.
+    /// </summary>
+    public void RefreshCollisionExceptions()
+    {
+        if (ConnectedJoint is VerletJointSimulated simulatedJoint)
+        {
+            _collisionExceptions = new List<Rid>(simulatedJoint.GetPhysicsExceptionRids());
+        }
+        else
+        {
+            _collisionExceptions = null;
+        }
+    }
+
     /// <inheritdoc cref="BaseVerletRopePhysical.DestroyRope"/>
     public override void DestroyRope()
     {
@@ -678,18 +694,12 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         _restSegmentLength = GetTargetRestSegmentLength();
         ParticleData = RopeParticleData.GenerateParticleData(startLocation, endLocation, acceleration, SimulationParticles, _restSegmentLength);
 
-        if (ConnectedJoint is VerletJointSimulated simulatedJoint)
-        {
-            _collisionExceptions = new List<Rid>(simulatedJoint.GetPhysicsExceptionRids());
-        }
-        else if (ConnectedJoint != null)
+        if (ConnectedJoint != null && ConnectedJoint is not VerletJointSimulated)
         {
             throw new ApplicationException($"`{nameof(VerletRopeSimulated)}` only accepts joints of `{nameof(VerletJointSimulated)} type.");
         }
-        else
-        {
-            _collisionExceptions = null;
-        }
+
+        RefreshCollisionExceptions();
 
         ref var start = ref ParticleData[0];
         ref var end = ref ParticleData[^1];

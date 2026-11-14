@@ -91,7 +91,7 @@ Each guide highlights a specific use case, explains which nodes and properties a
 - If the bodies are not being pulled, make sure the rope actually goes taut - `RopeLength` should be close to the distance between the attachment points, otherwise the leash only hangs.
 - If the leash drags the attached body down, lower `TotalRopeMass`.
 - If the rope passes through obstacles, check `CollisionLayer` / `CollisionMask` and consider increasing `CollisionWidthMargin`.
-- If the rope does not appear or its behavior doesn't change, ensure that you have pressed **Reset Joint** after joint changes - a rope property applies itself.
+- If the rope does not appear or its behavior doesn't change, press **Reset Joint** to re-lay it between the joint's attachment points - both joint and rope properties apply themselves.
 
 **See Also**
 - [VerletJointRigid](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletJointRigid)
@@ -140,7 +140,7 @@ Each guide highlights a specific use case, explains which nodes and properties a
 - If the ball barely swings, check its `Mass` against the obstacles' - a ball that is too light bounces off instead of knocking them over.
 - If the rope looks rubbery while the ball swings (its segments visibly stretching and snapping back), raise `StiffnessIterations`.
 - If the rope disappears while the ball swings off-screen, disable `IsDisabledWhenInvisible` on the rope.
-- If the rope does not appear or its behavior doesn't change, ensure that you have pressed **Reset Joint** after joint changes - a rope property applies itself.
+- If the rope does not appear or its behavior doesn't change, press **Reset Joint** to re-lay it between the joint's attachment points - both joint and rope properties apply themselves.
 
 **See Also**
 - [VerletJointSimulated – Distance Joint section](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletJointSimulated#distance-joint-end)
@@ -186,16 +186,16 @@ Each guide highlights a specific use case, explains which nodes and properties a
    - Keep the hook in the hand while it is not in use: leave it frozen with `Freeze Mode` set to `Kinematic` and copy the hand's `GlobalPosition` onto it every frame, so it rides along with the player.
    - Fire it with `ApplyCentralImpulse`, aiming slightly above the target to compensate for the drop during the flight. Scaling the impulse by `Mass` is what keeps `LaunchSpeed` a plain speed, and the hook has to be un-frozen in the same call or it takes the impulse without moving.
    - Enable `Continuous Cd` on the hook, so a fast hook cannot tunnel through the surface it is supposed to hit.
-   - Increase `JointMaxDistance` (e.g. `40`) and call `ResetJoint(false)` before the launch, otherwise the joint starts pulling while the hook is still in flight.
+   - Increase `JointMaxDistance` (e.g. `40`) before the launch, otherwise the joint starts pulling while the hook is still in flight.
 
 4. **Attaching**
    - Enable `Contact Monitor` and `Max Contacts Reported` on the hook and connect its `BodyEntered` signal.
    - On hit, stop the hook: set `Freeze Mode` to `Kinematic` and `Freeze` to `true`, then write its `GlobalPosition` once more, as kinematic bodies take their transform from the node and the physics server can otherwise snap the hook back to the transform it buffered while it was parked.
-   - Set `JointMaxDistance` to the current player to hook distance and call `ResetJoint(false)`, so the rope goes taut and the player starts swinging instead of being yanked.
+   - Set `JointMaxDistance` to the current player to hook distance, so the rope goes taut and the player starts swinging instead of being yanked.
    - Ignore the signal unless the hook is in flight, otherwise it sticks to the first thing it brushes on the way home.
 
 5. **Reeling In** – Only the leash changes here, the rope itself is left alone.
-   - Animate `JointMaxDistance` down towards the hook and call `ResetJoint(false)` after every change - the joint needs it to pick up the new length, and passing `false` keeps the rope from being rebuilt.
+   - Animate `JointMaxDistance` down towards the hook - the joint picks the new length up on its own, and the rope is not rebuilt for it.
    - Do not reel with `RopeLength` for this: changing it shortens the line itself and drags the whole rope after the hook, while the leash is what is supposed to move the player.
    - Make sure the pulled body has `Can Sleep` disabled, otherwise it might go to sleep while resting and silently ignores the joint.
 
@@ -281,7 +281,7 @@ Each step above belongs to one state of the hook, and the two lengths - the leas
 4. **Casting**
    - Swing the hand by moving the node the rod is held by.
    - Treat the hook as a thrown body: set its `LinearVelocity` to the aim direction times the cast speed rather than adding an impulse, so the cast goes where the rod is pointed instead of on top of whatever swing the hook had while it was hanging, and clear its angular velocity in the same call.
-   - Open up `JointMaxDistance` (e.g. `30`) and call `ResetJoint(false)` before the throw, otherwise the joint drags the hook back while it is still in the air.
+   - Open up `JointMaxDistance` (e.g. `30`) before the throw, otherwise the joint drags the hook back while it is still in the air.
    - Make sure the hook's `Can Sleep` is disabled - a sleeping body ignores the joint that is holding it.
 
 5. **Paying Out and Reeling In** – The leash is what pays the line out and reels it back in; the rope only gets stretched.

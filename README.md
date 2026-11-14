@@ -64,7 +64,7 @@ The following nodes are being added to the `Create Child Node` menu, try them ou
 * **[`VerletRopeMesh`](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeMesh)** -> `MeshInstance3D` - Utility node providing access to custom rope mesh generation, only works when particle positions are provided programmatically.
 
 > [!NOTE]  
-> Rope settings apply themselves the moment they are changed, `Reset Rope` only lays the rope out again between its current attachment points - a rigid rope needs it after its attachment points move. Joint settings still require a quick reset after the change - both quick action buttons can be found on the top of the inspector.
+> Rope settings apply themselves the moment they are changed, `Reset Rope` only lays the rope out again between its current attachment points - a rigid rope needs it after its attachment points move. Joint settings apply the same way, `Reset Joint` only re-lays the joined rope after an attachment point moved - both quick action buttons can be found on the top of the inspector.
 
 > [!WARNING]  
 > Unfortunately C# XML documentation is currently not supported by Godot, please refer to the wiki pages until [corresponding issue](https://github.com/godotengine/godot-proposals/issues/8269) gets resolved.

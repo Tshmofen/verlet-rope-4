@@ -24,13 +24,13 @@ You can see properties descriptions below to understand how to alter the joint b
 > Currently Godot physics engine doesn't have a preset distance joint implementation and custom configurations of `Generic6DofJoint` doesn't provide needed flexibility and behavior - so `DistanceForceJoint` is implemented and used internally to address this. 
 
 ## Export Description
-> [!WARNING]
-> The settings of this node only gonna be applied after `Reset Joint` tool button is clicked or the scene is reloaded. Make sure to do that once you change any settings to see them applied.
+> [!NOTE]
+> Joint settings apply themselves the moment they are changed, `Reset Joint` only re-lays the joined rope between its current attachment points - the distance joint values and the collision ignore flags never need it.
 
 ### Actions
 | Button Action | How it works |
 |--|--|
-| Reset Joint (Apply Changes) | Propagates all updated values to the internal logic and resets the joint and connect rope to the initial state. |
+| Reset Joint | Reapplies the joint settings and re-lays the joined rope between its current attachment points. |
 
 ### References
 | Export variable | How it works |
@@ -62,7 +62,7 @@ You can see properties descriptions below to understand how to alter the joint b
 The joint can also be manipulated via code, it exposes all the properties mentioned above and the following public method.
 | Method | How it works |
 |--|--|
-| `void ResetJoint(bool toResetRope = true)` | Resets the joined rope (if requested and created) and all joint properties, have to be called after any property changes. It is being called when you press `Reset Joint` quick button. |
+| `void ResetJoint(bool toResetRope = true)` | Reapplies all joint properties and resets the joined rope (if requested and created) - only needed to re-lay the rope after an attachment point moved. It is being called when you press `Reset Joint` quick button. |
 | `List<Rid> GetPhysicsExceptionRids()` |  Returns physics `Rid`-s of connected bodies that are to be ignored by parent `VerletRopeSimulated` instance. |
 
 ## Related Pages
