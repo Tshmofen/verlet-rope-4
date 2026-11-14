@@ -337,3 +337,15 @@ dotnet_naming_style.underscore_camel_case.capitalization = camel_case
 dotnet_naming_style.underscore_camel_case.required_prefix = _
 dotnet_naming_style.underscore_camel_case.required_suffix =
 dotnet_naming_style.underscore_camel_case.word_separator =
+
+# ---------------------------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------------------------
+
+# A gdUnit4 suite has no call sites: the runner reaches suites, hooks and cases by reflection, and it only ever discovers
+# the public ones. Roslyn therefore reports a private case as removable, which is true - that case would never run - but
+# the hint is noise in an editor, so both unused-member rules are silenced for test sources. A test member is public by
+# rule, see `test/README.md`.
+[test/**/*.cs]
+dotnet_diagnostic.IDE0051.severity = silent
+dotnet_diagnostic.IDE0052.severity = silent

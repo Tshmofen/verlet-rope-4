@@ -8,6 +8,7 @@ namespace VerletRope4.Tests.Unit;
 /// <summary> Covers the segment placement both rope types lay their structure with. </summary>
 [TestSuite]
 [RequireGodotRuntime]
+[Trait("lane", "unit")]
 public class SegmentPlaceUtilityTest
 {
     [TestCase]

@@ -14,6 +14,7 @@ namespace VerletRope4.Tests.Unit;
 /// </summary>
 [TestSuite]
 [RequireGodotRuntime]
+[Trait("lane", "unit")]
 public class RigidRopeTest
 {
     [TestCase]
@@ -91,6 +92,24 @@ public class RigidRopeTest
 
         AssertThat(CollectBodies(rope).Count).IsEqual(8);
         AssertThat(rope.GetParticleCount()).IsEqual(9);
+    }
+
+    /// <summary> Destroying the rope drops the chain and the particle data laid out from it, so nothing stale is reported. </summary>
+    [TestCase]
+    public async Task DestroyRopeRemovesTheParticleData()
+    {
+        var rope = CreateRope(simulationSegments: 5, ropeLength: 1.0f);
+
+        ISceneRunner.Load(rope);
+        await NextFrame(rope);
+
+        AssertThat(rope.GetParticleCount()).IsEqual(6);
+
+        rope.DestroyRope();
+
+        AssertThat(rope.IsRopeCreated).IsFalse();
+        AssertThat(rope.GetParticleCount()).IsEqual(0);
+        AssertThat(rope.GetParticle(0) == null).IsTrue();
     }
 
     private static VerletRopeRigid CreateRope(int simulationSegments, float ropeLength)

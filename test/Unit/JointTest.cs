@@ -10,6 +10,7 @@ namespace VerletRope4.Tests.Unit;
 /// <summary> Covers the configuration warnings a joint reports and the findings they are built from. </summary>
 [TestSuite]
 [RequireGodotRuntime]
+[Trait("lane", "unit")]
 public class JointTest
 {
     [TestCase]

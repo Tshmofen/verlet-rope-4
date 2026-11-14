@@ -8,6 +8,7 @@ namespace VerletRope4.Tests.Unit;
 /// <summary> Covers the vector interpolation helper the tools share. </summary>
 [TestSuite]
 [RequireGodotRuntime]
+[Trait("lane", "unit")]
 public class MathUtilityTest
 {
     [TestCase]

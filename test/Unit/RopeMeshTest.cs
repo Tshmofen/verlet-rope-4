@@ -13,6 +13,7 @@ namespace VerletRope4.Tests.Unit;
 /// </summary>
 [TestSuite]
 [RequireGodotRuntime]
+[Trait("lane", "unit")]
 public class RopeMeshTest
 {
     [TestCase]

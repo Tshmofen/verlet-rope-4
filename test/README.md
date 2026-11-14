@@ -1,45 +1,62 @@
 # Tests
 
-Two lanes, one script. Both are gated on a process exit code, so both can be run by hand or by any CI step later.
+Two lanes, one command. Both are ordinary VSTest runs - `dotnet test`, or `Run Tests` in the IDE - so the test explorer is
+the entry point and there is no separate engine invocation to keep in step.
 
 ```powershell
 ./run-tests.ps1                     # both lanes
-./run-tests.ps1 -Lane Unit          # gdUnit4 only
-./run-tests.ps1 -Lane Scenes        # scene runs only
+./run-tests.ps1 -Lane Unit          # test/Unit only
+./run-tests.ps1 -Lane Integration   # test/Integration only
 ```
 
-Requirements: the .NET SDK the project targets and a Godot 4.7 mono install. Godot is found through `-Godot`, or through
-`GODOT_BIN` when the parameter is omitted:
+Requirements: the .NET SDK the project targets and a Godot 4.7 mono install. Godot is named once, in the gitignored
+`godot.path` at the repository root: one line, the absolute path of the `_console.exe`.
 
-```powershell
-$env:GODOT_BIN = 'E:\Apps\Godot\Godot_v4.7.2-stable_mono_win64\Godot_v4.7.2-stable_mono_win64_console.exe'
+```
+E:\Apps\Godot\Godot_v4.7.2-stable_mono_win64\Godot_v4.7.2-stable_mono_win64_console.exe
 ```
 
-The script always builds first, because the engine loads the assembly from the project output folder and never builds it.
-Both lanes run without a window: `.runsettings` passes `--headless` to the gdUnit4 host, and the scene runner is started
-with it explicitly, so a run from an IDE behaves the same as a run from the shell.
+`test/godot-test.targets` reads that file, writes `test.runsettings` into the intermediate output folder and points the
+project's `RunSettingsFilePath` at it, so the adapter starts the engine without any environment variable being set in the
+shell. A missing or empty `godot.path` warns on build and fails the test run.
+
+Toolchain: `gdUnit4.api` 5.1.0-rc7, `gdUnit4.test.adapter` 3.2.0, `gdUnit4.analyzers` 1.1.0. The api is a release
+candidate because the last stable one, 5.0.0, predates Godot 4.7 support; the price is paid once, and the adapter's
+`TolerateExitCodeAfterCompletion` is switched on, so an engine crash after the results are reported is a warning instead of
+a red run.
 
 ## Why two lanes
 
-`test/Unit` asserts on the addon in isolation and needs a Godot runtime, but no scene. `test/Scenes` runs the demo
-scenes for real. They cannot be one lane: physics does tick in the gdUnit4 host as frames pass, but by an amount nobody
-controls - measured on 4.7.2, twenty idle-frame awaits advanced `Engine.GetPhysicsFrames()` by 9, and
-`await SimulateFrames(20)` by 8. A unit test therefore steps `_PhysicsProcess` itself to get exactly the number of steps
-it asserts on, while the scene lane runs whole scenes with their drivers and the collision queries over a fixed physics
-frame count. Both are needed and neither replaces the other.
+`test/Unit` covers the addon on its own, `test/Integration` drives the real demo scenes. Both run in the gdUnit4 host, in
+one engine start per run, and both are selected by trait:
+
+```powershell
+dotnet test VerletRope.csproj --filter 'Trait.lane=unit'
+dotnet test VerletRope.csproj --filter 'Trait.lane=integration'
+```
+
+Physics does tick in that host, so a whole scene can be driven there. What a test cannot rely on is a *step count*:
+measured on 4.7.2, twenty idle-frame awaits advanced `Engine.GetPhysicsFrames()` by 9, and `await SimulateFrames(20)` by 8.
+A unit test therefore steps `_PhysicsProcess` itself to get exactly the number of steps it asserts on, while a scenario
+waits for physics frames and asserts on how the scene behaves.
 
 ## Lane: unit tests
 
-`test/Unit/*.cs`, written against [gdUnit4](https://github.com/godot-gdunit-labs/gdUnit4) and run by `dotnet test`:
+`test/Unit/*.cs`, written against [gdUnit4](https://github.com/godot-gdunit-labs/gdUnit4):
 
 ```powershell
-dotnet test VerletRope.csproj --settings .runsettings
+dotnet test VerletRope.csproj --filter 'Trait.lane=unit'
 ```
 
 - A suite is `[TestSuite]` and every case is `[TestCase]`; assertions come from `AssertThat(...)` in `GdUnit4.Assertions`.
+- **An asynchronous case is declared `async Task`.** gdUnit4 rejects a method that merely returns a `Task` with
+  `Invalid method signature found at: <name>` and fails the case.
 - **`[RequireGodotRuntime]` is mandatory on any suite or case that touches a Godot type.** That includes `Vector3`, so in
   practice it is every test here. With `TreatWarningsAsErrors` the gdUnit4 analyzer turns a missing annotation into a
   build error (`GdUnit0501`), not a silent difference in where the test runs.
+- **A suite, a hook and a case are `public`.** The runner discovers only public members: a `private` method carrying
+  `[TestCase]` is skipped without a word (verified: a three-case suite with one private case reported two). Roslyn would
+  flag such a method as unused, which is why the unused-member rules are silenced for `test/**` in `.editorconfig`.
 - A node that has to be in the tree is loaded with `ISceneRunner.Load(node)`, which parents it and frees it with the
   runner. A node that only has to exist is created and passed to `AutoFree(...)` so the run is not reported as leaking
   orphans.
@@ -54,60 +71,52 @@ dotnet test VerletRope.csproj --settings .runsettings
   `Class=SimulatedRopeTest` matches nothing.
 
 Add a suite by dropping a `[TestSuite]` class in `test/Unit/`, named after the node or utility type it covers with the
-`VerletRope` prefix dropped and a `Test` suffix (`SimulatedRopeTest`, `RigidRopeTest`, `SegmentPlaceUtilityTest`).
+`VerletRope` prefix dropped and a `Test` suffix (`SimulatedRopeTest`, `RigidRopeTest`, `SegmentPlaceUtilityTest`), and give
+it `[Trait("lane", "unit")]`.
 
 ## Lane: scene integration
 
-`test/Scenes/` holds a runner scene, the goal-checking helpers and one scenario per demo scene:
+`test/Integration/` holds one suite per scene, `test/Scenes/` holds what those suites drive:
 
 | File | Purpose |
 | --- | --- |
-| `scene_runner.tscn`, `SceneTestRunner.cs` | loads every scenario in one engine run, reports, quits with a code |
-| `SceneScenario.cs` | base type: scene path, name, the goals to run |
-| `SceneChecks.cs` | goal recording and the shared rope invariants |
-| `Scenarios/*.cs` | one scenario per `demo/examples` scene, plus the purpose-built `rope_collision` |
-| `rope_collision.tscn` | purpose-built scene: a rope falling onto a static floor, for collision coverage no demo has |
+| `Integration/*ScenarioTest.cs` | one `[TestSuite]` per scene, with a single `[TestCase]` that awaits the harness |
+| `Integration/SceneHarness.cs` | loads the scene, applies the headless rope settings, drives it under a timeout, reports the goals |
+| `Scenes/SceneScenario.cs` | base type: scene path, name, the goals to run |
+| `Scenes/SceneChecks.cs` | goal recording and the shared rope invariants |
+| `Scenes/Scenarios/*.cs` | one scenario per `demo/examples` scene, plus the purpose-built `rope_collision` |
+| `Scenes/rope_collision.tscn` | purpose-built scene: a rope falling onto a static floor, for collision coverage no demo has |
 
-```powershell
-$env:GODOT_BIN = '...\Godot_v4.7.2-stable_mono_win64_console.exe'
-dotnet build VerletRope.csproj
-& $env:GODOT_BIN --headless --path . res://test/Scenes/scene_runner.tscn
-```
-
-Output is one line per scene, with every goal that was not met under it:
+A failing goal fails its case with every goal the scene missed, so one run reports all of them:
 
 ```
-[scenes] PASS 1_swinging_rope
-[scenes] FAIL 5_fishing_rod - 1 goal(s) not met
-          the demo cycle casts the line, phase is Casting
-[scenes] 6 scenario(s) run, 1 failed, 1 goal(s) not met
+`5_fishing_rod` did not meet 1 goal(s):
+  the demo cycle casts the line, phase is Casting
 ```
-
-The runner exits with `0` when every goal holds, `1` when any goal is missing, and `2` when the run was aborted after 180
-s - so a scenario that waits on a frame that never comes fails instead of hanging. A scenario that throws fails its own
-scene instead of stopping the run.
 
 - A scenario drives a real scene with real physics: wait with `WaitPhysicsFrames(root, frames)`, never with a fixed
   `await Task.Delay`.
 - Goals are physics invariants of that scene - particle count, attachment, length, body travel, joint leash, segment
   integrity, finite positions - not screenshots and not timings of individual frames.
-- The runner disables the visibility-based skipping of every rope before the scene enters the tree
+- The harness disables the visibility-based skipping of every rope before the scene enters the tree
   (`UseVisibleOnScreenNotifier` and, for a simulated rope, `IsDisabledWhenInvisible`). Headless a screen notifier is never
   on screen, so a simulated rope with `IsDisabledWhenInvisible` left on would stay frozen for the whole scenario; the
   notifier flag alone is what keeps a rope from drawing, and for a rigid rope drawing is all visibility affects.
   `1_swinging_rope` and `2_tether_leash` ship without either flag set.
-- Add a scenario by dropping a `SceneScenario` subclass in `test/Scenes/Scenarios/`, then adding it to the `Scenarios`
-  list in `SceneTestRunner`. Keep each goal a single sentence that names the scene node it is about.
+- A scenario that throws fails its own case instead of stopping the run. One that does not finish within 180 s fails with
+  that, so a goal waiting on a frame that never comes cannot stall the session.
+- Add a scenario by dropping a `SceneScenario` subclass in `test/Scenes/Scenarios/`, then a `[TestSuite]` with one
+  `async Task` `[TestCase]` in `test/Integration/` that awaits `SceneHarness.RunAsync(new ...)`, carrying
+  `[Trait("lane", "integration")]`. Keep each goal a single sentence that names the scene node it is about.
 
 ## Not covered
 
 Rendering and anything visual, input handling, and editor-only code - `Engine.IsEditorHint()` is false in both lanes.
-The runner does not scan the engine output for errors either: a goal has to be written as a check, otherwise it is not
-tested.
+Neither lane scans the engine output for errors: a goal has to be written as a check, otherwise it is not tested.
 
 ## Known noise in the log
 
-Judge a run by its exit code, not by these:
+Judge a run by its results, not by these:
 
 - `Detected <N> orphan nodes during test execution!` - gdUnit4 counts leftovers per test case while the runner frees
   what it loaded deferred, so a suite can report a few nodes that no single case reports on its own. A hint, not a
@@ -121,20 +130,23 @@ Judge a run by its exit code, not by these:
 - `_DebugDraw3DAssetLibraryUpdateChecker: Failed to get a response from https://godotengine.org/...` and the matching
   `mbedtls error`, from the local-only `addons/debug_draw_3d` addon when the host has no network access.
 
-One failure mode is not the tests: the engine process that gdUnit4 starts for its project rebuild - and the Godot import
-step behind it - dies with an access violation on shutdown now and then (`Rebuilding Godot Project ends with exit code:
--1073741819`, then every selected test reported as `was not executed`). Measured on 4.7.2: twice in twelve runs, and
-`godot --headless --import` by itself crashed once in three. Nothing ran in that case, so re-run - `run-tests.ps1` retries
-the unit lane for exactly that signature, and also retries the scene lane when it dies before reporting a scenario. A
-plain `dotnet test` needs the second invocation by hand.
+One failure mode is not the tests, and is not worked around: the engine process gdUnit4 starts for its project rebuild -
+and the Godot import step behind it - dies with an access violation on shutdown now and then (`Rebuilding Godot Project
+ends with exit code: -1073741819`, then every selected test reported as `was not executed`). It hit twice while this
+lane was written, both times before any result was reported. Nothing ran in that case, so re-run; the same crash after the
+results are in is covered by `TolerateExitCodeAfterCompletion` and only shows as a warning.
 
 ## Troubleshooting
 
-- `Settings file provided does not conform to required format` - an XML comment in `.runsettings` contains `--`. Keep
-  engine flags in the `<Parameters>` element, not in prose.
-- `GODOT_BIN` unset does not fail to connect: the adapter prints `Godot runtime is not configured. The environment
-  variable 'GODOT_BIN' is not set or empty.` and then reports every selected test as `was not executed`. A whole red run
-  with no assertion failure in it is a configuration problem, not a regression.
-- `gdunit4_testadapter_v5/` and `TestResults/` are generated and gitignored. The adapter folder is excluded from the style
-  rules in `.editorconfig` (`generated_code = true`); without that exclusion the first `dotnet test` run breaks the next
-  build, because the generated runner scene does not follow this repository's formatting rules.
+- `godot.path is missing or empty` - the build warns and the test run fails, by design. Write the absolute path of the
+  `_console.exe` into `godot.path`; the gitignored file lives at the repository root.
+- `godot.path names '...', which does not exist` - the file points at a Godot install that moved or was removed.
+- `Settings file provided does not conform to required format` - an XML comment in `test/test.runsettings.template`
+  contains `--`. Keep engine flags in the `<Parameters>` element, not in prose.
+- `No test matches the given testcase filter ...` - the trait filter selected nothing, or `GODOT_BIN` never reached the
+  adapter (see the two entries above). A whole red run with no assertion failure in it is a configuration problem, not a
+  regression.
+- `gdunit4_testadapter_v5/`, `TestResults/`, `godot.path` and the generated `test.runsettings` are machine-local. The
+  adapter folder is excluded from the style rules in `.editorconfig` (`generated_code = true`); without that exclusion the
+  first `dotnet test` run breaks the next build, because the generated runner scene does not follow this repository's
+  formatting rules.

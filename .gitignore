@@ -22,4 +22,7 @@ addons/debug_draw_3d/
 gdunit4_testadapter_v5/
 TestResults/
 
+# Machine-local Godot install the test run starts the engine with, see test/README.md
+godot.path
+
 .local-docs/

@@ -18,6 +18,7 @@ namespace VerletRope4.Tests.Unit;
 /// </summary>
 [TestSuite]
 [RequireGodotRuntime]
+[Trait("lane", "unit")]
 public class SimulatedRopeTest
 {
     private const double FrameDelta = 1.0 / 60.0;

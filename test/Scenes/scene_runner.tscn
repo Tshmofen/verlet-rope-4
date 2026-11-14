@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3]
-
-[ext_resource type="Script" path="res://test/Scenes/SceneTestRunner.cs" id="1_scene_runner"]
-
-[node name="SceneTestRunner" type="Node"]
-script = ExtResource("1_scene_runner")

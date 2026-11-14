@@ -357,6 +357,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     /// <inheritdoc cref="BaseVerletRopePhysical.DestroyRope"/>
     public override void DestroyRope()
     {
+        ParticleData = null;
         _segmentBodies = null;
         _segmentShape = null;
         _segmentMesh = null;

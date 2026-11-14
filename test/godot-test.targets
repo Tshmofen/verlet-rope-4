@@ -1,0 +1,53 @@
+<Project>
+  <!--
+    Turns the machine-local `godot.path` into the Godot binary the gdUnit4 test adapter starts.
+
+    `godot.path` is gitignored: one line, the absolute path of the Godot mono `_console.exe`. A missing or empty file only
+    warns, so the addon still builds on a machine without Godot; the test run is where the binary is needed, and there it
+    fails.
+  -->
+
+  <PropertyGroup>
+    <GodotPathFile>$(MSBuildProjectDirectory)/godot.path</GodotPathFile>
+    <GodotTestRunSettingsTemplate>$(MSBuildProjectDirectory)/test/test.runsettings.template</GodotTestRunSettingsTemplate>
+    <!-- Godot.NET.Sdk points the intermediate output into `.godot/mono/temp/obj`, and Path.Combine keeps an absolute base. -->
+    <GodotTestRunSettings>$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(BaseIntermediateOutputPath)', 'test.runsettings'))</GodotTestRunSettings>
+    <RunSettingsFilePath>$(GodotTestRunSettings)</RunSettingsFilePath>
+  </PropertyGroup>
+
+  <Target Name="GodotTestResolvePath">
+    <PropertyGroup>
+      <GodotBinPath Condition="Exists('$(GodotPathFile)')">$([System.IO.File]::ReadAllText('$(GodotPathFile)').Trim())</GodotBinPath>
+    </PropertyGroup>
+
+    <Warning
+      Condition="'$(GodotBinPath)' == ''"
+      Text="godot.path is missing or empty. Write the absolute path of the Godot mono console executable into '$(GodotPathFile)'; without it the tests cannot start the engine." />
+  </Target>
+
+  <Target Name="GodotTestWriteRunSettings" DependsOnTargets="GodotTestResolvePath" BeforeTargets="Build">
+    <PropertyGroup>
+      <_GodotTestRunSettingsContent Condition="Exists('$(GodotTestRunSettingsTemplate)')">$([System.IO.File]::ReadAllText('$(GodotTestRunSettingsTemplate)').Replace('@GODOT_BIN@', '$(GodotBinPath)'))</_GodotTestRunSettingsContent>
+    </PropertyGroup>
+
+    <WriteLinesToFile
+      Condition="'$(_GodotTestRunSettingsContent)' != ''"
+      File="$(GodotTestRunSettings)"
+      Lines="$(_GodotTestRunSettingsContent)"
+      Overwrite="true"
+      WriteOnlyWhenDifferent="true" />
+
+    <ItemGroup>
+      <FileWrites Include="$(GodotTestRunSettings)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="GodotTestValidate" DependsOnTargets="GodotTestResolvePath" BeforeTargets="VSTest">
+    <Error
+      Condition="'$(GodotBinPath)' == ''"
+      Text="godot.path is missing or empty. Write the absolute path of the Godot mono console executable into '$(GodotPathFile)'." />
+    <Error
+      Condition="'$(GodotBinPath)' != '' and !Exists('$(GodotBinPath)')"
+      Text="godot.path names '$(GodotBinPath)', which does not exist." />
+  </Target>
+</Project>

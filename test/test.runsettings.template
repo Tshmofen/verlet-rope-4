@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Test settings for the gdUnit4 lane, see `test/README.md`.
+  Template of the test settings gdUnit4 needs, see `test/README.md`.
 
-  `GODOT_BIN` is deliberately not hardcoded here: `run-tests.ps1` sets it from `-Godot` or the environment, and an IDE
-  run needs it set once in the process environment. The headless parameter below keeps the test host off the display
-  server, which is what a CI run and a local run without a window both need.
+  `test/godot-test.targets` fills in its Godot binary placeholder from the gitignored `godot.path` and writes the result to
+  `test.runsettings` in the intermediate output folder, which the project's `RunSettingsFilePath` points at. `dotnet test`
+  and the IDE therefore start the engine without any environment variable being set in the shell.
 -->
 <RunSettings>
   <RunConfiguration>
@@ -12,6 +12,9 @@
     <ResultsDirectory>./TestResults</ResultsDirectory>
     <TestSessionTimeout>300000</TestSessionTimeout>
     <TreatNoTestsAsError>true</TreatNoTestsAsError>
+    <EnvironmentVariables>
+      <GODOT_BIN>@GODOT_BIN@</GODOT_BIN>
+    </EnvironmentVariables>
   </RunConfiguration>
 
   <LoggerRunSettings>
@@ -28,5 +31,6 @@
     <Parameters>--headless</Parameters>
     <DisplayName>FullyQualifiedName</DisplayName>
     <CaptureStdOut>true</CaptureStdOut>
+    <TolerateExitCodeAfterCompletion>true</TolerateExitCodeAfterCompletion>
   </GdUnit4>
 </RunSettings>
