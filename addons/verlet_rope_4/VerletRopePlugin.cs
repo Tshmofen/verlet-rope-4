@@ -4,6 +4,7 @@ using Godot;
 using VerletRope4.Physics;
 using VerletRope4.Physics.Joints;
 using VerletRope4.Rendering;
+using VerletRope4.Utility;
 
 namespace VerletRope4;
 
@@ -30,7 +31,13 @@ public partial class VerletRopePlugin : EditorPlugin
         AddVerletType(DistanceForceJoint.ExportedType, DistanceForceJoint.ExportedBase, DistanceForceJoint.ScriptPath, DistanceForceJoint.IconPath);
         AddVerletType(VerletRopeMesh.ExportedType, VerletRopeMesh.ExportedBase, VerletRopeMesh.ScriptPath, VerletRopeMesh.IconPath);
 
-        AddNode3DGizmoPlugin(_gizmoPlugin = new VerletRopeGizmoPlugin());
+        // A C# gizmo plugin sometimes crashes the engine when it is disposed at shutdown. Headless editor as well which is used for unit testing,
+        // so we skip it there since gizmo is not needed, and we want all test runs to be deterministically successful.
+        // See: https://github.com/godotengine/godot/issues/110790.
+        if (!NodeUtility.IsHeadless)
+        {
+            AddNode3DGizmoPlugin(_gizmoPlugin = new VerletRopeGizmoPlugin());
+        }
     }
 
     public override void _ExitTree()
@@ -44,7 +51,10 @@ public partial class VerletRopePlugin : EditorPlugin
         RemoveCustomType(DistanceForceJoint.ExportedType);
         RemoveCustomType(VerletRopeMesh.ExportedType);
 
-        RemoveNode3DGizmoPlugin(_gizmoPlugin);
+        if (_gizmoPlugin != null)
+        {
+            RemoveNode3DGizmoPlugin(_gizmoPlugin);
+        }
     }
 
     public override bool _Handles(GodotObject @object)
