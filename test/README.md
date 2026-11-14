@@ -1,6 +1,6 @@
 # Tests
 
-**The addon ships with an automated test suite that runs its rope simulation, so a change can be verified without opening the editor.** The tests are written with [gdUnit4](https://github.com/godot-gdunit-labs/gdUnit4) and executed the usual .NET way - through `dotnet test` (or the IDE action):
+**The project ships with an automated test suite that runs its rope simulation, so a change can be verified without opening the editor.** The tests are written with [gdUnit4](https://github.com/godot-gdunit-labs/gdUnit4) and executed the usual .NET way - through `dotnet test` (or the IDE action):
 
 ```powershell
 dotnet test VerletRope.csproj                                    # all tests
@@ -8,7 +8,7 @@ dotnet test VerletRope.csproj --filter 'Trait.lane=unit'         # unit tests on
 dotnet test VerletRope.csproj --filter 'Trait.lane=integration'  # scene tests only
 ```
 
-A run starts Godot once, headless, and the selected tests execute inside it against the real 3D physics server. A single suite can be selected while iterating on it, either by name or by its fully qualified class:
+A `dotnet test` run executes the selected tests inside one headless Godot session, against the real 3D physics server. A single suite can be selected while iterating on it, either by name or by its fully qualified class:
 
 ```powershell
 dotnet test VerletRope.csproj --filter 'FullyQualifiedName~SimulatedRopeTest'

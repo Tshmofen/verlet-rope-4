@@ -35,7 +35,9 @@ public sealed class WreckingBallScenario : SceneScenario
 
         checks.Check(ballTravel > 0.2f, $"the ball swings away from the pose it starts in, travelled {ballTravel:F2}");
         checks.Check(rope.GetParticlePosition(-1).DistanceTo(attachment.GlobalPosition) < 0.5f, "the rope end follows the ball");
-        checks.CheckAtMost(anchorDistance, leash + 0.5f, "the joint keeps the ball on its leash from the rope anchor");
+        // The ball settles just past the leash - measured 2.84 m against a 2.74 m one - so the margin is that settle and not
+        // what the joint is allowed to give.
+        checks.CheckAtMost(anchorDistance, leash + 0.25f, "the joint keeps the ball on its leash from the rope anchor");
         checks.CheckParticlesAreFinite(rope, "the wrecking rope particle positions stay finite");
     }
 }

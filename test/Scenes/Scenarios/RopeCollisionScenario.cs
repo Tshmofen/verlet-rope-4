@@ -16,6 +16,7 @@ public sealed class RopeCollisionScenario : SceneScenario
     public override async Task RunAsync(Node root, SceneChecks checks)
     {
         var rope = root.GetNode<VerletRopeSimulated>("CollisionRope");
+        // The floor of the scene is a 0.4 m box, so its top sits half of that above the node.
         var floorTop = root.GetNode<Node3D>("Floor").GlobalPosition.Y + 0.2f;
 
         checks.Check(rope.IsRopeCreated, "the rope is created on ready");

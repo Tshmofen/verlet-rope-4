@@ -112,6 +112,27 @@ public class RigidRopeTest
         AssertThat(rope.GetParticle(0) == null).IsTrue();
     }
 
+    /// <summary>
+    /// A rebuild after a teardown starts from nothing - the particle positions were already dropped with the old chain, so
+    /// the rope has to lay out both again instead of reporting the destroyed one.
+    /// </summary>
+    [TestCase]
+    public async Task RopeIsRebuiltAfterBeingDestroyed()
+    {
+        var rope = CreateRope(simulationSegments: 4, ropeLength: 1.0f);
+
+        ISceneRunner.Load(rope);
+        await NextFrame(rope);
+
+        rope.DestroyRope();
+        rope.CreateRope();
+        await NextFrame(rope);
+
+        AssertThat(rope.IsRopeCreated).IsTrue();
+        AssertThat(rope.GetParticleCount()).IsEqual(5);
+        AssertThat(CollectBodies(rope).Count).IsEqual(4);
+    }
+
     private static VerletRopeRigid CreateRope(int simulationSegments, float ropeLength)
     {
         return new VerletRopeRigid
@@ -126,6 +147,7 @@ public class RigidRopeTest
     {
         return rope.GetChildren()
             .OfType<RigidBody3D>()
+            // A rebuild queues the bodies it replaces for free, and they stay children until the frame ends.
             .Where(body => !body.IsQueuedForDeletion())
             .ToList();
     }

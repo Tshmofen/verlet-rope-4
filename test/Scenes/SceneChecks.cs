@@ -10,7 +10,11 @@ namespace VerletRope4.Tests.Scenes;
 /// </summary>
 public sealed class SceneChecks
 {
-    /// <summary> Largest ratio between a segment and the rest length it was built for before the rope counts as torn. </summary>
+    /// <summary>
+    /// Largest ratio between a segment and the rest length it was built for before the rope counts as torn. A rope
+    /// settles near its rest length, so a segment several times too long is not a stretched rope but a constraint solve
+    /// that stopped pulling.
+    /// </summary>
     private const float IntegrityLimit = 5.0f;
 
     private readonly List<string> _failures = [];

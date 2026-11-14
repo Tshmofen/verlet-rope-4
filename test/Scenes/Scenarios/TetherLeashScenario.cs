@@ -24,6 +24,7 @@ public sealed class TetherLeashScenario : SceneScenario
 
         var segmentBodies = leash.GetChildren()
             .OfType<RigidBody3D>()
+            // A rebuild queues the bodies it replaces for free, and they stay children until the frame ends.
             .Where(body => !body.IsQueuedForDeletion())
             .ToList();
         var segmentShapes = CollectSegmentShapes(segmentBodies);

@@ -7,11 +7,11 @@ using static GdUnit4.Assertions;
 
 namespace VerletRope4.Tests.Unit;
 
-/// <summary> Covers the configuration warnings a joint reports and the findings they are built from. </summary>
+/// <summary> Covers the configuration warnings the simulated joint reports and the findings they are built from. </summary>
 [TestSuite]
 [RequireGodotRuntime]
 [Trait("lane", "unit")]
-public class JointTest
+public class JointSimulatedTest
 {
     [TestCase]
     public void UnconfiguredJointWarnsAboutItsMissingConnectionPoints()

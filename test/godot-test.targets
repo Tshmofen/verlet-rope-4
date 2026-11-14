@@ -2,7 +2,7 @@
   <!--
     Turns the machine-local `godot.path` into the Godot binary the gdUnit4 test adapter starts.
     `godot.path` is gitignored, contains one line with the absolute path of the Godot mono `_console.exe`.
-	A missing or empty file will send a warning, so the addon will build anyway, though, the test runs will fail.
+    A missing or empty file only warns, so the addon still builds; the test run is what fails.
   -->
 
   <PropertyGroup>
