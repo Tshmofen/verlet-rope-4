@@ -1,6 +1,6 @@
 # Tests
 
-**The project ships with an automated test suite that runs its rope simulation, so a change can be verified without opening the editor.** The tests are written with [gdUnit4](https://github.com/godot-gdunit-labs/gdUnit4) and executed the usual .NET way - through `dotnet test` (or the IDE action):
+**The project ships with an automated test suite that runs its rope simulation.** The tests are written with [gdUnit4](https://github.com/godot-gdunit-labs/gdUnit4) and executed the usual .NET way - through `dotnet test` (or the IDE action):
 
 ```powershell
 dotnet test VerletRope.csproj                                    # all tests
@@ -27,15 +27,21 @@ dotnet test VerletRope.csproj --filter 'Class=VerletRope4.Tests.Unit.SimulatedRo
 E:\Apps\Godot\Godot_v4.7.2-stable_mono_win64\Godot_v4.7.2-stable_mono_win64_console.exe
 ```
 
-The path is read during the build, so it is set once per machine. A missing file only warns on build, while the test run fails and names the file it expects.
+The path is read during the build, a missing file only warns on build, while the test run fails and names the file it expects.
 
 ## Unit Tests
 
-`test/Unit/` covers the addon code on its own: rope nodes, joints, particle data, mesh generation and the math utilities behind them. A test creates the node it needs, writes the properties under test, steps the simulation by hand where the step matters and asserts on the result - the particle structure, segment lengths, attachments, joint configuration warnings and other internal state.
+`test/Unit/` covers the addon code on its own: rope nodes, joints, particle data, mesh generation and the logic behind them.
+
+A test creates the node it needs, writes the properties under test, steps the simulation by hand where the step matters and asserts on the result - the structure, states, configuration warnings, etc..
 
 ## Scene Integration Tests
 
-`test/Integration/` drives the real scenes of `demo/examples/`, plus a purpose-built collision scene, and asserts on the physics invariants of each one: the rope stays connected, keeps its length, its segments hold together, the body it pulls travels where it should and collisions stop it where they should. Every suite loads its scene headless, applies what that scene needs to simulate without a camera and waits for physics frames until its goals are met, reporting all the goals that were missed:
+`test/Integration/` drives the real scenes of `demo/examples/` and asserts on the physics invariants of each one.
+
+For example, if the rope stays connected, keeps its length, its segments hold together, the body it pulls travels where it should and collisions stop it where they should.
+
+Every suite loads its scene headless, applies what that scene needs to simulate without a camera and waits for physics frames until its goals are met, reporting all the goals that were missed:
 
 ```
 `5_fishing_rod` did not meet 1 goal(s):
@@ -44,4 +50,6 @@ The path is read during the build, so it is set once per machine. A missing file
 
 ## Not Covered
 
-Anything visual, any input and editor-only code - how a rope really looks is still checked by opening `demo/demo.tscn`. The engine output is not scanned for errors either, so whatever has to be guarded has to be written as an assertion.
+Anything visual, any input and editor-only code. 
+
+How a rope really looks is still checked by opening `demo/demo.tscn`. The engine output is not scanned for errors either, so whatever has to be guarded has to be written as an assertion.
