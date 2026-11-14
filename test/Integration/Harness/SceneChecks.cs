@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using VerletRope4.Physics;
 
-namespace VerletRope4.Tests.Scenes;
+namespace VerletRope4.Tests.Integration.Harness;
 
 /// <summary>
 /// Collects the goals of one scenario run instead of throwing on the first miss, so a failing scene reports everything

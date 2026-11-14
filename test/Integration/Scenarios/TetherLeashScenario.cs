@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using VerletRope4.Physics;
+using VerletRope4.Tests.Integration.Harness;
 
-namespace VerletRope4.Tests.Scenes.Scenarios;
+namespace VerletRope4.Tests.Integration.Scenarios;
 
 /// <summary>
 /// A rigid rope leash between a walking body and a crate: the chain has to be built from segment bodies of the configured

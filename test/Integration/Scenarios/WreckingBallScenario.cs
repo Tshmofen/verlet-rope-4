@@ -2,8 +2,9 @@
 using System.Threading.Tasks;
 using VerletRope4.Physics;
 using VerletRope4.Physics.Joints;
+using VerletRope4.Tests.Integration.Harness;
 
-namespace VerletRope4.Tests.Scenes.Scenarios;
+namespace VerletRope4.Tests.Integration.Scenarios;
 
 /// <summary>
 /// A ball hanging off a rope that is kicked by the demo: the rope has to be tied to the ball, the ball has to be thrown

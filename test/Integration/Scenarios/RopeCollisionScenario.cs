@@ -1,8 +1,9 @@
 ﻿using Godot;
 using System.Threading.Tasks;
 using VerletRope4.Physics;
+using VerletRope4.Tests.Integration.Harness;
 
-namespace VerletRope4.Tests.Scenes.Scenarios;
+namespace VerletRope4.Tests.Integration.Scenarios;
 
 /// <summary>
 /// A purpose-built scene instead of a shipped demo: a rope hanging one metre above a static floor with static collision
@@ -11,7 +12,7 @@ namespace VerletRope4.Tests.Scenes.Scenarios;
 /// </summary>
 public sealed class RopeCollisionScenario : SceneScenario
 {
-    public override string ScenePath => "res://test/Scenes/rope_collision.tscn";
+    public override string ScenePath => "res://test/Integration/Scenes/rope_collision.tscn";
 
     public override async Task RunAsync(Node root, SceneChecks checks)
     {

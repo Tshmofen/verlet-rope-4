@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace VerletRope4.Tests.Scenes;
+namespace VerletRope4.Tests.Integration.Harness;
 
 /// <summary> One demo scene and the goals a run of it has to meet. </summary>
 public abstract class SceneScenario

@@ -2,8 +2,9 @@
 using System.Threading.Tasks;
 using VerletRope4.Demo.Examples;
 using VerletRope4.Physics;
+using VerletRope4.Tests.Integration.Harness;
 
-namespace VerletRope4.Tests.Scenes.Scenarios;
+namespace VerletRope4.Tests.Integration.Scenarios;
 
 /// <summary>
 /// A fishing line tied to a rod tip with a hook on its end: the line has to be created tied to the tip, the hook has to

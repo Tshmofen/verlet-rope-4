@@ -3,7 +3,7 @@ using Godot;
 using System;
 using System.Threading.Tasks;
 using VerletRope4.Physics;
-using VerletRope4.Tests.Scenes;
+using VerletRope4.Tests.Integration.Harness;
 using static GdUnit4.Assertions;
 
 namespace VerletRope4.Tests.Integration;

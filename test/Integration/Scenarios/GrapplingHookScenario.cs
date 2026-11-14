@@ -2,8 +2,9 @@
 using System.Threading.Tasks;
 using VerletRope4.Demo.Examples;
 using VerletRope4.Physics;
+using VerletRope4.Tests.Integration.Harness;
 
-namespace VerletRope4.Tests.Scenes.Scenarios;
+namespace VerletRope4.Tests.Integration.Scenarios;
 
 /// <summary>
 /// A hook on a rope that the demo cycle fires on a timer: the cycle has to leave the parked state on its own, the rope

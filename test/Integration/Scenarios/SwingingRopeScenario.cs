@@ -1,8 +1,9 @@
 ﻿using Godot;
 using System.Threading.Tasks;
 using VerletRope4.Physics;
+using VerletRope4.Tests.Integration.Harness;
 
-namespace VerletRope4.Tests.Scenes.Scenarios;
+namespace VerletRope4.Tests.Integration.Scenarios;
 
 /// <summary>
 /// A rope hanging off a swaying branch: it has to be created, stay tied to the branch, hang at about its own length and
