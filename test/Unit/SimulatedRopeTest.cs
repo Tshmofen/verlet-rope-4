@@ -75,7 +75,7 @@ public class SimulatedRopeTest
         StepFrames(rope, 30);
 
         AssertThat(rope.GetParticle(0).HasValue).IsTrue();
-        AssertThat(rope.GetParticle(0).Value.IsAttached).IsTrue();
+        AssertThat(rope.GetParticle(0)!.Value.IsAttached).IsTrue();
         AssertThat(pinnedPosition.DistanceTo(rope.GlobalPosition)).IsLess(0.001f);
         AssertThat(rope.GetParticlePosition(0).DistanceTo(pinnedPosition)).IsLess(0.001f);
     }
@@ -87,7 +87,7 @@ public class SimulatedRopeTest
 
         await LoadRope(rope);
 
-        AssertThat(rope.GetParticle(-1).Value.PositionCurrent).IsEqual(rope.GetParticle(5).Value.PositionCurrent);
+        AssertThat(rope.GetParticle(-1)!.Value.PositionCurrent).IsEqual(rope.GetParticle(5)!.Value.PositionCurrent);
         AssertThat(rope.GetParticle(-6).HasValue).IsTrue();
         AssertThat(rope.GetParticle(6) == null).IsTrue();
         AssertThat(rope.GetParticle(-7) == null).IsTrue();

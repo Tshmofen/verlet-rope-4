@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using VerletRope4.Tests.Scenes.Scenarios;
 
-namespace VerletRope4.Tests.Integration;
+namespace VerletRope4.Tests.Integration.Scenarios;
 
 /// <summary> Drives `3_wrecking_ball`: the kicked ball has to swing off with the rope end and stay on the joint's leash. </summary>
 [TestSuite]

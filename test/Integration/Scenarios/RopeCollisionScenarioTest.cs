@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using VerletRope4.Tests.Scenes.Scenarios;
 
-namespace VerletRope4.Tests.Integration;
+namespace VerletRope4.Tests.Integration.Scenarios;
 
 /// <summary> Drives the purpose-built `rope_collision` scene: a rope falling onto a static floor has to rest on it, not pass through. </summary>
 [TestSuite]

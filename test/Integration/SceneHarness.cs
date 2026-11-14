@@ -19,7 +19,7 @@ namespace VerletRope4.Tests.Integration;
 public static class SceneHarness
 {
     /// <summary> Wall clock limit for one scenario, so a goal that waits on a frame that never comes fails instead of stalling the session. </summary>
-    private const double ScenarioTimeoutSeconds = 180.0;
+    private const double ScenarioTimeoutSeconds = 60.0;
 
     /// <summary> Loads the scenario's scene, drives it, and reports every goal it did not meet as a single test failure. </summary>
     public static async Task RunAsync(SceneScenario scenario)
@@ -31,8 +31,6 @@ public static class SceneHarness
         var root = packedScene.Instantiate();
         var checks = new SceneChecks();
 
-        // A scenario that throws - a renamed node, a wrong path, a script that fails in its own `_Ready` - has to fail its
-        // own test, so it is caught here instead of taking the session down with it.
         try
         {
             ApplyHeadlessRopeSettings(root);
