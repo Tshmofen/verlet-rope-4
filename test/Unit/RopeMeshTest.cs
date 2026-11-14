@@ -48,6 +48,8 @@ public class RopeMeshTest
         AssertThat(mesh.Mesh == null || mesh.Mesh.GetSurfaceCount() == 0).IsTrue();
     }
 
+    #region Utility
+
     private static void AssertDrawn(VerletRopeMesh mesh)
     {
         AssertThat(mesh.Mesh).IsNotNull();
@@ -77,4 +79,6 @@ public class RopeMeshTest
 
         return RopeParticleData.GenerateParticleData(positions);
     }
+
+    #endregion
 }

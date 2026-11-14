@@ -1,21 +1,32 @@
-﻿using Godot;
+﻿using GdUnit4;
+using Godot;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using VerletRope4.Physics;
 using VerletRope4.Tests.Integration.Harness;
 
-namespace VerletRope4.Tests.Integration.Scenarios;
+namespace VerletRope4.Tests.Integration;
 
 /// <summary>
-/// A rigid rope leash between a walking body and a crate: the chain has to be built from segment bodies of the configured
-/// length, hold the two bodies about one rope length apart and drag the crate along with the body that walks away from it.
+/// Drives `2_tether_leash`, a rigid chain between a walking body and a crate: it has to be built from segment bodies of the
+/// configured length, hold the two bodies about one rope length apart and drag the crate along with the body that walks
+/// away from it.
 /// </summary>
-public sealed class TetherLeashScenario : SceneScenario
+[TestSuite]
+[RequireGodotRuntime]
+[Trait("lane", "integration")]
+public class TetherLeashTest
 {
-    public override string ScenePath => "res://demo/examples/2_tether_leash.tscn";
+    [TestCase]
+    public async Task RigidLeashDragsTheCrate()
+    {
+        await SceneHarness.RunAsync("res://demo/examples/2_tether_leash.tscn", RunSceneAsync);
+    }
 
-    public override async Task RunAsync(Node root, SceneChecks checks)
+    #region Utility
+
+    private static async Task RunSceneAsync(Node root, SceneChecks checks)
     {
         var leash = root.GetNode<VerletRopeRigid>("LeashRope");
         var walker = root.GetNode<RigidBody3D>("Walker");
@@ -41,7 +52,7 @@ public sealed class TetherLeashScenario : SceneScenario
         var walkerStart = walker.GlobalPosition;
         var crateStart = crate.GlobalPosition;
 
-        await WaitPhysicsFrames(root, 180);
+        await SceneHarness.WaitPhysicsFrames(root, 180);
 
         var leashSpan = walkerPoint.GlobalPosition.DistanceTo(cratePoint.GlobalPosition);
         var walkerTravel = walker.GlobalPosition.DistanceTo(walkerStart);
@@ -61,4 +72,6 @@ public sealed class TetherLeashScenario : SceneScenario
             .OfType<CapsuleShape3D>()
             .ToList();
     }
+
+    #endregion
 }

@@ -1,20 +1,30 @@
-﻿using Godot;
+﻿using GdUnit4;
+using Godot;
 using System.Threading.Tasks;
 using VerletRope4.Demo.Examples;
 using VerletRope4.Physics;
 using VerletRope4.Tests.Integration.Harness;
 
-namespace VerletRope4.Tests.Integration.Scenarios;
+namespace VerletRope4.Tests.Integration;
 
 /// <summary>
-/// A hook on a rope that the demo cycle fires on a timer: the cycle has to leave the parked state on its own, the rope
-/// has to keep its particles and its end has to stay on the hook.
+/// Drives `4_grappling_hook`, a hook on a rope that the demo cycle fires on a timer: the cycle has to leave the parked
+/// state on its own, the rope has to keep its particles and its end has to stay on the hook.
 /// </summary>
-public sealed class GrapplingHookScenario : SceneScenario
+[TestSuite]
+[RequireGodotRuntime]
+[Trait("lane", "integration")]
+public class GrapplingHookTest
 {
-    public override string ScenePath => "res://demo/examples/4_grappling_hook.tscn";
+    [TestCase]
+    public async Task HookFiresOnItsOwnAndTheRopeFollows()
+    {
+        await SceneHarness.RunAsync("res://demo/examples/4_grappling_hook.tscn", RunSceneAsync);
+    }
 
-    public override async Task RunAsync(Node root, SceneChecks checks)
+    #region Utility
+
+    private static async Task RunSceneAsync(Node root, SceneChecks checks)
     {
         var rope = root.GetNode<VerletRopeSimulated>("GrappleRope");
         var hook = root.GetNode<GrapplingHookRig>("HookBody");
@@ -27,7 +37,7 @@ public sealed class GrapplingHookScenario : SceneScenario
         var hookStart = hook.GlobalPosition;
 
         // The demo holds the hook for 1.5 s before it fires, so the run has to outlast that to see the cycle move.
-        await WaitPhysicsFrames(root, 150);
+        await SceneHarness.WaitPhysicsFrames(root, 150);
 
         var hookTravel = hook.GlobalPosition.DistanceTo(hookStart);
 
@@ -37,4 +47,6 @@ public sealed class GrapplingHookScenario : SceneScenario
         checks.Check(rope.GetParticlePosition(-1).DistanceTo(attachment.GlobalPosition) < 1.0f, "the rope end follows the hook");
         checks.CheckParticlesAreFinite(rope, "the grapple rope particle positions stay finite");
     }
+
+    #endregion
 }

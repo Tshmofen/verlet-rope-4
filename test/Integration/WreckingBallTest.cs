@@ -1,20 +1,30 @@
-﻿using Godot;
+﻿using GdUnit4;
+using Godot;
 using System.Threading.Tasks;
 using VerletRope4.Physics;
 using VerletRope4.Physics.Joints;
 using VerletRope4.Tests.Integration.Harness;
 
-namespace VerletRope4.Tests.Integration.Scenarios;
+namespace VerletRope4.Tests.Integration;
 
 /// <summary>
-/// A ball hanging off a rope that is kicked by the demo: the rope has to be tied to the ball, the ball has to be thrown
-/// by the kick, the rope end has to keep following it and the joint has to keep the ball on its leash.
+/// Drives `3_wrecking_ball`, a ball hanging off a rope that the demo kicks: the rope has to be tied to the ball, the ball
+/// has to be thrown by the kick, the rope end has to keep following it and the joint has to keep the ball on its leash.
 /// </summary>
-public sealed class WreckingBallScenario : SceneScenario
+[TestSuite]
+[RequireGodotRuntime]
+[Trait("lane", "integration")]
+public class WreckingBallTest
 {
-    public override string ScenePath => "res://demo/examples/3_wrecking_ball.tscn";
+    [TestCase]
+    public async Task BallIsKickedAndStaysOnItsLeash()
+    {
+        await SceneHarness.RunAsync("res://demo/examples/3_wrecking_ball.tscn", RunSceneAsync);
+    }
 
-    public override async Task RunAsync(Node root, SceneChecks checks)
+    #region Utility
+
+    private static async Task RunSceneAsync(Node root, SceneChecks checks)
     {
         var rope = root.GetNode<VerletRopeSimulated>("WreckingRope");
         var joint = root.GetNode<VerletJointSimulated>("WreckingRope/JointSimulated");
@@ -26,7 +36,7 @@ public sealed class WreckingBallScenario : SceneScenario
         checks.Check(rope.GetParticle(-1)?.IsAttached == true, "the last particle is tied to the ball");
 
         var ballStart = ball.GlobalPosition;
-        await WaitPhysicsFrames(root, 120);
+        await SceneHarness.WaitPhysicsFrames(root, 120);
 
         var ballTravel = ball.GlobalPosition.DistanceTo(ballStart);
         var anchorDistance = ball.GlobalPosition.DistanceTo(rope.GlobalPosition);
@@ -41,4 +51,6 @@ public sealed class WreckingBallScenario : SceneScenario
         checks.CheckAtMost(anchorDistance, leash + 0.25f, "the joint keeps the ball on its leash from the rope anchor");
         checks.CheckParticlesAreFinite(rope, "the wrecking rope particle positions stay finite");
     }
+
+    #endregion
 }

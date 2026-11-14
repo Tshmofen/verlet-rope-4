@@ -1,19 +1,29 @@
-﻿using Godot;
+﻿using GdUnit4;
+using Godot;
 using System.Threading.Tasks;
 using VerletRope4.Physics;
 using VerletRope4.Tests.Integration.Harness;
 
-namespace VerletRope4.Tests.Integration.Scenarios;
+namespace VerletRope4.Tests.Integration;
 
 /// <summary>
-/// A rope hanging off a swaying branch: it has to be created, stay tied to the branch, hang at about its own length and
-/// keep moving with the branch it is tied to.
+/// Drives `1_swinging_rope`, a vine hanging off a branch that sways: it has to be created, stay tied to the branch, hang at
+/// about its own length and keep moving with the branch it is tied to.
 /// </summary>
-public sealed class SwingingRopeScenario : SceneScenario
+[TestSuite]
+[RequireGodotRuntime]
+[Trait("lane", "integration")]
+public class SwingingRopeTest
 {
-    public override string ScenePath => "res://demo/examples/1_swinging_rope.tscn";
+    [TestCase]
+    public async Task VineHangsFromTheSwayingBranch()
+    {
+        await SceneHarness.RunAsync("res://demo/examples/1_swinging_rope.tscn", RunSceneAsync);
+    }
 
-    public override async Task RunAsync(Node root, SceneChecks checks)
+    #region Utility
+
+    private static async Task RunSceneAsync(Node root, SceneChecks checks)
     {
         var vine = root.GetNode<VerletRopeSimulated>("Branch/Vine");
 
@@ -22,10 +32,10 @@ public sealed class SwingingRopeScenario : SceneScenario
         checks.Check(vine.GetParticle(0)?.IsAttached == true, "the start particle is pinned to the branch");
 
         // The rope unwraps from a jittered point on creation, so it is given three seconds to hang before it is measured.
-        await WaitPhysicsFrames(root, 180);
+        await SceneHarness.WaitPhysicsFrames(root, 180);
 
         var settledEnd = vine.GetParticlePosition(-1);
-        await WaitPhysicsFrames(root, 60);
+        await SceneHarness.WaitPhysicsFrames(root, 60);
 
         var movedEnd = vine.GetParticlePosition(-1);
 
@@ -36,4 +46,6 @@ public sealed class SwingingRopeScenario : SceneScenario
         checks.CheckRopeIntegrity(vine, "the rope stays in one piece");
         checks.CheckParticlesAreFinite(vine, "the rope particle positions stay finite");
     }
+
+    #endregion
 }

@@ -133,6 +133,8 @@ public class RigidRopeTest
         AssertThat(CollectBodies(rope).Count).IsEqual(4);
     }
 
+    #region Utility
+
     private static VerletRopeRigid CreateRope(int simulationSegments, float ropeLength)
     {
         return new VerletRopeRigid
@@ -156,4 +158,6 @@ public class RigidRopeTest
     {
         await node.ToSignal(node.GetTree(), SceneTree.SignalName.ProcessFrame);
     }
+
+    #endregion
 }

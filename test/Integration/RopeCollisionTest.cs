@@ -1,20 +1,31 @@
-﻿using Godot;
+﻿using GdUnit4;
+using Godot;
 using System.Threading.Tasks;
 using VerletRope4.Physics;
 using VerletRope4.Tests.Integration.Harness;
 
-namespace VerletRope4.Tests.Integration.Scenarios;
+namespace VerletRope4.Tests.Integration;
 
 /// <summary>
-/// A purpose-built scene instead of a shipped demo: a rope hanging one metre above a static floor with static collision
-/// enabled. The rope has to fall onto the floor and stay on top of it instead of passing through, which is what the
-/// raycast collision path in <see cref="VerletRopeSimulated"/> is for and what no demo scene covers on its own.
+/// Drives `demo/rope_collision`, a purpose-built scene instead of a shipped example: a rope hanging one metre above a
+/// static floor with static collision enabled. The rope has to fall onto the floor and stay on top of it instead of passing
+/// through, which is what the raycast collision path in <see cref="VerletRopeSimulated"/> is for and what no example scene
+/// covers on its own.
 /// </summary>
-public sealed class RopeCollisionScenario : SceneScenario
+[TestSuite]
+[RequireGodotRuntime]
+[Trait("lane", "integration")]
+public class RopeCollisionTest
 {
-    public override string ScenePath => "res://test/Integration/Scenes/rope_collision.tscn";
+    [TestCase]
+    public async Task RopeFallsOntoTheFloorAndStaysOnIt()
+    {
+        await SceneHarness.RunAsync("res://demo/rope_collision.tscn", RunSceneAsync);
+    }
 
-    public override async Task RunAsync(Node root, SceneChecks checks)
+    #region Utility
+
+    private static async Task RunSceneAsync(Node root, SceneChecks checks)
     {
         var rope = root.GetNode<VerletRopeSimulated>("CollisionRope");
         // The floor of the scene is a 0.4 m box, so its top sits half of that above the node.
@@ -23,7 +34,7 @@ public sealed class RopeCollisionScenario : SceneScenario
         checks.Check(rope.IsRopeCreated, "the rope is created on ready");
         checks.Check(rope.GetParticleCount() == 12, $"the rope keeps its 12 configured particles, got {rope.GetParticleCount()}");
 
-        await WaitPhysicsFrames(root, 240);
+        await SceneHarness.WaitPhysicsFrames(root, 240);
 
         var lowestParticle = GetLowestParticleY(rope);
 
@@ -44,4 +55,6 @@ public sealed class RopeCollisionScenario : SceneScenario
 
         return lowest;
     }
+
+    #endregion
 }

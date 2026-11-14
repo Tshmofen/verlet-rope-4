@@ -168,6 +168,8 @@ public class SimulatedRopeTest
         AssertThat(afterStep.DistanceTo(afterSkipped)).IsGreater(0.0001f);
     }
 
+    #region Utility
+
     /// <summary>
     /// Loads a rope into the test runner and lets one frame pass. The rope creates its mesh child deferred, so a test that
     /// asserts and ends in the same frame leaves that child unparented and the runner reports it as an orphan.
@@ -202,4 +204,6 @@ public class SimulatedRopeTest
             rope._PhysicsProcess(FrameDelta);
         }
     }
+
+    #endregion
 }

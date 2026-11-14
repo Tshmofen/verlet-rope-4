@@ -348,3 +348,6 @@ dotnet_naming_style.underscore_camel_case.word_separator =
 [test/**/*.cs]
 dotnet_diagnostic.IDE0051.severity = silent
 dotnet_diagnostic.IDE0052.severity = silent
+# CA1822 wants a member that touches no instance data to be static, which no case, hook or suite may be: the runner
+# instantiates the suite and calls into it, so a static case is never discovered.
+dotnet_diagnostic.CA1822.severity = none
