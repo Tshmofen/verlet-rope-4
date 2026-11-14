@@ -1,9 +1,11 @@
 ﻿using GdUnit4;
 using Godot;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using VerletRope4.Physics;
+using VerletRope4.Physics.Joints;
 using static GdUnit4.Assertions;
 
 namespace VerletRope4.Tests.Unit;
@@ -133,7 +135,120 @@ public class RigidRopeTest
         AssertThat(CollectBodies(rope).Count).IsEqual(4);
     }
 
+    /// <summary> The width is baked into the capsule of every segment, so a chain that already exists is rebuilt for it. </summary>
+    [TestCase]
+    public async Task RopeWidthWriteRebuildsTheRigidChain()
+    {
+        var rope = CreateRope(simulationSegments: 4, ropeLength: 1.0f);
+
+        ISceneRunner.Load(rope);
+        await NextFrame(rope);
+
+        rope.RopeWidth = 0.2f;
+        await NextFrame(rope);
+        await NextFrame(rope);
+
+        var shapes = CollectCapsuleShapes(rope);
+
+        AssertThat(CollectBodies(rope).Count).IsEqual(4);
+        AssertThat(shapes.Count).IsEqual(4);
+        // The default collision margin is -0.01, so the collision width of the segment is 0.19.
+        AssertThat(shapes.All(shape => Mathf.IsEqualApprox(shape.Radius, 0.19f, 0.001f))).IsTrue();
+    }
+
+    /// <summary>
+    /// A write of the length the chain already has is not a rebuild: the bodies have to survive it, or every repeated write
+    /// from an inspector, a tween or a loop would tear the rope down and spawn it again frame after frame.
+    /// </summary>
+    [TestCase]
+    public async Task WritingTheLengthItAlreadyHasLeavesTheChainAlone()
+    {
+        var rope = CreateRope(simulationSegments: 5, ropeLength: 1.0f);
+
+        ISceneRunner.Load(rope);
+        await NextFrame(rope);
+
+        var bodies = CollectBodies(rope);
+        rope.RopeLength = 1.0f;
+
+        await NextFrame(rope);
+        await NextFrame(rope);
+
+        var bodiesAfterWrite = CollectBodies(rope);
+
+        AssertThat(bodiesAfterWrite.Count).IsEqual(5);
+        AssertThat(bodiesAfterWrite.All(body => bodies.Contains(body))).IsTrue();
+    }
+
+    /// <summary> A rebuild queued before the rope was destroyed has to be dropped, or the rope revives a frame after the user removed it, laid out from the world origin. </summary>
+    [TestCase]
+    public async Task AQueuedStructureApplyDoesNotReviveADestroyedRope()
+    {
+        var rope = CreateRope(simulationSegments: 4, ropeLength: 1.0f);
+
+        ISceneRunner.Load(rope);
+        await NextFrame(rope);
+
+        rope.SimulationSegments = 8;
+        rope.DestroyRope();
+
+        await NextFrame(rope);
+        await NextFrame(rope);
+
+        AssertThat(rope.IsRopeCreated).IsFalse();
+        AssertThat(rope.GetParticleCount()).IsEqual(0);
+        AssertThat(CollectBodies(rope).Count).IsEqual(0);
+    }
+
+    /// <summary> A rigid rope only understands a rigid joint: the wrong type is refused while the rope is still unbuilt. </summary>
+    [TestCase]
+    public async Task RigidRopeRejectsASimulatedJointBeforeBuildingAnything()
+    {
+        var rope = new VerletRopeRigid
+        {
+            SimulationSegments = 4,
+            RopeLength = 1.0f,
+            IsCreatedOnReady = false,
+            UseVisibleOnScreenNotifier = false
+        };
+        var joint = AutoFree(new VerletJointSimulated());
+        rope.SetJoint(joint, false);
+
+        ISceneRunner.Load(rope);
+        await NextFrame(rope);
+
+        var thrown = CatchException(() => rope.CreateRope());
+
+        AssertThat(thrown is ApplicationException).IsTrue();
+        AssertThat(thrown!.Message.Contains(nameof(VerletRopeRigid))).IsTrue();
+        AssertThat(thrown.Message.Contains(nameof(VerletJointRigid))).IsTrue();
+        AssertThat(rope.IsRopeCreated).IsFalse();
+        AssertThat(CollectBodies(rope).Count).IsEqual(0);
+    }
+
     #region Utility
+
+    private static Exception CatchException(Action action)
+    {
+        try
+        {
+            action();
+            return null;
+        }
+        catch (Exception exception)
+        {
+            return exception;
+        }
+    }
+
+    private static List<CapsuleShape3D> CollectCapsuleShapes(VerletRopeRigid rope)
+    {
+        return CollectBodies(rope)
+            .SelectMany(body => body.GetChildren().OfType<CollisionShape3D>())
+            .Select(shape => shape.Shape)
+            .OfType<CapsuleShape3D>()
+            .ToList();
+    }
 
     private static VerletRopeRigid CreateRope(int simulationSegments, float ropeLength)
     {

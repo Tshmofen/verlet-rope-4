@@ -1,0 +1,43 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs" id="1_rope"]
+[ext_resource type="Script" path="res://addons/verlet_rope_4/Physics/Joints/VerletJointSimulated.cs" id="2_joint"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_body"]
+radius = 0.5
+
+[sub_resource type="SphereMesh" id="SphereMesh_body"]
+
+[node name="RopeDynamicCollisionExample" type="Node3D"]
+
+[node name="DynamicCollisionRope" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+script = ExtResource("1_rope")
+SimulationParticles = 14
+IsDisabledWhenInvisible = false
+SimulationBehavior = 2
+RopeCollisionType = 1
+RopeCollisionBehavior = 1
+StaticCollisionMask = 0
+DynamicCollisionMask = 2
+RopeLength = 3.0
+
+[node name="EndAnchor" type="Node3D" parent="DynamicCollisionRope"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3, 0)
+
+[node name="JointSimulated" type="Node" parent="DynamicCollisionRope" node_paths=PackedStringArray("VerletRope", "EndCustomLocation")]
+script = ExtResource("2_joint")
+VerletRope = NodePath("..")
+EndCustomLocation = NodePath("../EndAnchor")
+
+[node name="MovingBody" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -4)
+collision_layer = 2
+collision_mask = 0
+gravity_scale = 0.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MovingBody"]
+shape = SubResource("SphereShape3D_body")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="MovingBody"]
+mesh = SubResource("SphereMesh_body")
