@@ -108,8 +108,6 @@ public abstract partial class BaseVerletJoint : Node, ISerializationListener
     /// </summary>
     private void QueueJointApply(JointApplyReason reason)
     {
-        // A deferred call would outlive a node that is never added to the tree, and would run against a rope that
-        // cannot be laid out yet.
         if (!IsInsideTree())
         {
             return;
@@ -143,14 +141,11 @@ public abstract partial class BaseVerletJoint : Node, ISerializationListener
         _pendingApply = JointApplyReason.None;
         _hasPendingApply = false;
 
-        // The joint can leave the tree after the write was queued, and laying out a rope from outside the tree would
-        // read the transforms the nodes do not have yet.
         if (!IsInsideTree())
         {
             return;
         }
 
-        // The joint could have been pointed at another rope, which has to stop using it before the new one starts.
         UpdateConfigurationWarnings();
         var previousRope = _verletRope;
         _verletRope = TryFindVerletRope();
