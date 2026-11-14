@@ -2,6 +2,7 @@
 
 namespace VerletRope4;
 
+// ReSharper disable UnusedMember.Global
 public interface IVerletExported
 {
     public static string ScriptPath => throw new NotImplementedException();
