@@ -40,7 +40,7 @@ See pages on the following topics:
   * `VerletRopeSimulated` - purely based on [verlet-integration](https://en.wikipedia.org/wiki/Verlet_integration) technique and provides beautiful rope-like movements with support for lightweight external collisions, but doesn't allow rope to affect other physical bodies.
   * `VerletRopeRigid` - relies on engine physics for rope movement (using pre-generated bodies and joints) and allows full two-way interaction with the environment, but is less rope-like and is more performance heavy. 
 - **Adds different variants of Rope joint nodes**:
-  * `VerletJointSimulated` - Allows connecting `VerletRopeSimulated` ends to `Node3D` and/or to `PhysicsBody3D` objects. When physics objects are connected, it also allows to create `CustomDistanceJoint` internally (see description below).
+  * `VerletJointSimulated` - Allows connecting `VerletRopeSimulated` ends to `Node3D` and/or to `PhysicsBody3D` objects. When physics objects are connected, it also allows to create `DistanceForceJoint` internally (see description below).
   * `VerletJointRigid` - Allows connecting `VerletRopeRigid` ends to `Node3D` and/or to `PhysicsBody3D` objects. Uses engine's built-in `PinJoint3D` internally to connect physics bodies.
   * `DistanceForceJoint` - General purpose node implementing a distance joint between two physics objects, it is pulling them with specified force when set max distance is exceeded.
 - **Exposes many adjustable parameters for ropes**: particle & segment counts; length & width; custom simulation rates; wind & gravity forces; self-collisions; customizable damping; customizable visuals; and other fine-tunning settings specific to each rope variant.

@@ -77,7 +77,7 @@ You can see properties descriptions below to understand how to alter the rope's 
 | Export variable | How it works |
 |--|--|
 | Rope Collision Type      | Determines how rope collisions are being tracked: <br/> `StaticOnly` - Rope only collides with static objects specified in `StaticCollisionMask`, any *moving* `RigidBody3D` from this layer might not be handled correctly; <br/> `DynamicOnly` - Rope only collides with dynamic objects specified in `DynamicCollisionMask`, any `RigidBody3D` in the rope area will be tracked and their velocity interpolated for correct dynamic collision handling, is more performance heavy compared to static tracking; <br/> `All` - Both variants of collision tracking is enabled, see their relevant descriptions above. |
-| Rope Collision Behavior  | Determines how rope collisions behave physically: <br/> `None` - Rope collisions are disabled, most performant option; <br/> `SlideStrech` - When rope particles collide, they stretch up to `SlideCollisionStretch` value, after that they slide along the collision normal up to `IgnoreCollisionStretch` value, afterwards collisions are considered unavoidable and are ignored. |
+| Rope Collision Behavior  | Determines how rope collisions behave physically: <br/> `None` - Rope collisions are disabled, most performant option; <br/> `SlideStretch` - When rope particles collide, they stretch up to `SlideCollisionStretch` value, after that they slide along the collision normal up to `IgnoreCollisionStretch` value, afterwards collisions are considered unavoidable and are ignored. |
 | Slide Collision Stretch  | Determines the length of the rope segment (relative to overall length) when it starts sliding along the current collision normal (if is set to '1' - the rope will be constantly sliding in different directions). |
 | Ignore Collision Stretch | Determines the length of the rope segment (relative to overall length) when it starts ignoring collisions (if is set to `1` - the rope collisions are effectively disabled). |
 | Max Dynamic Collisions   | Sets max amount of different bodies that will be taken into account for dynamic collisions. |
@@ -120,8 +120,8 @@ This section is partially inherited from [VerletRopeMesh](https://github.com/Tsh
 | Rope Width                     |  Determines visual width of the rope, does not affect rope behavior. Width effectively behaves as a diameter. |
 | RenderMode                     | Determines when the rope’s mesh is drawn. `Physics` – only during physics ticks, the most performant mode. `PhysicsAndMovement` – also redraws immediately in the process frame when the node’s global position changes, preventing flicker when dragged/moved in the editor or at runtime. `Process` – redraws every process frame, giving the smoothest response at a small performance cost. |
 | Rope Smoothing                 | Amount of smoothing applied to particle positions for rendering. Higher values make the rope appear gentler but less responsive. 0 disables smoothing. |
-| Smooth Rope Start              | If `true`, smoothing is applied at the start of the rope. Disable when the start must stay rigidly attached to a moving point. |
-| Smooth Rope End                | If `true`, smoothing is applied at the end of the rope. Disable when the end must stay rigidly attached to a moving point. |
+| Is Smooth Rope Start           | If `true`, smoothing is applied at the start of the rope. Disable when the start must stay rigidly attached to a moving point. |
+| Is Smooth Rope End             | If `true`, smoothing is applied at the end of the rope. Disable when the end must stay rigidly attached to a moving point. |
 | Tube Segments                  | Number of segments around the tube’s circumference. Only used when `Mesh Type = Tube`. |
 | Subdivision Lod Distance       | If distance to the particle is greater than this value, the corresponding segment is not subdivided for rendering. |
 | Use Debug Particles            | Draws orientation axis from every actual particle positions when enabled. |
@@ -141,6 +141,7 @@ The rope can also be manipulated via code, it exposes all the properties mention
 | `float GetCurrentRopeLength()` | Returns the total length of the rope along its current particle positions, which under load is longer than the target `RopeLength`. |
 | `void SetAttachmentPoints(PhysicsBody3D startBody, Node3D startLocation, PhysicsBody3D endBody, Node3D endLocation)` | Manually sets attachment points of the Rope without using corresponding `VerletJoint` instance. Throws an exception if used when `VerletJoint` is already set. |
 | `void SetJoint(BaseVerletJoint joint, bool toResetRope = true)` | Configures current joint of the rope to determine which points are used as rope connections, and recreates the rope if requested and was already created. |
+| `void RefreshCollisionExceptions()` | Recomputes the bodies the rope ignores in collisions without re-laying it - what a joint applies when only its collision flags change. |
 | `bool IsRopeCreated { get; }` | Returns whether rope is created at the moment, managed via `CreateRope` and `DestroyRope` methods. |
 
 > [!TIP]

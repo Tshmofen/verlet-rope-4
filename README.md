@@ -18,7 +18,7 @@ It is an implementation of [Verlet Integration](https://en.wikipedia.org/wiki/Ve
 
 This addon allows creation of dynamic and physics-based ropes, specifically offering following specialized nodes to fit different needs:
 * **`VerletRopeSimulated`**: Customizable and performant node for visual ropes that react to wind, gravity, and collisions with smooth, realistic behavior.
-* **`VerletRopeRigidBody`**: Node elevating internal rigid bodies for simulation, useful for cases that need ropes to physically interact with and push other objects in the game world.
+* **`VerletRopeRigid`**: Node elevating internal rigid bodies for simulation, useful for cases that need ropes to physically interact with and push other objects in the game world.
 * And corresponding utility **`Joint`** nodes allowing you to connect ropes to custom locations or physical objects limiting their movement.
 
 > [!TIP]
@@ -58,13 +58,10 @@ Ensure you have **Godot 4.4.1+ .NET** and the **.NET 8 SDK** installed.
 The following nodes are being added to the `Create Child Node` menu, try them out yourself and see their corresponding wiki pages by the following links, you can find specific properties descriptions and recommendations there:
 * **[`VerletRopeSimulated`](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeSimulated)** -> `Node3D` - First of the two rope nodes, provides access to fully verlet-simulated rope with the most settings available.
   * **[`VerletJointSimulated`](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletJointSimulated)** -> `Node` - Corresponding simulated joint utility node.
-* **[`VerletRopeRigidBody`](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeRigidBody)** -> `Node3D` - Second rope node, provides access to rigid-bodies-based rope, that allows it to properly interact with physics. 
+* **[`VerletRopeRigid`](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeRigid)** -> `Node3D` - Second rope node, provides access to rigid-bodies-based rope, that allows it to properly interact with physics. 
   * **[`VerletJointRigid`](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletJointRigid)** -> `Node` - Corresponding rigid joint utility node.
 * **[`DistanceForceJoint`](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-DistanceForceJoint)** -> `Node` - Utility node providing access to internal distance joint, can be used without ropes in case you just need to join two bodies based on distance. 
 * **[`VerletRopeMesh`](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeMesh)** -> `MeshInstance3D` - Utility node providing access to custom rope mesh generation, only works when particle positions are provided programmatically.
-
-> [!NOTE]  
-> Rope settings apply themselves the moment they are changed, `Reset Rope` only lays the rope out again between its current attachment points - a rigid rope needs it after its attachment points move. Joint settings apply the same way, `Reset Joint` only re-lays the joined rope after an attachment point moved - both quick action buttons can be found on the top of the inspector.
 
 > [!WARNING]  
 > Unfortunately C# XML documentation is currently not supported by Godot, please refer to the wiki pages until [corresponding issue](https://github.com/godotengine/godot-proposals/issues/8269) gets resolved.

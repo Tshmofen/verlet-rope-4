@@ -117,6 +117,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
                 CollisionLayer = CollisionLayer,
                 ContinuousCd = IsContinuousCollision,
                 Mass = TotalRopeMass / SimulationSegments,
+                GravityScale = GravityScale,
                 PhysicsMaterialOverride = PhysicsMaterialOverride,
                 LinearDamp = LinearDamp,
                 LinearDampMode = LinearDampMode,
@@ -307,21 +308,17 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     /// <inheritdoc cref="BaseVerletRopePhysical.CreateRope"/>
     public override void CreateRope(bool forceReset = true)
     {
-        DestroyRope();
-
-        if (!IsInsideTree())
-        {
-            // Only possible to create inside tree, as physics rely on actual paths
-            return;
-        }
-
         if (ConnectedJoint != null && ConnectedJoint is not VerletJointRigid)
         {
             throw new ApplicationException($"`{nameof(VerletRopeRigid)}` only accepts joints of `{nameof(VerletJointRigid)} type.");
         }
 
         base.CreateRope(forceReset);
-        ApplyRopeStructure();
+
+        if (IsRopeStructureOutdated(forceReset))
+        {
+            ApplyRopeStructure();
+        }
     }
 
     /// <summary> Rebuilds the whole chain of segment bodies, as their length, width and amount are what the bodies and their joints are built from. </summary>
@@ -337,14 +334,6 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
         PinSegmentBodies(_segmentBodies);
         ParticleData = GenerateParticleData(_segmentBodies);
         OnStructureApplied();
-    }
-
-    /// <inheritdoc cref="BaseVerletRopePhysical.ApplyRopeLength"/>
-    protected override void ApplyRopeLength()
-    {
-        // Left empty on purpose: the base only calls this for the rope types that solve towards a length, and a rigid rope
-        // reports IsRopeLengthStructural, so a new length is applied by ApplyRopeStructure above instead. There is nothing
-        // to adjust in place either way, as the length is what the segment bodies and their joints are built from.
     }
 
     /// <inheritdoc cref="BaseVerletRopePhysical.GetSimulationSegments"/>

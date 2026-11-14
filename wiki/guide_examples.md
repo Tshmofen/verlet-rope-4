@@ -91,7 +91,7 @@ Each guide highlights a specific use case, explains which nodes and properties a
 - If the bodies are not being pulled, make sure the rope actually goes taut - `RopeLength` should be close to the distance between the attachment points, otherwise the leash only hangs.
 - If the leash drags the attached body down, lower `TotalRopeMass`.
 - If the rope passes through obstacles, check `CollisionLayer` / `CollisionMask` and consider increasing `CollisionWidthMargin`.
-- If the rope does not appear or its behavior doesn't change, press **Reset Joint** to re-lay it between the joint's attachment points - both joint and rope properties apply themselves.
+- If the rope does not appear, press **Reset Joint** to re-lay it between the joint's attachment points - both joint and rope properties apply themselves.
 
 **See Also**
 - [VerletJointRigid](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletJointRigid)
@@ -140,7 +140,7 @@ Each guide highlights a specific use case, explains which nodes and properties a
 - If the ball barely swings, check its `Mass` against the obstacles' - a ball that is too light bounces off instead of knocking them over.
 - If the rope looks rubbery while the ball swings (its segments visibly stretching and snapping back), raise `StiffnessIterations`.
 - If the rope disappears while the ball swings off-screen, disable `IsDisabledWhenInvisible` on the rope.
-- If the rope does not appear or its behavior doesn't change, press **Reset Joint** to re-lay it between the joint's attachment points - both joint and rope properties apply themselves.
+- If the rope does not appear, press **Reset Joint** to re-lay it between the joint's attachment points - both joint and rope properties apply themselves.
 
 **See Also**
 - [VerletJointSimulated – Distance Joint section](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletJointSimulated#distance-joint-end)

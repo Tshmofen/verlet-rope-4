@@ -367,7 +367,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     protected abstract void ApplyRopeStructure();
 
     /// <summary> Applies <see cref="RopeLength"/> to a rope that is already created. A rope type that stores its length as a separate structure rebuilds instead, see <see cref="ApplyRopeStructure"/>. </summary>
-    protected abstract void ApplyRopeLength();
+    protected virtual void ApplyRopeLength() { }
 
     /// <summary> Returns the amount of segments the rope is currently configured to have, the value that determines the particle data shape. </summary>
     protected abstract int GetSimulationSegments();
@@ -451,7 +451,7 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     {
         if (_undoRedoManager == null)
         {
-            GD.PushWarning($"`{nameof(VerletRopeRigid)}` has tried to use `{nameof(_undoRedoManager)}`, but it was not associated with the plugin.");
+            GD.PushWarning($"`{GetType().Name}` has tried to create an undoable action, but it was not associated with the plugin.");
             return;
         }
 

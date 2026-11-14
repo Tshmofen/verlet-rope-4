@@ -127,7 +127,7 @@ public partial class VerletJointSimulated : BaseVerletJoint, IVerletExported
             warnings.Add("Joint will do nothing without an associated rope, please assign one.");
         }
 
-        if (JointMaxDistance > 0 && StartBody is null && EndBody is null)
+        if (JointMaxDistance > 0 && StartBody == null && EndBody == null)
         {
             warnings.Add($"{nameof(JointMaxDistance)} is configured but both `{nameof(StartBody)}` and `{nameof(EndBody)}` are not accessible for physical connection.");
         }

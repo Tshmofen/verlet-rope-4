@@ -24,7 +24,7 @@ You can see properties descriptions below to understand how to alter the rope's 
 
 ## Export Description
 > [!WARNING]
-> A rigid rope stores its length and its width inside its segment bodies, so changing `Rope Length`, `Rope Width` or `Simulation Segments` rebuilds the rope one frame later. The chain is spawned again between the attachment points, which resets its shape and its smoothing - a rigid rope cannot be reeled in or payed out frame by frame the way a simulated one can. Every other setting is applied to the existing segments.
+> A rigid rope builds its segment bodies from its configured length, width and segment count, so changing `Rope Length`, `Rope Width` or `Simulation Segments` rebuilds the chain one frame later. The chain is spawned again between the attachment points, which resets its shape and its smoothing - a rigid rope cannot be reeled in or payed out frame by frame the way a simulated one can. The physics settings the bodies are built with (mass, gravity scale, collision layer and mask, collision width margin, damping, pin parameters and the collision shape debug rendering) are read when the chain is spawned, so they take effect on the next rebuild too.
 
 ### Actions
 | Button Action | How it works |
@@ -76,8 +76,8 @@ This section is partially inherited from [VerletRopeMesh](https://github.com/Tsh
 | Rope Width                     |  Determines visual width of the rope, does not affect rope behavior. Width effectively behaves as a diameter. |
 | RenderMode                     | Determines when the rope’s mesh is drawn. `Physics` – only during physics ticks, the most performant mode. `PhysicsAndMovement` – also redraws immediately in the process frame when the node’s global position changes, preventing flicker when dragged/moved in the editor or at runtime. `Process` – redraws every process frame, giving the smoothest response at a small performance cost. |
 | Rope Smoothing                 | Amount of smoothing applied to particle positions for rendering. Higher values make the rope appear gentler but less responsive. 0 disables smoothing. |
-| Smooth Rope Start              | If `true`, smoothing is applied at the start of the rope. Disable when the start must stay rigidly attached to a moving point. |
-| Smooth Rope End                | If `true`, smoothing is applied at the end of the rope. Disable when the end must stay rigidly attached to a moving point. |
+| Is Smooth Rope Start           | If `true`, smoothing is applied at the start of the rope. Disable when the start must stay rigidly attached to a moving point. |
+| Is Smooth Rope End             | If `true`, smoothing is applied at the end of the rope. Disable when the end must stay rigidly attached to a moving point. |
 | Tube Segments                  | Number of segments around the tube’s circumference. Only used when `Mesh Type = Tube`. |
 | Subdivision Lod Distance       | If distance to the particle is greater than this value, the corresponding segment is not subdivided for rendering. |
 | Use Debug Particles            | Draws orientation axis from every actual particle positions when enabled. |

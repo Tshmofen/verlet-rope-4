@@ -44,7 +44,9 @@ public abstract partial class BaseVerletJoint : Node, ISerializationListener
 
     public override void _EnterTree()
     {
-        ResetJoint(false);
+        _verletRope = TryFindVerletRope();
+        _verletRope?.SetJoint(this, false);
+        QueueJointApply(JointApplyReason.All);
     }
 
     public override void _ExitTree()
@@ -53,16 +55,18 @@ public abstract partial class BaseVerletJoint : Node, ISerializationListener
     }
 
     /// <summary>
-    /// Reapplies every joint property and resets the joined rope (if requested and created) - the shape reset behind the
+    /// Reapplies every joint property and, when requested, re-lays the joined rope - the shape reset behind the
     /// `Reset Joint` quick button. A property change is applied on its own, so this is only needed to re-lay the rope
     /// between attachment points that moved.
     /// </summary>
+    /// <param name="toResetRope"> Whether the joined rope has to be laid out again between the current attachment points, or only bound to the joint. </param>
     public virtual void ResetJoint(bool toResetRope = true)
     {
+        _verletRope = TryFindVerletRope();
         UpdateConfigurationWarnings();
         ApplyJointConfiguration();
-        _verletRope = TryFindVerletRope();
         _verletRope?.SetJoint(this, toResetRope);
+        ApplyJointCollisionExceptions();
         OnJointApplied();
     }
 
@@ -91,6 +95,8 @@ public abstract partial class BaseVerletJoint : Node, ISerializationListener
         Attachment = 4,
         /// <summary> The joined rope itself. </summary>
         Rope = 8,
+        /// <summary> Every reason a joint reacts to, which is what entering the tree applies. </summary>
+        All = Configuration | Collision | Attachment | Rope,
     }
 
     // ReSharper disable once RedundantAssignment
@@ -104,7 +110,7 @@ public abstract partial class BaseVerletJoint : Node, ISerializationListener
     /// <summary>
     /// Applies the joint properties on the next frame, deferred so that a setter stays safe to call from a scene load,
     /// an undoable editor action or a loop that writes several properties. A write that arrives while the joint is
-    /// outside the tree is dropped, as the initial state is what `_EnterTree` and `_Ready` produce.
+    /// outside the tree is dropped, as entering the tree applies the joint as it is configured at that point.
     /// </summary>
     private void QueueJointApply(JointApplyReason reason)
     {
@@ -156,7 +162,10 @@ public abstract partial class BaseVerletJoint : Node, ISerializationListener
             _verletRope?.SetJoint(this, false);
         }
 
-        ApplyJointConfiguration();
+        if (reason.HasFlag(JointApplyReason.Configuration) || reason.HasFlag(JointApplyReason.Attachment) || reason.HasFlag(JointApplyReason.Rope))
+        {
+            ApplyJointConfiguration();
+        }
 
         if (reason.HasFlag(JointApplyReason.Collision))
         {

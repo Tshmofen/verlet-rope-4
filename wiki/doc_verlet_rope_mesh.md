@@ -25,12 +25,15 @@ You can see properties descriptions below to see available visuals or refer to `
 | Rope Length                    | Determines total target length of the rope, it is just a base value and actual length might be different depending on physics and configured behavior. |
 | Rope Width                     |  Determines visual width of the rope, does not affect rope behavior. Width effectively behaves as a diameter. |
 | Rope Smoothing                 | Amount of smoothing applied to particle positions for rendering. Higher values make the rope appear gentler but less responsive. 0 disables smoothing. |
-| Smooth Rope Start              | If `true`, smoothing is applied at the start of the rope. Disable when the start must stay rigidly attached to a moving point. |
-| Smooth Rope End                | If `true`, smoothing is applied at the end of the rope. Disable when the end must stay rigidly attached to a moving point. |
+| Is Smooth Rope Start           | If `true`, smoothing is applied at the start of the rope. Disable when the start must stay rigidly attached to a moving point. |
+| Is Smooth Rope End             | If `true`, smoothing is applied at the end of the rope. Disable when the end must stay rigidly attached to a moving point. |
 | Tube Segments                  | Number of segments around the tube’s circumference. Only used when `Mesh Type = Tube`. |
 | Subdivision Lod Distance       | If distance to the particle is greater than this value, the corresponding segment is not subdivided for rendering. |
 | Use Debug Particles            | Draws orientation axis from every actual particle positions when enabled. |
 | Use Visible On Screen Notifier | Creates a child `VisibleOnScreenNotifier3D` for the rope when enabled. Is only triggered on `_Ready` calls. |
+
+### Material Override
+`MaterialOverride` is the inherited `MeshInstance3D` property - the mesh falls back to the default rope material while it is unset. A rope node (`VerletRopeSimulated` / `VerletRopeRigid`) exposes its own `Material Override` export, which is propagated to this node.
 
 ## Programmatic Access
 The node is designed to be driven by an external simulation. To use it programmatically, you must generate the particle data representing the rope's shape and call its main drawing function every time you want it to be updated (usually every frame).
