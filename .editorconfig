@@ -351,3 +351,6 @@ dotnet_diagnostic.IDE0052.severity = silent
 # CA1822 wants a member that touches no instance data to be static, which no case, hook or suite may be: the runner
 # instantiates the suite and calls into it, so a static case is never discovered.
 dotnet_diagnostic.CA1822.severity = none
+# ReSharper reports the same thing under its own rule, and that rule is the one a case trips: unlike the two above it also
+# covers public members, and a case is public by rule.
+resharper_unused_member_global_highlighting = none
