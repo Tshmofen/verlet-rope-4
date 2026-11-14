@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Template of the test settings gdUnit4 needs, see `test/README.md`.
-
+  Template of the test settings gdUnit4 needs to start the engine.
   `test/godot-test.targets` fills in its Godot binary placeholder from the gitignored `godot.path` and writes the result to
-  `test.runsettings` in the intermediate output folder, which the project's `RunSettingsFilePath` points at. `dotnet test`
-  and the IDE therefore start the engine without any environment variable being set in the shell.
+  `test.runsettings` in the intermediate output folder, which the project's `RunSettingsFilePath` points at.
 -->
 <RunSettings>
   <RunConfiguration>
