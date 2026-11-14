@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Test settings for the gdUnit4 lane, see `test/README.md`.
+
+  `GODOT_BIN` is deliberately not hardcoded here: `run-tests.ps1` sets it from `-Godot` or the environment, and an IDE
+  run needs it set once in the process environment. The headless parameter below keeps the test host off the display
+  server, which is what a CI run and a local run without a window both need.
+-->
+<RunSettings>
+  <RunConfiguration>
+    <MaxCpuCount>1</MaxCpuCount>
+    <ResultsDirectory>./TestResults</ResultsDirectory>
+    <TestSessionTimeout>300000</TestSessionTimeout>
+    <TreatNoTestsAsError>true</TreatNoTestsAsError>
+  </RunConfiguration>
+
+  <LoggerRunSettings>
+    <Loggers>
+      <Logger friendlyName="console" enabled="True">
+        <Configuration>
+          <Verbosity>normal</Verbosity>
+        </Configuration>
+      </Logger>
+    </Loggers>
+  </LoggerRunSettings>
+
+  <GdUnit4>
+    <Parameters>--headless</Parameters>
+    <DisplayName>FullyQualifiedName</DisplayName>
+    <CaptureStdOut>true</CaptureStdOut>
+  </GdUnit4>
+</RunSettings>

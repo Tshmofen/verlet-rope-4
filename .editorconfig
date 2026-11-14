@@ -54,6 +54,11 @@ generated_code = true
 [*.generated.cs]
 generated_code = true
 
+# The gdUnit4 test adapter writes its runner scene into the project on the first `dotnet test` run and rewrites it
+# every run, so its style is not ours to fix and it would otherwise fail the build.
+[gdunit4_testadapter_v5/**]
+generated_code = true
+
 # ---------------------------------------------------------------------------------------------
 # .NET coding conventions
 # ---------------------------------------------------------------------------------------------

@@ -18,4 +18,8 @@ mono_crash.*.json
 #Specific Addons
 addons/debug_draw_3d/
 
+# Test tooling output
+gdunit4_testadapter_v5/
+TestResults/
+
 .local-docs/
