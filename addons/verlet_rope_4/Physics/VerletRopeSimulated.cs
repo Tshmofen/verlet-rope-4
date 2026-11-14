@@ -70,7 +70,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     /// If needed should be set at least 2-3 times higher than the expected physics rate. Usually something like 300-500 ms just to prevent unexpected behavior during freezes.
     /// When set to 0 the option is effectively disabled.
     /// </summary>
-    [Export(PropertyHint.Range, "0,1000")] public int DeltaSkipMs { get; set; } = 0;
+    [Export(PropertyHint.Range, "0,1000")] public int DeltaSkipMs { get; set; } = 300;
     /// <summary> Determines if simulation is disabled when the rope is not on the screen. If <see cref="VerletJointSimulated"/> is used to connect bodies, it might be better to disable this option to prevent de-syncs. </summary>
     [Export] public bool IsDisabledWhenInvisible { get; set; } = true;
     /// <inheritdoc cref="RopeSimulationBehavior"/>
