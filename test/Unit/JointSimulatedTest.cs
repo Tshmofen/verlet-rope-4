@@ -35,7 +35,7 @@ public class JointSimulatedTest
         AssertThat(joint._GetConfigurationWarnings().Length).IsEqual(0);
     }
 
-    /// <summary> A distance joint without bodies cannot pull anything, and a joint on an invisible-disabled rope can stop tracking it off screen. </summary>
+    /// <summary> A distance joint without bodies cannot pull anything, and a joint on an invisible-disabled rope can stop tracking it off-screen. </summary>
     [TestCase]
     public void DistanceJointWarnsAboutMissingBodiesAndAnInvisibilityDisabledRope()
     {

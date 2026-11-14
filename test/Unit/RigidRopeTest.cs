@@ -157,7 +157,7 @@ public class RigidRopeTest
     }
 
     /// <summary>
-    /// A write of the length the chain already has is not a rebuild: the bodies have to survive it, or every repeated write
+    /// Write of the length the chain already has is not a rebuild: the bodies have to survive it, or every repeated write
     /// from an inspector, a tween or a loop would tear the rope down and spawn it again frame after frame.
     /// </summary>
     [TestCase]

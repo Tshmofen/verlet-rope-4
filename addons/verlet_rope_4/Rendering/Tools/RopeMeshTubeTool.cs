@@ -141,7 +141,6 @@ public class RopeMeshTubeTool : IRopeMeshTool
 file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] ringCos, float[] ringSin)
 {
     // State
-    private bool _hasPrevRing = false;
     private Vector3 _prevTangent = Vector3.Zero;
     private Vector3 _prevNormal = Vector3.Zero;
 
@@ -159,7 +158,7 @@ file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] r
     private Vector3 _endCenter = Vector3.Zero;
     private Vector3 _endTangent = Vector3.Zero;
 
-    public bool CanGenerateTriangles => _hasPrevRing;
+    public bool CanGenerateTriangles { get; private set; } = false;
 
     public void UpdateFrame(Vector3 tangent, out Vector3 binormal)
     {
@@ -167,11 +166,11 @@ file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] r
         // throws on those - the last valid frame is kept until a real direction is available again.
         if (tangent.IsZeroApprox())
         {
-            binormal = _hasPrevRing ? _prevTangent.Cross(_prevNormal).Normalized() : Vector3.Zero;
+            binormal = CanGenerateTriangles ? _prevTangent.Cross(_prevNormal).Normalized() : Vector3.Zero;
             return;
         }
 
-        if (_hasPrevRing)
+        if (CanGenerateTriangles)
         {
             var rotation = _prevTangent.IsZeroApprox() ? Quaternion.Identity : new Quaternion(_prevTangent, tangent);
             var newNormal = rotation * _prevNormal;
@@ -202,7 +201,7 @@ file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] r
 
     public void AddTubeTriangles(Vector3 tangent, float u0, float u1)
     {
-        if (!_hasPrevRing)
+        if (!CanGenerateTriangles)
         {
             return;
         }
@@ -245,7 +244,7 @@ file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] r
 
     public void AddTubeCaps()
     {
-        if (tubeSegments < 3 || !_hasPrevRing)
+        if (tubeSegments < 3 || !CanGenerateTriangles)
         {
             return;
         }
@@ -302,7 +301,7 @@ file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] r
         _currentRing = tempRing;
         _currentNormals = tempNormals;
 
-        _hasPrevRing = true;
+        CanGenerateTriangles = true;
     }
 
     public void CaptureFirstRing(Vector3 center, Vector3 tangent)

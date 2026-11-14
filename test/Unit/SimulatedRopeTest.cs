@@ -134,7 +134,7 @@ public class SimulatedRopeTest
 
     /// <summary>
     /// The amount of particles is structural, so writing it re-lays the rope on a following frame instead of immediately.
-    /// The apply is deferred to the end of the frame, which in the test host is a frame boundary away.
+    /// Apply is deferred to the end of the frame, which in the test host is a frame boundary away.
     /// </summary>
     [TestCase]
     public async Task SimulationParticlesWriteRelaysTheRopeOnTheNextFrame()
