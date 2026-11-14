@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Godot;
+using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using VerletRope4.Utility;
 
 namespace VerletRope4.Physics.Joints;
@@ -14,38 +14,49 @@ public partial class VerletJointSimulated : BaseVerletJoint, IVerletExported
     public static string ExportedType => nameof(VerletJointSimulated);
 
     private DistanceForceJoint _joint;
-    
-    #if TOOLS
-    [ExportToolButton("Reset Joint (Apply Changes)")] public Callable ResetJointButton => Callable.From(() => ResetJoint());
-    #endif
+
+    private VerletRopeSimulated _verletRopeNode;
+    private PhysicsBody3D _startBody;
+    private Node3D _startCustomLocation;
+    private bool _ignoreStartBodyCollision = true;
+    private PhysicsBody3D _endBody;
+    private Node3D _endCustomLocation;
+    private bool _ignoreEndBodyCollision = true;
+    private float _jointMaxDistance;
+    private float _jointMaxForce = 50f;
+    private float _jointForceEasing = 0.9f;
+
+#if TOOLS
+    [ExportToolButton("Reset Joint")] public Callable ResetJointButton => Callable.From(() => ResetJoint());
+#endif
 
     /// <summary> A <see cref="VerletRopeSimulated"/> node instance to which join constraints will be applied to. Automatically assigns current parent if it is of needed type and the value is currently unset. </summary>
     [ExportCategory("Attachment Settings")]
-    [Export] public VerletRopeSimulated VerletRope { get; set; }
-    
+    [Export] public VerletRopeSimulated VerletRope { get => _verletRopeNode; set => SetJointProperty(ref _verletRopeNode, value, JointApplyReason.Rope); }
+
     /// <inheritdoc/>
     [ExportSubgroup("Rope Start")]
-    [Export] public override  PhysicsBody3D StartBody { get; set; }
+    [Export] public override PhysicsBody3D StartBody { get => _startBody; set => SetJointProperty(ref _startBody, value, JointApplyReason.Attachment); }
     /// <inheritdoc/>
-    [Export] public override  Node3D StartCustomLocation{ get; set; }
+    [Export] public override Node3D StartCustomLocation { get => _startCustomLocation; set => SetJointProperty(ref _startCustomLocation, value, JointApplyReason.Attachment); }
     /// <summary> Determines whether rope will collide with the connected <see cref="StartBody"/>. </summary>
-    [Export] public bool IgnoreStartBodyCollision { get; set; } = true;
-    
+    [Export] public bool IgnoreStartBodyCollision { get => _ignoreStartBodyCollision; set => SetJointProperty(ref _ignoreStartBodyCollision, value, JointApplyReason.Collision); }
+
     /// <inheritdoc/>
-    [ExportSubgroup("Rope End")] 
-    [Export] public override  PhysicsBody3D EndBody { get; set; }
+    [ExportSubgroup("Rope End")]
+    [Export] public override PhysicsBody3D EndBody { get => _endBody; set => SetJointProperty(ref _endBody, value, JointApplyReason.Attachment); }
     /// <inheritdoc/>
-    [Export] public override Node3D EndCustomLocation{ get; set; }
+    [Export] public override Node3D EndCustomLocation { get => _endCustomLocation; set => SetJointProperty(ref _endCustomLocation, value, JointApplyReason.Attachment); }
     /// <summary> Determines whether rope will collide with the connected  <see cref="EndBody"/>. </summary>
-    [Export] public bool IgnoreEndBodyCollision { get; set; } = true;
+    [Export] public bool IgnoreEndBodyCollision { get => _ignoreEndBodyCollision; set => SetJointProperty(ref _ignoreEndBodyCollision, value, JointApplyReason.Collision); }
 
     /// <inheritdoc cref="DistanceForceJoint.MaxDistance"/>
     [ExportSubgroup("Distance Joint")]
-    [Export(PropertyHint.Range, "0, 10000")] public float JointMaxDistance { get; set; } = 0;
+    [Export(PropertyHint.Range, "0, 10000")] public float JointMaxDistance { get => _jointMaxDistance; set => SetJointProperty(ref _jointMaxDistance, value, JointApplyReason.Configuration); }
     /// <inheritdoc cref="DistanceForceJoint.MaxForce"/>
-    [Export(PropertyHint.Range, "0, 10000")] public float JointMaxForce { get; set; } = 50f;
+    [Export(PropertyHint.Range, "0, 10000")] public float JointMaxForce { get => _jointMaxForce; set => SetJointProperty(ref _jointMaxForce, value, JointApplyReason.Configuration); }
     /// <inheritdoc cref="DistanceForceJoint.ForceEasing"/>
-    [Export(PropertyHint.ExpEasing)] public float JointForceEasing { get; set; } = 0.9f;
+    [Export(PropertyHint.ExpEasing)] public float JointForceEasing { get => _jointForceEasing; set => SetJointProperty(ref _jointForceEasing, value, JointApplyReason.Configuration); }
 
     private void ConfigureDistanceJoint()
     {
@@ -77,11 +88,16 @@ public partial class VerletJointSimulated : BaseVerletJoint, IVerletExported
         return VerletRope ??= GetParent() as VerletRopeSimulated;
     }
 
-    /// <inheritdoc cref="BaseVerletJoint.ResetJoint"/>
-    public override void ResetJoint(bool toResetRope = true)
+    /// <inheritdoc/>
+    protected override void ApplyJointConfiguration()
     {
         ConfigureDistanceJoint();
-        base.ResetJoint(toResetRope);
+    }
+
+    /// <inheritdoc/>
+    protected override void ApplyJointCollisionExceptions()
+    {
+        VerletRope?.RefreshCollisionExceptions();
     }
 
     /// <summary> Returns physics <see cref="Rid"/> of connected bodies that are to be ignored by parent <see cref="VerletRopeSimulated"/> instance. </summary>
@@ -108,10 +124,10 @@ public partial class VerletJointSimulated : BaseVerletJoint, IVerletExported
 
         if (VerletRope == null)
         {
-            warnings.Add("Joint will do nothing without an associated rope, please assign one."); 
+            warnings.Add("Joint will do nothing without an associated rope, please assign one.");
         }
 
-        if (JointMaxDistance > 0 && StartBody is null && EndBody is null)
+        if (JointMaxDistance > 0 && StartBody == null && EndBody == null)
         {
             warnings.Add($"{nameof(JointMaxDistance)} is configured but both `{nameof(StartBody)}` and `{nameof(EndBody)}` are not accessible for physical connection.");
         }

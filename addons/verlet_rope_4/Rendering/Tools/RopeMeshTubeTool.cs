@@ -1,7 +1,7 @@
 ﻿using Godot;
 using System.Collections.Generic;
 
-namespace VerletRope.Rendering.Tools;
+namespace VerletRope4.Rendering.Tools;
 
 public class RopeMeshTubeTool : IRopeMeshTool
 {
@@ -148,7 +148,7 @@ file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] r
     // Ring references
     private Vector3[] _currentRing = new Vector3[tubeSegments];
     private Vector3[] _currentNormals = new Vector3[tubeSegments];
-    private readonly Vector3[] _firstRing  = new Vector3[tubeSegments];
+    private readonly Vector3[] _firstRing = new Vector3[tubeSegments];
     private readonly Vector3[] _firstNormals = new Vector3[tubeSegments];
     private Vector3[] _prevRing = new Vector3[tubeSegments];
     private Vector3[] _prevNormals = new Vector3[tubeSegments];
@@ -163,9 +163,17 @@ file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] r
 
     public void UpdateFrame(Vector3 tangent, out Vector3 binormal)
     {
+        // Collapsed particles (a rope reeled in to nothing) produce zero tangents, and Godot's `Quaternion(arcFrom, arcTo)`
+        // throws on those - the last valid frame is kept until a real direction is available again.
+        if (tangent.IsZeroApprox())
+        {
+            binormal = _hasPrevRing ? _prevTangent.Cross(_prevNormal).Normalized() : Vector3.Zero;
+            return;
+        }
+
         if (_hasPrevRing)
         {
-            var rotation = new Quaternion(_prevTangent, tangent);
+            var rotation = _prevTangent.IsZeroApprox() ? Quaternion.Identity : new Quaternion(_prevTangent, tangent);
             var newNormal = rotation * _prevNormal;
             newNormal = (newNormal - tangent * tangent.Dot(newNormal)).Normalized();
             binormal = tangent.Cross(newNormal).Normalized();
@@ -274,7 +282,7 @@ file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] r
             }
         }
     }
-    
+
     private void AddTubeCapVertex(Vector3 normal, Vector3 tangent, Vector2 uv, Vector3 position)
     {
         surfaceTool.SetNormal(normal);

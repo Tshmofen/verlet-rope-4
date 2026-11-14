@@ -25,8 +25,11 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
     private int _forcedFrames;
     private double _simulationDelta;
-    private float _restSegmentLength;
     private List<Rid> _collisionExceptions = [];
+    private int _simulationParticles = 10;
+
+    /// <summary> The length a single segment of the rope is expected to have, which is what its constraints solve towards. </summary>
+    private float _restSegmentLength;
 
     private RayCast3D _rayCast;
     private BoxShape3D _collisionShape;
@@ -34,17 +37,29 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     private PhysicsShapeQueryParameters3D _collisionShapeParameters;
     private readonly Dictionary<RigidBody3D, RopeDynamicCollisionData> _dynamicBodies = [];
 
-    #if TOOLS
-    [ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(() => CreateRope());
+#if TOOLS
+    [ExportToolButton("Reset Rope")] public Callable ResetRopeButton => Callable.From(() => CreateRope());
     [ExportToolButton("Add Simulated Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
-    #endif
+#endif
 
     public override bool IsRopeCreated => ParticleData is { Count: > 0 };
 
-    /// <summary> Determines amount of separate particles used is simulations, total segments amount is <see cref="SimulationParticles"/> minus 1. </summary>
+    /// <summary> Determines amount of separate particles used is simulations, total segments amount is <see cref="SimulationParticles"/> minus 1. Changing it while the rope exists re-lays the rope on the next frame. </summary>
     [ExportGroup("Simulation")]
     [Export] public override bool IsCreatedOnReady { get; set; } = true;
-    [Export(PropertyHint.Range, "3,100")] public int SimulationParticles { get; set; } = 10;
+    [Export(PropertyHint.Range, "3,100")]
+    public int SimulationParticles
+    {
+        get => _simulationParticles;
+        set
+        {
+            _simulationParticles = Mathf.Clamp(value, 3, 100);
+            if (IsSimulationSegmentsChanged())
+            {
+                QueueRopeStructureApply();
+            }
+        }
+    }
     /// <summary> Determines target update rate for calculations (e.g. 30 updates per second) - but never exceeds physics tick rate. when value is set to 0 - the rope is updated every frame. </summary>
     [Export(PropertyHint.Range, "0,1000")] public int SimulationRate { get; set; } = 0;
     /// <summary> Akin to elasticity - it controls how much the verlet constraint corrects the rope to the expected positions. </summary>
@@ -58,7 +73,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     /// If needed should be set at least 2-3 times higher than the expected physics rate. Usually something like 300-500 ms just to prevent unexpected behavior during freezes.
     /// When set to 0 the option is effectively disabled.
     /// </summary>
-    [Export(PropertyHint.Range, "0,1000")] public int DeltaSkipMs { get; set; } = 0;
+    [Export(PropertyHint.Range, "0,1000")] public int DeltaSkipMs { get; set; } = 300;
     /// <summary> Determines if simulation is disabled when the rope is not on the screen. If <see cref="VerletJointSimulated"/> is used to connect bodies, it might be better to disable this option to prevent de-syncs. </summary>
     [Export] public bool IsDisabledWhenInvisible { get; set; } = true;
     /// <inheritdoc cref="RopeSimulationBehavior"/>
@@ -68,23 +83,23 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     [Export] public bool ApplyGravity { get; set; } = true;
     [Export] public Vector3 Gravity { get; set; } = Vector3.Down * 9.8f;
     [Export] public float GravityScale { get; set; } = 1.0f;
-    
+
     /// <summary> Determines if wind force simulation is enabled, for it to work <see cref="WindNoise"/> must also be assigned. </summary>
     [ExportGroup("Wind")]
     [Export] public bool ApplyWind { get; set; } = false;
     /// <summary> Determines base force and direction of the wind. </summary>
     [Export] public Vector3 WindDirection { get; set; } = new(40.0f, 0.0f, 0.0f);
     [Export] public FastNoiseLite WindNoise { get; set; } = null;
-    [Export(PropertyHint.Range,"-1.00,1.00")] public float WindNoiseMax { get; set; } = 1.0f;
-    [Export(PropertyHint.Range,"-1.00,1.00")] public float WindNoiseMin { get; set; } = 0.05f;
+    [Export(PropertyHint.Range, "-1.00,1.00")] public float WindNoiseMax { get; set; } = 1.0f;
+    [Export(PropertyHint.Range, "-1.00,1.00")] public float WindNoiseMin { get; set; } = 0.05f;
 
     [ExportGroup("Damping")]
     [Export] public bool ApplyDamping { get; set; } = true;
     [Export(PropertyHint.Range, "0, 10000")] public float DampingFactor { get; set; } = 1f;
-    
+
     /// <inheritdoc cref="Data.RopeCollisionType"/>>
     [ExportGroup("Collision")]
-    [Export] public RopeCollisionType RopeCollisionType { get; set; } = RopeCollisionType.StaticOnly;    
+    [Export] public RopeCollisionType RopeCollisionType { get; set; } = RopeCollisionType.StaticOnly;
     /// <inheritdoc cref="Data.RopeCollisionBehavior"/>>
     [Export] public RopeCollisionBehavior RopeCollisionBehavior { get; set; } = RopeCollisionBehavior.None;
     [Export(PropertyHint.Range, "1,20")] public float SlideCollisionStretch { get; set; } = 1.05f;
@@ -102,18 +117,21 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     [Export(PropertyHint.Range, "0.05,5.0")] public float SelfCollisionRadius { get; set; } = 0.12f;
     [Export(PropertyHint.Range, "0.01,1.0")] public float SelfCollisionSmoothing { get; set; } = 0.4f;
 
-    #if TOOLS
+#if TOOLS
     [ExportGroup("Quick Presets")]
-    [ExportToolButton("Preset - Base Wind")] public Callable PresetBaseWindButton => Callable.From(
+    [ExportToolButton("Preset - Base Wind")]
+    public Callable PresetBaseWindButton => Callable.From(
         () => CommitEditorAction("Verlet Rope Simulated - Base Wind Preset", (undoRedo, actionId) => VerletRopeSimulatedPreset.SetBaseWindValues(this, undoRedo, actionId))
     );
-    [ExportToolButton("Preset - Floating Rope")] public Callable PresetFloatingRopeButton => Callable.From(
+    [ExportToolButton("Preset - Floating Rope")]
+    public Callable PresetFloatingRopeButton => Callable.From(
         () => CommitEditorAction("Verlet Rope Simulated - Base Floating Preset", (undoRedo, actionId) => VerletRopeSimulatedPreset.SetFloatingValues(this, undoRedo, actionId))
     );
-    [ExportToolButton("Preset - All Collisions")] public Callable PresetBaseAllCollisionsButton => Callable.From(
+    [ExportToolButton("Preset - All Collisions")]
+    public Callable PresetBaseAllCollisionsButton => Callable.From(
         () => CommitEditorAction("Verlet Rope Simulated - Base All Collisions Preset", (undoRedo, actionId) => VerletRopeSimulatedPreset.SetBaseAllCollisionsValues(this, undoRedo, actionId))
     );
-    #endif
+#endif
 
     #region Util
 
@@ -134,12 +152,18 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         {
             return false;
         }
-        
+
         return delta > DeltaSkipMs / 1000f;
     }
 
-    private float GetCurrentRopeLength()
+    /// <summary> Returns the total length of the rope along its current particle positions, which under load is longer than the target <see cref="RopeLength"/>. </summary>
+    public float GetCurrentRopeLength()
     {
+        if (ParticleData == null || ParticleData.Count == 0)
+        {
+            return 0f;
+        }
+
         var length = 0f;
 
         for (var i = 0; i < ParticleData.Count - 1; i++)
@@ -232,7 +256,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
             _dynamicBodies.Clear();
             return;
         }
-        
+
         var visuals = RopeMesh.GetAabb();
         if (visuals.Size == Vector3.Zero)
         {
@@ -329,7 +353,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
             newPosition = previous;
             return false;
         }
-        
+
         newPosition = GetCollisionUpdatedPosition(adjustedPrevious, move, collision, normal, checkLength, isSliding);
         return true;
     }
@@ -359,7 +383,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
                 // We still need to ignore collision targets when it's too stretched
                 continue;
             }
-            
+
             var particleMove = currentPoint.PositionCurrent - currentPoint.PositionPrevious;
             var isSliding = currentSegmentLength > segmentCollisionSlideLength;
 
@@ -529,7 +553,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
     #endregion
 
-    #if TOOLS
+#if TOOLS
     #region Editor
 
     private void CreateJointAction()
@@ -542,7 +566,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     }
 
     #endregion
-    #endif
+#endif
 
     public override void _Ready()
     {
@@ -567,8 +591,6 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
             return;
         }
 
-        base._PhysicsProcess(delta);
-
         if (IsDisabledWhenInvisible && !RopeMesh.IsRopeVisible)
         {
             return;
@@ -589,10 +611,10 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
                 return;
             }
         }
-        
+
         ref var start = ref ParticleData![0];
         start.PositionCurrent = StartNode.GetSafeGlobalPosition() ?? GlobalPosition;
-        
+
         ref var end = ref ParticleData![ParticleData.Count - 1];
         if (end.IsAttached)
         {
@@ -608,12 +630,12 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         EmitSignalSimulationStep(_simulationDelta);
         _simulationDelta = 0;
 
-        #if TOOLS
+#if TOOLS
         UpdateEditorCollision(ParticleData);
         UpdateGizmos();
-        #endif
+#endif
     }
-    
+
     /// <inheritdoc cref="BaseVerletRopePhysical.CreateJoint"/>
     public override void CreateJoint(int actionId = 0, bool toCreate = true)
     {
@@ -628,36 +650,57 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         var joint = this.CreateChild<VerletJointSimulated>("JointSimulated");
         joint.SetMeta(metaName, actionId);
     }
-    
+
     /// <inheritdoc cref="BaseVerletRopePhysical.CreateRope"/>
     public override void CreateRope(bool forceReset = true)
     {
         base.CreateRope(forceReset);
 
-        if (!forceReset && PreviousStart == StartNode && PreviousEnd == EndNode)
+        if (IsRopeStructureOutdated(forceReset))
         {
-            return;
+            ApplyRopeStructure();
         }
+    }
 
-        _restSegmentLength = RopeMesh.RopeLength / (ParticleData?.Count ?? SimulationParticles - 1);
-        var acceleration = Gravity * GravityScale;
-        var startLocation = StartNode.GetSafeGlobalPosition() ?? GlobalPosition;
-        var endLocation = EndNode.GetSafeGlobalPosition() ?? startLocation;
-        ParticleData = RopeParticleData.GenerateParticleData(startLocation, endLocation, acceleration, SimulationParticles, _restSegmentLength);
-
+    /// <summary>
+    /// Recomputes the bodies the rope ignores in collisions, without re-laying it - what a joint applies when only its
+    /// collision flags change. The list is re-read on every raycast, so replacing it is all it takes.
+    /// </summary>
+    public void RefreshCollisionExceptions()
+    {
         if (ConnectedJoint is VerletJointSimulated simulatedJoint)
         {
             _collisionExceptions = new List<Rid>(simulatedJoint.GetPhysicsExceptionRids());
-        }
-        else if (ConnectedJoint != null)
-        {
-            throw new ApplicationException($"`{nameof(VerletRopeSimulated)}` only accepts joints of `{nameof(VerletJointSimulated)} type.");
         }
         else
         {
             _collisionExceptions = null;
         }
-        
+    }
+
+    /// <inheritdoc cref="BaseVerletRopePhysical.DestroyRope"/>
+    public override void DestroyRope()
+    {
+        base.DestroyRope();
+        ParticleData = null;
+    }
+
+    /// <summary> Re-lays every particle between the attachment points, which is the only way to change the amount of particles the rope is simulated with. </summary>
+    protected override void ApplyRopeStructure()
+    {
+        var acceleration = Gravity * GravityScale;
+        var startLocation = StartNode.GetSafeGlobalPosition() ?? GlobalPosition;
+        var endLocation = EndNode.GetSafeGlobalPosition() ?? startLocation;
+        _restSegmentLength = GetTargetRestSegmentLength();
+        ParticleData = RopeParticleData.GenerateParticleData(startLocation, endLocation, acceleration, SimulationParticles, _restSegmentLength);
+
+        if (ConnectedJoint != null && ConnectedJoint is not VerletJointSimulated)
+        {
+            throw new ApplicationException($"`{nameof(VerletRopeSimulated)}` only accepts joints of `{nameof(VerletJointSimulated)} type.");
+        }
+
+        RefreshCollisionExceptions();
+
         ref var start = ref ParticleData[0];
         ref var end = ref ParticleData[^1];
 
@@ -668,17 +711,29 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
 
         for (var i = 0; i < PreprocessIterations; i++)
         {
-            VerletProcess(1/60f);
-            ApplyConstraints(1/60f);
+            VerletProcess(1 / 60f);
+            ApplyConstraints(1 / 60f);
         }
 
         _forcedFrames = PreprocessIterations;
+        OnStructureApplied();
     }
-    
-    /// <inheritdoc cref="BaseVerletRopePhysical.DestroyRope"/>
-    public override void DestroyRope()
+
+    /// <summary> A simulated rope only has to solve towards the new length, so the constraint pull itself reels the rope in or pays it out without any particle being moved. </summary>
+    protected override void ApplyRopeLength()
     {
-        ParticleData = null;
-        SimulationParticles = 0;
+        var targetRestSegmentLength = GetTargetRestSegmentLength();
+        if (Mathf.IsEqualApprox(targetRestSegmentLength, _restSegmentLength))
+        {
+            return;
+        }
+
+        _restSegmentLength = targetRestSegmentLength;
+    }
+
+    /// <inheritdoc cref="BaseVerletRopePhysical.GetSimulationSegments"/>
+    protected override int GetSimulationSegments()
+    {
+        return SimulationParticles - 1;
     }
 }

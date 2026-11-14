@@ -1,4 +1,4 @@
-using Godot;
+﻿using Godot;
 using VerletRope4.Physics;
 using VerletRope4.Physics.Joints;
 
@@ -128,7 +128,6 @@ public partial class FishingRodRig : Node3D
     public void SetLeashLength(float distance)
     {
         LineJoint.JointMaxDistance = distance;
-        LineJoint.ResetJoint(false);
     }
 
     #region Rod Logic

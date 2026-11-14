@@ -1,7 +1,7 @@
 ﻿using Godot;
 using System.Collections.Generic;
 
-namespace VerletRope.Rendering.Tools;
+namespace VerletRope4.Rendering.Tools;
 
 public class RopeMeshRibbonTool : IRopeMeshTool
 {

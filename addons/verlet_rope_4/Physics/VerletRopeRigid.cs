@@ -1,5 +1,5 @@
-﻿using System;
-using Godot;
+﻿using Godot;
+using System;
 using System.Collections.Generic;
 using VerletRope4.Data;
 using VerletRope4.Physics.Joints;
@@ -17,20 +17,35 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
 
     private static readonly StringName InternalMetaStamp = "verlet_rope_rigid_body";
     private List<RigidBody3D> _segmentBodies;
+    private CapsuleShape3D _segmentShape;
+    private CapsuleMesh _segmentMesh;
+    private int _simulationSegments = 10;
 
-    #if TOOLS
-    [ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(() => CreateRope());
+#if TOOLS
+    [ExportToolButton("Reset Rope")] public Callable ResetRopeButton => Callable.From(() => CreateRope());
     [ExportToolButton("Clone Rigid Bodies")] public Callable CloneBodiesButton => Callable.From(CloneRigidBodiesAction);
     [ExportToolButton("Add Rigid Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
-    #endif
+#endif
 
     public override bool IsRopeCreated => ParticleData is { Count: > 0 } && _segmentBodies is { Count: > 0 };
 
     [ExportGroup("Simulation")]
     [Export] public override bool IsCreatedOnReady { get; set; } = true;
-    /// <summary> Determines amount of separate <see cref="RigidBody3D"/> segments that will constitute the rope. </summary>
-    [Export(PropertyHint.Range, "1,100")] public int SimulationSegments { get; set; } = 10;
-    
+    /// <summary> Determines amount of separate <see cref="RigidBody3D"/> segments that will constitute the rope. Changing it while the rope exists rebuilds the chain on the next frame. </summary>
+    [Export(PropertyHint.Range, "1,100")]
+    public int SimulationSegments
+    {
+        get => _simulationSegments;
+        set
+        {
+            _simulationSegments = Mathf.Clamp(value, 1, 100);
+            if (IsSimulationSegmentsChanged())
+            {
+                QueueRopeStructureApply();
+            }
+        }
+    }
+
     /// <summary> Adjusts the radius of rope segment collision. Final collision width equals to <see cref="BaseVerletRopePhysical.RopeWidth"/> with added <see cref="CollisionWidthMargin"/>. </summary>
     [ExportGroup("Physics")]
     [ExportSubgroup("Collision")]
@@ -57,11 +72,11 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     [ExportSubgroup("Joints")]
     [Export] public bool IsStartPinned { get; set; } = true;
     /// <summary> Determines <see cref="PinJoint3D.Param.Bias"/> for each separate joint <see cref="PinJoint3D"/>. Only works with default Physics engine. </summary>
-    [Export(PropertyHint.Range,"0.01,0.99,0.01")] public float PinBias { get; set; } = 0.3f;
+    [Export(PropertyHint.Range, "0.01,0.99,0.01")] public float PinBias { get; set; } = 0.3f;
     /// <summary> Determines <see cref="PinJoint3D.Param.Damping"/> for each separate joint <see cref="PinJoint3D"/>. Only works with default Physics engine. </summary>
-    [Export(PropertyHint.Range,"0.01,8,0.01")] public float PinDamping { get; set; } = 1.0f;
+    [Export(PropertyHint.Range, "0.01,8,0.01")] public float PinDamping { get; set; } = 1.0f;
     /// <summary> Determines <see cref="PinJoint3D.Param.ImpulseClamp"/> for each separate joint <see cref="PinJoint3D"/>. Only works with default Physics engine. </summary>
-    [Export(PropertyHint.Range,"0.0,64,0.05")] public float PinImpulseClamp { get; set; } = 0.0f;
+    [Export(PropertyHint.Range, "0.0,64,0.05")] public float PinImpulseClamp { get; set; } = 0.0f;
 
     #region Util
 
@@ -79,8 +94,8 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
         var segmentBodies = new List<RigidBody3D>();
         var segmentLength = GetSegmentLength();
         var segmentPosition = new Vector3(0, segmentLength / 2.0f, 0);
-        var segmentShape = new CapsuleShape3D { Height = segmentLength, Radius = RopeWidth + CollisionWidthMargin };
-        var segmentMesh = ShowCollisionShapeDebug ? new CapsuleMesh { Height = segmentLength, Radius = RopeWidth + CollisionWidthMargin } : null;
+        _segmentShape = new CapsuleShape3D { Height = segmentLength, Radius = RopeWidth + CollisionWidthMargin };
+        _segmentMesh = ShowCollisionShapeDebug ? new CapsuleMesh { Height = segmentLength, Radius = RopeWidth + CollisionWidthMargin } : null;
 
         var nodeStartPosition = StartNode.GetSafeGlobalPosition();
         var startPosition = nodeStartPosition != null
@@ -102,6 +117,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
                 CollisionLayer = CollisionLayer,
                 ContinuousCd = IsContinuousCollision,
                 Mass = TotalRopeMass / SimulationSegments,
+                GravityScale = GravityScale,
                 PhysicsMaterialOverride = PhysicsMaterialOverride,
                 LinearDamp = LinearDamp,
                 LinearDampMode = LinearDampMode,
@@ -112,15 +128,15 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
             body.AddChild(new CollisionShape3D
             {
                 Position = segmentPosition,
-                Shape = segmentShape
+                Shape = _segmentShape
             });
 
-            if (segmentMesh != null)
+            if (_segmentMesh != null)
             {
                 body.AddChild(new MeshInstance3D
                 {
                     Position = segmentPosition,
-                    Mesh = segmentMesh
+                    Mesh = _segmentMesh
                 });
             }
 
@@ -131,7 +147,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
 
         for (var i = 0; i < segmentBodies.Count; i++)
         {
-            var body = segmentBodies[i]; 
+            var body = segmentBodies[i];
             body.LookAt(ToGlobal(positions[i + 1]));
             body.RotateObjectLocal(Vector3.Right, -Mathf.Pi / 2);
         }
@@ -158,7 +174,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
                 NodeB = segmentBodies[0].GetPath()
             }));
         }
-        
+
         var jointPosition = new Vector3(0, GetSegmentLength(), 0);
         for (var i = 0; i < segmentBodies.Count - 1; i++)
         {
@@ -194,7 +210,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
 
     #endregion
 
-    #if TOOLS
+#if TOOLS
     #region Editor
 
     private void CloneRigidBodiesAction()
@@ -216,12 +232,10 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     }
 
     #endregion
-    #endif
+#endif
 
     public override void _PhysicsProcess(double delta)
     {
-        base._PhysicsProcess(delta);
-
         if (ParticleData == null || ParticleData.Count == 0 || _segmentBodies == null || _segmentBodies.Count == 0)
         {
             return;
@@ -241,10 +255,10 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
 
         TryDrawRope();
 
-        #if TOOLS
+#if TOOLS
         UpdateEditorCollision(ParticleData);
         UpdateGizmos();
-        #endif
+#endif
     }
 
     /// <summary>
@@ -290,33 +304,62 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
         var joint = this.CreateChild<VerletJointRigid>("JointRigid");
         joint.SetMeta(metaName, actionId);
     }
-    
+
     /// <inheritdoc cref="BaseVerletRopePhysical.CreateRope"/>
     public override void CreateRope(bool forceReset = true)
     {
-        DestroyRope();
-
-        if (!IsInsideTree())
-        {
-            // Only possible to create inside tree, as physics rely on actual paths
-            return;
-        }
-
         if (ConnectedJoint != null && ConnectedJoint is not VerletJointRigid)
         {
             throw new ApplicationException($"`{nameof(VerletRopeRigid)}` only accepts joints of `{nameof(VerletJointRigid)} type.");
         }
 
         base.CreateRope(forceReset);
+
+        if (IsRopeStructureOutdated(forceReset))
+        {
+            ApplyRopeStructure();
+        }
+    }
+
+    /// <summary> Rebuilds the whole chain of segment bodies, as their length, width and amount are what the bodies and their joints are built from. </summary>
+    protected override void ApplyRopeStructure()
+    {
+        if (!IsInsideTree())
+        {
+            return;
+        }
+
+        DestroyRope();
         _segmentBodies = SpawnSegmentBodies(this);
         PinSegmentBodies(_segmentBodies);
         ParticleData = GenerateParticleData(_segmentBodies);
+        OnStructureApplied();
     }
-    
+
+    /// <inheritdoc cref="BaseVerletRopePhysical.GetSimulationSegments"/>
+    protected override int GetSimulationSegments()
+    {
+        return SimulationSegments;
+    }
+
+    /// <inheritdoc cref="BaseVerletRopePhysical.IsRopeLengthStructural"/>
+    protected override bool IsRopeLengthStructural()
+    {
+        return true;
+    }
+
+    /// <inheritdoc cref="BaseVerletRopePhysical.IsRopeWidthStructural"/>
+    protected override bool IsRopeWidthStructural()
+    {
+        return true;
+    }
+
     /// <inheritdoc cref="BaseVerletRopePhysical.DestroyRope"/>
     public override void DestroyRope()
     {
         _segmentBodies = null;
+        _segmentShape = null;
+        _segmentMesh = null;
 
         foreach (var child in GetChildren())
         {

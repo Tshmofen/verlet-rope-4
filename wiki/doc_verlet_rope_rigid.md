@@ -24,12 +24,12 @@ You can see properties descriptions below to understand how to alter the rope's 
 
 ## Export Description
 > [!WARNING]
-> The settings of this node only gonna be applied after `Reset Rope` tool button is clicked or the scene is reloaded. Make sure to do that once you change any settings to see them applied.
+> A rigid rope builds its segment bodies from its configured length, width and segment count, so changing `Rope Length`, `Rope Width` or `Simulation Segments` rebuilds the chain one frame later. The chain is spawned again between the attachment points, which resets its shape and its smoothing - a rigid rope cannot be reeled in or payed out frame by frame the way a simulated one can. The physics settings the bodies are built with (mass, gravity scale, collision layer and mask, collision width margin, damping, pin parameters and the collision shape debug rendering) are read when the chain is spawned, so they take effect on the next rebuild too.
 
 ### Actions
 | Button Action | How it works |
 |--|--|
-| Reset Rope (Apply Changes) | Propagates all updated values to the internal logic and recreates the rope with the initial state. |
+| Reset Rope | Rebuilds the whole chain of segment bodies from the current attachment points, resetting the rope shape to the initial state. Needed after the attachment points move, as the segment bodies do not follow them. |
 | Clone Rigid Bodies         | Clones internal physics configuration of the rope into editable sibling of the rope. |
 | Add Rigid Joint            | Adds a child `VerletJointRigid` node to the current rope in the edited scene. |
 
@@ -72,12 +72,12 @@ This section is partially inherited from [VerletRopeMesh](https://github.com/Tsh
 | Export variable | How it works |
 |--|--|
 | Mesh Type                      | Determines the rope’s visual appearance: `Ribbon` (flat camera‑facing ribbon) or `Tube` (3D cylindrical mesh). |
-| Rope Length                    | Determines total target length of the rope, it is just a base value and actual length might be different depending on physics and configured behavior. |
+| Rope Length                    | Determines total target length of the rope. It is the length the segment chain is built with, so changing it at runtime rebuilds the rope and re-lays its segments instead of stretching it - for a rope that has to change its length every frame use `VerletRopeSimulated`. |
 | Rope Width                     |  Determines visual width of the rope, does not affect rope behavior. Width effectively behaves as a diameter. |
 | RenderMode                     | Determines when the rope’s mesh is drawn. `Physics` – only during physics ticks, the most performant mode. `PhysicsAndMovement` – also redraws immediately in the process frame when the node’s global position changes, preventing flicker when dragged/moved in the editor or at runtime. `Process` – redraws every process frame, giving the smoothest response at a small performance cost. |
 | Rope Smoothing                 | Amount of smoothing applied to particle positions for rendering. Higher values make the rope appear gentler but less responsive. 0 disables smoothing. |
-| Smooth Rope Start              | If `true`, smoothing is applied at the start of the rope. Disable when the start must stay rigidly attached to a moving point. |
-| Smooth Rope End                | If `true`, smoothing is applied at the end of the rope. Disable when the end must stay rigidly attached to a moving point. |
+| Is Smooth Rope Start           | If `true`, smoothing is applied at the start of the rope. Disable when the start must stay rigidly attached to a moving point. |
+| Is Smooth Rope End             | If `true`, smoothing is applied at the end of the rope. Disable when the end must stay rigidly attached to a moving point. |
 | Tube Segments                  | Number of segments around the tube’s circumference. Only used when `Mesh Type = Tube`. |
 | Subdivision Lod Distance       | If distance to the particle is greater than this value, the corresponding segment is not subdivided for rendering. |
 | Use Debug Particles            | Draws orientation axis from every actual particle positions when enabled. |
@@ -88,18 +88,19 @@ This section is partially inherited from [VerletRopeMesh](https://github.com/Tsh
 The rope can also be manipulated via code, it exposes all the properties mentioned above and the following public methods.
 | Method | How it works |
 |--|--|
-| `void CreateRope()` | Resets the rope and all corresponding properties, have to be called after any property changes. It is being called when you press `Reset Rope` quick button. |
+| `void CreateRope()` | Creates the rope if it does not exist yet, otherwise rebuilds the whole chain of segment bodies. Only needed to reset the shape - a property change that the segment bodies are built from is applied on its own. It is being called when you press `Reset Rope` quick button. |
 | `void DestroyRope()` | Removes underlying particles data and disables rendering. Rope should be created using `CreateRope` to start working again. |
 | `void CreateJoint()` | Creates child `VerletJointRigid` node and adds it to the tree. Is being created via `Deferred`, so one frame have to be awaited to get the joint instance. |
 | `public void CloneRigidBodies(int actionId = 0, bool toCreate = true)` | Recreates current internal structure of the rope in a sibling node. Is being created via `Deferred`, so one frame have to be awaited to get the joint instance. The exposed arguments are used for editor `UndoRedo` and can be ignored. |
 | `RopeParticle? GetParticle(int)` | Retrieves particle data by index, supports negative indexes. The corresponding returned object is described [here](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeMesh#ropeparticle-struct). |
+| `Vector3 GetParticlePosition(int)` | Retrieves current position of a particle by index, supports negative indexes. Returns `Vector3.Zero` when there is no such particle. |
 | `int GetParticleCount()` | Returns current simulated particles amount. |
 | `void SetAttachmentPoints(PhysicsBody3D startBody, Node3D startLocation, PhysicsBody3D endBody, Node3D endLocation)` | Manually sets attachment points of the Rope without using corresponding `VerletJoint` instance. Throws an exception if used when `VerletJoint` is already set. |
 | `void SetJoint(BaseVerletJoint joint, bool toResetRope = true)` | Configures current joint of the rope to determine which points are used as rope connections, and recreates the rope if requested and was already created. |
 | `bool IsRopeCreated { get; }` | Returns whether rope is created at the moment, managed via `CreateRope` and `DestroyRope` methods. |
 
 > [!TIP]
-> Don't forget to call `CreateRope()` after any property change, otherwise it will only be applied after next rope reset or scene reload.
+> Changing a property that the segment bodies are built from (`Rope Length`, `Rope Width`, `Simulation Segments`) rebuilds the rope, so a rigid rope is not meant to change its length every frame - only a `VerletRopeSimulated` rope can be reeled in smoothly.
 
 ## Related Pages
 * [VerletJointRigid](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletJointRigid) - is being created by embed `Add Rigid Joint` tool button and is used to connect this rope instance to other bodies.

@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Godot;
+using System;
 using System.Collections.Generic;
-using Godot;
 
 namespace VerletRope4.Data;
 
@@ -80,16 +80,16 @@ public struct RopeParticle
 
     /// <summary> Bookmark provider property - The acceleration applied to this particle (i.e. combined from gravity, wind or any other forces). </summary>
     public Vector3 Acceleration { get; set; }
-    
+
     /// <summary> Bookmark provider property - Indicates whether particle's position is locked and not simulated (e.g. for attachment points). </summary>
     public bool IsAttached { get; set; }
-    
+
     /// <summary> Internal property - Provides currently calculated visual tangent particle vector. </summary>
     public Vector3 Tangent { get; set; }
-    
+
     /// <summary> Internal property - Provides currently calculated visual normal particle vector. </summary>
     public Vector3 Normal { get; set; }
-    
+
     /// <summary> Internal property - Provides currently calculated visual binormal particle vector. </summary>
     public Vector3 Binormal { get; set; }
 }

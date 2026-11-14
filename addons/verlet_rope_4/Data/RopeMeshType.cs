@@ -1,4 +1,4 @@
-﻿namespace VerletRope.Data;
+﻿namespace VerletRope4.Data;
 
 /// <summary> Determines the type of Rope Mesh rendering. </summary>
 public enum RopeMeshType

@@ -1,6 +1,6 @@
 ﻿using Godot;
 
-namespace VerletRope.demo.scripts;
+namespace VerletRope4.Demo;
 
 public partial class RotatingCameraDemo : Camera3D
 {
@@ -15,6 +15,6 @@ public partial class RotatingCameraDemo : Camera3D
             return;
         }
 
-        Rotate(Axis, Speed * (float) delta);
+        Rotate(Axis, Speed * (float)delta);
     }
 }

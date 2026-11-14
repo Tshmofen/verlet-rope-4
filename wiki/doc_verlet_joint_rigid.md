@@ -20,13 +20,13 @@ Once `VerletJointRigid` is in the working tree, you just need to assign `Start B
 > The behavior of the joint depends on the masses of the connected bodies and the rope - there is no separate adjustment settings as in simulated variant, because this one just uses internal physics engine for constraint resolution.
 
 ## Export Description
-> [!WARNING]
-> The settings of this node only gonna be applied after `Reset Joint` tool button is clicked or the scene is reloaded. Make sure to do that once you change any settings to see them applied.
+> [!NOTE]
+> Joint settings apply themselves the moment they are changed, `Reset Joint` only re-lays the joined rope between its current attachment points - a rigid rope needs it after an attachment point moved, as its segment bodies do not follow them.
 
 ### Actions
 | Button Action | How it works |
 |--|--|
-| Reset Joint (Apply Changes) | Propagates all updated values to the internal logic and resets the joint and connect rope to the initial state. |
+| Reset Joint | Reapplies the joint settings and re-lays the joined rope between its current attachment points. |
 
 ### References
 | Export variable | How it works |
@@ -55,7 +55,7 @@ Once `VerletJointRigid` is in the working tree, you just need to assign `Start B
 The joint can also be manipulated via code, it exposes all the properties mentioned above and the following public method.
 | Method | How it works |
 |--|--|
-| `void ResetJoint(bool toResetRope = true)` | Resets the joined rope (if requested and created) and all joint properties, have to be called after any property changes. It is being called when you press `Reset Joint` quick button. |
+| `void ResetJoint(bool toResetRope = true)` | Reapplies all joint properties and resets the joined rope (if requested and created) - only needed to re-lay the rope after an attachment point moved. It is being called when you press `Reset Joint` quick button. |
 
 ## Related Pages
 * [VerletRopeRigid](https://github.com/Tshmofen/verlet-rope-4/wiki/Documentation-%E2%80%90-VerletRopeRigid) - is the rope variant this joint applies constraints to.

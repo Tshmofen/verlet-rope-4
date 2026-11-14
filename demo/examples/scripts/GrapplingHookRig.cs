@@ -1,4 +1,4 @@
-using Godot;
+﻿using Godot;
 using VerletRope4.Physics.Joints;
 
 namespace VerletRope4.Demo.Examples;
@@ -53,9 +53,9 @@ public partial class GrapplingHookRig : RigidBody3D
     /// <summary> Speed the hook is pulled back to the hand with on recall. </summary>
     [ExportCategory("Recall")]
     [Export] public float RecallSpeed { get; set; } = 12.0f;
-    
+
     public HookPhase Phase { get; private set; } = HookPhase.Parked;
-    
+
     public bool IsAttached => Phase == HookPhase.Attached;
 
     /// <summary> Distance between the hand and the hook at the moment it is attached. </summary>
@@ -135,7 +135,6 @@ public partial class GrapplingHookRig : RigidBody3D
     public void SetLeashLength(float distance)
     {
         GrappleJoint.JointMaxDistance = distance;
-        GrappleJoint.ResetJoint(false);
     }
 
     #region Hook Logic
@@ -143,7 +142,6 @@ public partial class GrapplingHookRig : RigidBody3D
     private void SetRopeLength(float length)
     {
         GrappleJoint.VerletRope.RopeLength = length;
-        GrappleJoint.VerletRope.CreateRope();
     }
 
     private void SetRopeVisibility(bool isVisible)
