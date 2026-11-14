@@ -28,6 +28,9 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     private List<Rid> _collisionExceptions = [];
     private int _simulationParticles = 10;
 
+    /// <summary> The length a single segment of the rope is expected to have, which is what its constraints solve towards. </summary>
+    private float _restSegmentLength;
+
     private RayCast3D _rayCast;
     private BoxShape3D _collisionShape;
     private PhysicsDirectSpaceState3D _spaceState;
@@ -35,7 +38,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
     private readonly Dictionary<RigidBody3D, RopeDynamicCollisionData> _dynamicBodies = [];
 
 #if TOOLS
-    [ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(() => CreateRope());
+    [ExportToolButton("Reset Rope")] public Callable ResetRopeButton => Callable.From(() => CreateRope());
     [ExportToolButton("Add Simulated Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
 #endif
 
@@ -50,7 +53,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         get => _simulationParticles;
         set
         {
-            _simulationParticles = value;
+            _simulationParticles = Mathf.Clamp(value, 3, 100);
             if (IsSimulationSegmentsChanged())
             {
                 QueueRopeStructureApply();

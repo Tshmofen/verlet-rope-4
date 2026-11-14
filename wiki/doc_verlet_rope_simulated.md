@@ -26,7 +26,7 @@ You can see properties descriptions below to understand how to alter the rope's 
 ### Actions
 | Button Action | How it works |
 |--|--|
-| Reset Rope (Apply Changes) | Re-lays every particle along the straight line between the attachment points, resetting the rope shape to the initial state. Only needed to reset a rope that has settled in a pose you do not want anymore. |
+| Reset Rope | Re-lays every particle along the straight line between the attachment points, resetting the rope shape to the initial state. The ends follow their attachment points on their own, so this is only needed to reset a rope that has settled in a pose you do not want anymore. |
 | Add Simulated Joint        | Adds a child `VerletJointSimulated` to the current rope node in the edited scene. |
 
 ### Simulation

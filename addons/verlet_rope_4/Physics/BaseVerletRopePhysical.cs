@@ -40,9 +40,6 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     protected BaseVerletJoint ConnectedJoint { get; private set; }
     protected VerletRopeMesh RopeMesh => _ropeMesh ??= this.FindOrCreateChild<VerletRopeMesh>();
 
-    /// <summary> The length a single segment of the rope is expected to have, which is what its constraints solve towards. </summary>
-    protected float _restSegmentLength;
-
     protected Node3D PreviousStart { get; private set; }
     protected PhysicsBody3D StartBody { get; private set; }
     protected Node3D StartNode { get; private set; }
@@ -199,6 +196,11 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
 
     public override void _Ready()
     {
+        if (IsRopeCreated)
+        {
+            ApplyRopeMeshProperties();
+        }
+
         if (IsCreatedOnReady || Engine.IsEditorHint())
         {
             CreateRope();
@@ -315,6 +317,11 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
     /// <summary> Sends the rope properties down to the <see cref="VerletRopeMesh"/> child, which is a presentation node that is not meant to be configured on its own. </summary>
     private void ApplyRopeMeshProperties()
     {
+        if (!IsInsideTree())
+        {
+            return;
+        }
+
         RopeMesh.MeshType = MeshType;
         RopeMesh.RopeLength = RopeLength;
         RopeMesh.RopeWidth = RopeWidth;
@@ -325,7 +332,11 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         RopeMesh.UseVisibleOnScreenNotifier = UseVisibleOnScreenNotifier;
         RopeMesh.UseDebugParticles = UseDebugParticles;
         RopeMesh.TubeSegments = TubeSegments;
-        RopeMesh.MaterialOverride = MaterialOverride;
+        
+        if (MaterialOverride != null)
+        {
+            RopeMesh.MaterialOverride = MaterialOverride;
+        }
     }
 
     // ReSharper disable once RedundantAssignment
@@ -388,6 +399,14 @@ public abstract partial class BaseVerletRopePhysical : Node3D, ISerializationLis
         }
 
         _hasPendingStructure = false;
+
+        // The rope could have been destroyed or have left the tree since the change was queued, and rebuilding it then
+        // would either resurrect it or lay it out from the world origin.
+        if (!IsRopeCreated || !IsInsideTree())
+        {
+            return;
+        }
+
         ApplyRopeStructure();
     }
 

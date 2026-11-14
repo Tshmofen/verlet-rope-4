@@ -22,7 +22,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
     private int _simulationSegments = 10;
 
 #if TOOLS
-    [ExportToolButton("Reset Rope (Apply Changes)")] public Callable ResetRopeButton => Callable.From(() => CreateRope());
+    [ExportToolButton("Reset Rope")] public Callable ResetRopeButton => Callable.From(() => CreateRope());
     [ExportToolButton("Clone Rigid Bodies")] public Callable CloneBodiesButton => Callable.From(CloneRigidBodiesAction);
     [ExportToolButton("Add Rigid Joint")] public Callable AddJointButton => Callable.From(CreateJointAction);
 #endif
@@ -38,7 +38,7 @@ public partial class VerletRopeRigid : BaseVerletRopePhysical, IVerletExported
         get => _simulationSegments;
         set
         {
-            _simulationSegments = value;
+            _simulationSegments = Mathf.Clamp(value, 1, 100);
             if (IsSimulationSegmentsChanged())
             {
                 QueueRopeStructureApply();

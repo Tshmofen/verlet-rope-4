@@ -201,7 +201,7 @@ Each guide highlights a specific use case, explains which nodes and properties a
 
 6. **Recalling and Cleanup** – Bring the hook home and put the rope away in that order.
    - Un-freeze the hook and move it back towards the hand, or teleport it home if you do not want to show it travelling.
-   - Retract the rope before hiding it: set `RopeLength` to a small value (the example uses `0.1`). The hook is in the hand by then, so the rope reels itself into it within a few frames, while a rope that is put away at full length is bound to pop out of view. Call `CreateRope()` as well only when the rope should be put away without any of it showing - that re-lays every particle in one go instead of letting the rope travel.
+   - Retract the rope before hiding it: set `RopeLength` to a small value (the example uses `0.1`). The hook is in the hand by then, so the rope reels itself into it over the next few physics frames, while a rope that is put away at full length is bound to pop out of view. The example hides the rope in the same frame it retracts it, so the reel itself is only visible when `HideRope()` is left out or delayed by a few frames. Call `CreateRope()` as well only when the rope should be put away without any of it showing - that re-lays every particle in one go instead of letting the rope travel.
    - Only then hide the rope node and freeze the hook back in the hand, with `JointMaxDistance` opened up again. Freeing a node that is still assigned to `EndBody` / `EndCustomLocation` leaves the rope pointing at a destroyed body.
 
 **Keeping the Hook's States in Sync**

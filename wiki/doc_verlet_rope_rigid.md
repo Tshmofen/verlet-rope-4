@@ -29,7 +29,7 @@ You can see properties descriptions below to understand how to alter the rope's 
 ### Actions
 | Button Action | How it works |
 |--|--|
-| Reset Rope (Apply Changes) | Rebuilds the whole chain of segment bodies from the current attachment points, resetting the rope shape to the initial state. |
+| Reset Rope | Rebuilds the whole chain of segment bodies from the current attachment points, resetting the rope shape to the initial state. Needed after the attachment points move, as the segment bodies do not follow them. |
 | Clone Rigid Bodies         | Clones internal physics configuration of the rope into editable sibling of the rope. |
 | Add Rigid Joint            | Adds a child `VerletJointRigid` node to the current rope in the edited scene. |
 

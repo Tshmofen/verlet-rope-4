@@ -163,9 +163,17 @@ file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] r
 
     public void UpdateFrame(Vector3 tangent, out Vector3 binormal)
     {
+        // Collapsed particles (a rope reeled in to nothing) produce zero tangents, and Godot's `Quaternion(arcFrom, arcTo)`
+        // throws on those - the last valid frame is kept until a real direction is available again.
+        if (tangent.IsZeroApprox())
+        {
+            binormal = _hasPrevRing ? _prevTangent.Cross(_prevNormal).Normalized() : Vector3.Zero;
+            return;
+        }
+
         if (_hasPrevRing)
         {
-            var rotation = new Quaternion(_prevTangent, tangent);
+            var rotation = _prevTangent.IsZeroApprox() ? Quaternion.Identity : new Quaternion(_prevTangent, tangent);
             var newNormal = rotation * _prevNormal;
             newNormal = (newNormal - tangent * tangent.Dot(newNormal)).Normalized();
             binormal = tangent.Cross(newNormal).Normalized();
