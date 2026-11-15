@@ -40,13 +40,16 @@ public class TetherLeashTest
             .Where(body => !body.IsQueuedForDeletion())
             .ToList();
         var segmentShapes = CollectSegmentShapes(segmentBodies);
+        var distinctSegmentShapes = segmentShapes.Distinct().ToList();
         var segmentLength = leash.RopeLength / leash.SimulationSegments;
 
         checks.Check(leash.IsRopeCreated, "the leash chain is created on ready");
         checks.Check(segmentBodies.Count == leash.SimulationSegments, $"the leash is built from {leash.SimulationSegments} segment bodies, got {segmentBodies.Count}");
+        // The rope assigns one capsule instance to every segment, so its length is checked once instead of once per body;
+        // the shape count still has to match the segment count, which is what a segment of another shape type breaks.
         checks.Check(
-            segmentShapes.Count == leash.SimulationSegments && segmentShapes.All(shape => Mathf.IsEqualApprox(shape.Height, segmentLength)),
-            $"every segment carries a collision shape of the {segmentLength:F3} segment length, got {segmentShapes.Count}"
+            segmentShapes.Count == leash.SimulationSegments && distinctSegmentShapes.Count == 1 && Mathf.IsEqualApprox(distinctSegmentShapes[0].Height, segmentLength),
+            $"every segment carries a capsule shape of the {segmentLength:F3} segment length, got {segmentShapes.Count} capsule shapes, {distinctSegmentShapes.Count} distinct"
         );
 
         var walkerStart = walker.GlobalPosition;

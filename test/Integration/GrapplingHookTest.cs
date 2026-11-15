@@ -24,15 +24,6 @@ public class GrapplingHookTest
 
     #region Utility
 
-    /// <summary> Physics ticks per second the demo counts its exported durations in. </summary>
-    private const int PhysicsTicksPerSecond = 60;
-
-    /// <summary>
-    /// Frames kept clear of the phase boundary a wait is aimed at. The demo counts its own clock in seconds while a wait
-    /// counts frames, so a budget derived from a duration alone would land on the very frame a phase flips.
-    /// </summary>
-    private const int PhaseMarginTicks = 12;
-
     /// <summary>
     /// Distance the rope end is allowed to be behind the attachment it is written from. The end particle is written on
     /// every physics step, so the only distance left is the frame the hook moved in after that write: measured 0.0000 m on
@@ -55,7 +46,7 @@ public class GrapplingHookTest
 
         // The demo holds the hook for IdleTime before it fires and gives the flight FlightTimeout to hit something, so
         // outlasting both is what makes the parked state impossible to be the one this run measures.
-        var cycleTicks = Mathf.RoundToInt((demo.IdleTime + demo.FlightTimeout) * PhysicsTicksPerSecond) + PhaseMarginTicks;
+        var cycleTicks = Mathf.RoundToInt((demo.IdleTime + demo.FlightTimeout) * DemoCadence.PhysicsTicksPerSecond) + DemoCadence.PhaseMarginTicks;
 
         await SceneHarness.WaitPhysicsFrames(root, cycleTicks);
 

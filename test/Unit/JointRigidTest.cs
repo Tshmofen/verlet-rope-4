@@ -1,10 +1,10 @@
 ﻿using GdUnit4;
 using Godot;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using VerletRope4.Physics;
 using VerletRope4.Physics.Joints;
+using VerletRope4.Tests.Unit.Harness;
 using static GdUnit4.Assertions;
 
 namespace VerletRope4.Tests.Unit;
@@ -26,13 +26,13 @@ public class JointRigidTest
 
         await LoadRope(rope);
 
-        var bodies = CollectBodies(rope);
+        var bodies = UnitHarness.CollectBodies(rope);
         joint.StartCustomLocation = anchor;
 
-        await NextFrame(rope);
-        await NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
 
-        var bodiesAfterWrite = CollectBodies(rope);
+        var bodiesAfterWrite = UnitHarness.CollectBodies(rope);
 
         AssertThat(bodies.Count).IsEqual(4);
         AssertThat(bodiesAfterWrite.Count).IsEqual(4);
@@ -48,13 +48,13 @@ public class JointRigidTest
 
         await LoadRope(rope);
 
-        var bodies = CollectBodies(rope);
+        var bodies = UnitHarness.CollectBodies(rope);
         joint.StartCustomLocation = otherAnchor;
 
-        await NextFrame(rope);
-        await NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
 
-        var bodiesAfterWrite = CollectBodies(rope);
+        var bodiesAfterWrite = UnitHarness.CollectBodies(rope);
 
         AssertThat(bodiesAfterWrite.Count).IsEqual(4);
         AssertThat(bodiesAfterWrite.Any(body => bodies.Contains(body))).IsFalse();
@@ -84,21 +84,7 @@ public class JointRigidTest
     private static async Task LoadRope(VerletRopeRigid rope)
     {
         ISceneRunner.Load(rope);
-        await NextFrame(rope);
-    }
-
-    private static List<RigidBody3D> CollectBodies(VerletRopeRigid rope)
-    {
-        return rope.GetChildren()
-            .OfType<RigidBody3D>()
-            // A rebuild queues the bodies it replaces for free, and they stay children until the frame ends.
-            .Where(body => !body.IsQueuedForDeletion())
-            .ToList();
-    }
-
-    private static async Task NextFrame(Node node)
-    {
-        await node.ToSignal(node.GetTree(), SceneTree.SignalName.ProcessFrame);
+        await UnitHarness.NextFrame(rope);
     }
 
     #endregion

@@ -109,7 +109,11 @@ public static class SceneHarness
     {
         cancellation.Cancel();
 
-        if (await Task.WhenAny(sceneRun, Task.Delay(SceneStopMilliseconds)) != sceneRun)
+        // The countdown is a token the race owns, so the delay ends with the method instead of staying a live timer for the
+        // rest of its five seconds after the case it belonged to has finished.
+        using var grace = new CancellationTokenSource(TimeSpan.FromMilliseconds(SceneStopMilliseconds));
+
+        if (await Task.WhenAny(sceneRun, Task.Delay(Timeout.Infinite, grace.Token)) != sceneRun)
         {
             // Stuck somewhere the token cannot reach: its own failure has nothing left to report to, but it must not stay unobserved.
             _ = sceneRun.ContinueWith(task => _ = task.Exception, TaskScheduler.Default);

@@ -7,6 +7,7 @@ using VerletRope4.Data;
 using VerletRope4.Physics;
 using VerletRope4.Physics.Joints;
 using VerletRope4.Rendering;
+using VerletRope4.Tests.Unit.Harness;
 using static GdUnit4.Assertions;
 
 namespace VerletRope4.Tests.Unit;
@@ -145,8 +146,8 @@ public class SimulatedRopeTest
 
         rope.SimulationParticles = 20;
 
-        await NextFrame(rope);
-        await NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
 
         AssertThat(rope.GetParticleCount()).IsEqual(20);
         AssertThat(rope.IsRopeCreated).IsTrue();
@@ -193,7 +194,7 @@ public class SimulatedRopeTest
 
         await LoadRope(rope);
         // The mesh child is parented deferred, which can land after the frame the load awaited.
-        await NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
 
         var mesh = GetMesh(rope);
 
@@ -221,8 +222,8 @@ public class SimulatedRopeTest
         var joint = AutoFree(new VerletJointSimulated());
         rope.SetJoint(joint, false);
 
-        var thrown = CatchException(() => rope.SetAttachmentPoints(null, null, null, null));
-        var thrownWithoutJoint = CatchException(() => AutoFree(new VerletRopeSimulated()).SetAttachmentPoints(null, null, null, null));
+        var thrown = UnitHarness.CatchException(() => rope.SetAttachmentPoints(null, null, null, null));
+        var thrownWithoutJoint = UnitHarness.CatchException(() => AutoFree(new VerletRopeSimulated()).SetAttachmentPoints(null, null, null, null));
 
         AssertThat(thrown is ApplicationException).IsTrue();
         AssertThat(thrown!.Message.Contains("while joint is connected")).IsTrue();
@@ -290,7 +291,7 @@ public class SimulatedRopeTest
         var joint = AutoFree(new VerletJointRigid());
         rope.SetJoint(joint, false);
 
-        var thrown = CatchException(() => rope.CreateRope());
+        var thrown = UnitHarness.CatchException(() => rope.CreateRope());
 
         AssertThat(thrown is ApplicationException).IsTrue();
         AssertThat(thrown!.Message.Contains(nameof(VerletRopeSimulated))).IsTrue();
@@ -298,19 +299,6 @@ public class SimulatedRopeTest
     }
 
     #region Utility
-
-    private static Exception CatchException(Action action)
-    {
-        try
-        {
-            action();
-            return null;
-        }
-        catch (Exception exception)
-        {
-            return exception;
-        }
-    }
 
     /// <summary> Distance from the given point to the particle that is farthest away from it. </summary>
     private static float GetFarthestParticleDistance(VerletRopeSimulated rope, Vector3 point)
@@ -337,14 +325,7 @@ public class SimulatedRopeTest
     private static async Task LoadRope(VerletRopeSimulated rope)
     {
         ISceneRunner.Load(rope);
-        await NextFrame(rope);
-    }
-
-    // A deferred apply flushes after the process signal of the frame it was queued in, so a write is only visible from the
-    // frame after that one: two awaits are the contract here, never a spare.
-    private static async Task NextFrame(Node node)
-    {
-        await node.ToSignal(node.GetTree(), SceneTree.SignalName.ProcessFrame);
+        await UnitHarness.NextFrame(rope);
     }
 
     /// <summary> A rope that is configured for a headless run: created on ready and simulated regardless of the host's editor hint. </summary>

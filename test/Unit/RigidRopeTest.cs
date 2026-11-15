@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using VerletRope4.Physics;
 using VerletRope4.Physics.Joints;
+using VerletRope4.Tests.Unit.Harness;
 using static GdUnit4.Assertions;
 
 namespace VerletRope4.Tests.Unit;
@@ -25,9 +26,9 @@ public class RigidRopeTest
         var rope = CreateRope(simulationSegments: 6, ropeLength: 1.2f);
 
         ISceneRunner.Load(rope);
-        await NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
 
-        var bodies = CollectBodies(rope);
+        var bodies = UnitHarness.CollectBodies(rope);
 
         AssertThat(rope.IsRopeCreated).IsTrue();
         AssertThat(rope.GetParticleCount()).IsEqual(7);
@@ -45,9 +46,9 @@ public class RigidRopeTest
         var rope = CreateRope(simulationSegments: 4, ropeLength: 1.0f);
 
         ISceneRunner.Load(rope);
-        await NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
 
-        var bodies = CollectBodies(rope);
+        var bodies = UnitHarness.CollectBodies(rope);
         var pinCount = bodies.Sum(body => body.GetChildren().OfType<PinJoint3D>().Count());
 
         AssertThat(bodies.Count).IsEqual(4);
@@ -65,10 +66,10 @@ public class RigidRopeTest
         ISceneRunner.Load(rope);
         rope.RopeLength = 2.0f;
 
-        await NextFrame(rope);
-        await NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
 
-        var bodies = CollectBodies(rope);
+        var bodies = UnitHarness.CollectBodies(rope);
         var shapes = bodies
             .SelectMany(body => body.GetChildren().OfType<CollisionShape3D>())
             .Select(shape => shape.Shape)
@@ -89,10 +90,10 @@ public class RigidRopeTest
         ISceneRunner.Load(rope);
         rope.SimulationSegments = 8;
 
-        await NextFrame(rope);
-        await NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
 
-        AssertThat(CollectBodies(rope).Count).IsEqual(8);
+        AssertThat(UnitHarness.CollectBodies(rope).Count).IsEqual(8);
         AssertThat(rope.GetParticleCount()).IsEqual(9);
     }
 
@@ -103,7 +104,7 @@ public class RigidRopeTest
         var rope = CreateRope(simulationSegments: 5, ropeLength: 1.0f);
 
         ISceneRunner.Load(rope);
-        await NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
 
         AssertThat(rope.GetParticleCount()).IsEqual(6);
 
@@ -124,15 +125,15 @@ public class RigidRopeTest
         var rope = CreateRope(simulationSegments: 4, ropeLength: 1.0f);
 
         ISceneRunner.Load(rope);
-        await NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
 
         rope.DestroyRope();
         rope.CreateRope();
-        await NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
 
         AssertThat(rope.IsRopeCreated).IsTrue();
         AssertThat(rope.GetParticleCount()).IsEqual(5);
-        AssertThat(CollectBodies(rope).Count).IsEqual(4);
+        AssertThat(UnitHarness.CollectBodies(rope).Count).IsEqual(4);
     }
 
     /// <summary> The width is baked into the capsule of every segment, so a chain that already exists is rebuilt for it. </summary>
@@ -142,18 +143,27 @@ public class RigidRopeTest
         var rope = CreateRope(simulationSegments: 4, ropeLength: 1.0f);
 
         ISceneRunner.Load(rope);
-        await NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
 
         rope.RopeWidth = 0.2f;
-        await NextFrame(rope);
-        await NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
 
-        var shapes = CollectCapsuleShapes(rope);
+        var bodies = UnitHarness.CollectBodies(rope);
+        var segmentShapes = CollectCapsuleShapes(rope);
+        var distinctSegmentShapes = segmentShapes.Distinct().ToList();
 
-        AssertThat(CollectBodies(rope).Count).IsEqual(4);
-        AssertThat(shapes.Count).IsEqual(4);
+        // The rope assigns one capsule instance to every segment, so its radius is checked once instead of once per body;
+        // the shape count still has to match the body count, which is what a segment of another shape type breaks.
+        AssertThat(bodies.Count).IsEqual(4);
+        AssertThat(segmentShapes.Count)
+            .OverrideFailureMessage($"every segment carries a capsule shape, got {segmentShapes.Count} capsule shapes for {bodies.Count} bodies")
+            .IsEqual(bodies.Count);
+        AssertThat(distinctSegmentShapes.Count)
+            .OverrideFailureMessage($"the segments share one capsule shape, got {distinctSegmentShapes.Count} capsule shapes")
+            .IsEqual(1);
         // The default collision margin is -0.01, so the collision width of the segment is 0.19.
-        AssertThat(shapes.All(shape => Mathf.IsEqualApprox(shape.Radius, 0.19f, 0.001f))).IsTrue();
+        AssertThat(Mathf.IsEqualApprox(distinctSegmentShapes[0].Radius, 0.19f, 0.001f)).IsTrue();
     }
 
     /// <summary>
@@ -166,15 +176,15 @@ public class RigidRopeTest
         var rope = CreateRope(simulationSegments: 5, ropeLength: 1.0f);
 
         ISceneRunner.Load(rope);
-        await NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
 
-        var bodies = CollectBodies(rope);
+        var bodies = UnitHarness.CollectBodies(rope);
         rope.RopeLength = 1.0f;
 
-        await NextFrame(rope);
-        await NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
 
-        var bodiesAfterWrite = CollectBodies(rope);
+        var bodiesAfterWrite = UnitHarness.CollectBodies(rope);
 
         AssertThat(bodiesAfterWrite.Count).IsEqual(5);
         AssertThat(bodiesAfterWrite.All(body => bodies.Contains(body))).IsTrue();
@@ -190,17 +200,17 @@ public class RigidRopeTest
         var rope = CreateRope(simulationSegments: 4, ropeLength: 1.0f);
 
         ISceneRunner.Load(rope);
-        await NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
 
         rope.SimulationSegments = 8;
         rope.DestroyRope();
 
-        await NextFrame(rope);
-        await NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
 
         AssertThat(rope.IsRopeCreated).IsFalse();
         AssertThat(rope.GetParticleCount()).IsEqual(0);
-        AssertThat(CollectBodies(rope).Count).IsEqual(0);
+        AssertThat(UnitHarness.CollectBodies(rope).Count).IsEqual(0);
     }
 
     /// <summary> A rigid rope only understands a rigid joint: the wrong type is refused while the rope is still unbuilt. </summary>
@@ -218,35 +228,22 @@ public class RigidRopeTest
         rope.SetJoint(joint, false);
 
         ISceneRunner.Load(rope);
-        await NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
 
-        var thrown = CatchException(() => rope.CreateRope());
+        var thrown = UnitHarness.CatchException(() => rope.CreateRope());
 
         AssertThat(thrown is ApplicationException).IsTrue();
         AssertThat(thrown!.Message.Contains(nameof(VerletRopeRigid))).IsTrue();
         AssertThat(thrown.Message.Contains(nameof(VerletJointRigid))).IsTrue();
         AssertThat(rope.IsRopeCreated).IsFalse();
-        AssertThat(CollectBodies(rope).Count).IsEqual(0);
+        AssertThat(UnitHarness.CollectBodies(rope).Count).IsEqual(0);
     }
 
     #region Utility
 
-    private static Exception CatchException(Action action)
-    {
-        try
-        {
-            action();
-            return null;
-        }
-        catch (Exception exception)
-        {
-            return exception;
-        }
-    }
-
     private static List<CapsuleShape3D> CollectCapsuleShapes(VerletRopeRigid rope)
     {
-        return CollectBodies(rope)
+        return UnitHarness.CollectBodies(rope)
             .SelectMany(body => body.GetChildren().OfType<CollisionShape3D>())
             .Select(shape => shape.Shape)
             .OfType<CapsuleShape3D>()
@@ -261,22 +258,6 @@ public class RigidRopeTest
             RopeLength = ropeLength,
             UseVisibleOnScreenNotifier = false
         };
-    }
-
-    private static List<RigidBody3D> CollectBodies(VerletRopeRigid rope)
-    {
-        return rope.GetChildren()
-            .OfType<RigidBody3D>()
-            // A rebuild queues the bodies it replaces for free, and they stay children until the frame ends.
-            .Where(body => !body.IsQueuedForDeletion())
-            .ToList();
-    }
-
-    // A deferred apply flushes after the process signal of the frame it was queued in, so a write is only visible from the
-    // frame after that one: two awaits are the contract here, never a spare.
-    private static async Task NextFrame(Node node)
-    {
-        await node.ToSignal(node.GetTree(), SceneTree.SignalName.ProcessFrame);
     }
 
     #endregion

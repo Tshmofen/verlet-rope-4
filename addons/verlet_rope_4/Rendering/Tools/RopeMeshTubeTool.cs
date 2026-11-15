@@ -158,7 +158,7 @@ file struct RopeMeshBuilder(SurfaceTool surfaceTool, int tubeSegments, float[] r
     private Vector3 _endCenter = Vector3.Zero;
     private Vector3 _endTangent = Vector3.Zero;
 
-    public bool CanGenerateTriangles { get; private set; } = false;
+    public bool CanGenerateTriangles { get; private set; }
 
     public void UpdateFrame(Vector3 tangent, out Vector3 binormal)
     {

@@ -5,7 +5,6 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <AnalysisLevelStyle>latest</AnalysisLevelStyle>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <CopyLocalLockFileAssemblies Condition="'$(Configuration)' == 'Debug'">true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <!-- The gdUnit4 toolchain belongs to the editor build alone: `ExportDebug` and `ExportRelease` compile the game

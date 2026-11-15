@@ -41,7 +41,7 @@ A test creates the node it needs, writes the properties under test, steps the si
 
 For example, if the rope stays connected, keeps its length, its segments hold together, the body it pulls travels where it should and collisions stop it where they should.
 
-Every suite loads its scene headless, applies what that scene needs to simulate without a camera and waits for physics frames until its goals are met, reporting all the goals that were missed:
+Every suite loads its scene headless, applies what that scene needs to simulate without a camera and waits a fixed number of physics frames, then reports every goal it missed:
 
 ```
 `5_fishing_rod` did not meet 1 goal(s):

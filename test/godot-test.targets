@@ -25,7 +25,7 @@
       Text="test/test.runsettings.template is missing. Restore it at '$(GodotTestRunSettingsTemplate)'; without it the tests have no settings to start the engine with." />
 
     <PropertyGroup>
-      <_GodotTestRunSettingsContent Condition="Exists('$(GodotTestRunSettingsTemplate)')">$([System.IO.File]::ReadAllText('$(GodotTestRunSettingsTemplate)').Replace('@GODOT_BIN@', '$(GodotBinPath)'))</_GodotTestRunSettingsContent>
+      <_GodotTestRunSettingsContent>$([System.IO.File]::ReadAllText('$(GodotTestRunSettingsTemplate)').Replace('@GODOT_BIN@', '$(GodotBinPath)'))</_GodotTestRunSettingsContent>
     </PropertyGroup>
 
     <WriteLinesToFile
