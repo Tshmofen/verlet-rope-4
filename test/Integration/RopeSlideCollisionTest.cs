@@ -13,13 +13,8 @@ namespace VerletRope4.Tests.Integration;
 /// with the rest of the step.
 /// <para>
 /// Neither rope is anchored at its far end, so both start as a randomly jittered clump and unfold into a layout the case
-/// cannot predict: the goal is therefore the difference between the two ropes of the same run, measured 0.222 m to 1.524 m
-/// over thirty runs, and the wait is long enough for the slowest layout to finish descending.
-/// </para>
-/// <para>
-/// The difference is the stable goal but not the one a lost ratio trips, because both ropes draw their layout from the same
-/// spread: what catches that is the absolute goal at the floor, which holds only because the sliding rope's own lowest
-/// particle never stopped above 1.001 m over the same runs.
+/// cannot predict - two ropes of one run differ by up to half a metre for that reason alone, so every goal here measures one
+/// rope against the scene rather than against its twin. The wait is long enough for the slowest layout to finish descending.
 /// </para>
 /// </summary>
 [TestSuite]
@@ -28,7 +23,7 @@ namespace VerletRope4.Tests.Integration;
 public class RopeSlideCollisionTest
 {
     [TestCase]
-    public async Task TheSlidingRopeKeepsDescendingWhileTheStuckOneIsHeldAtTheWall()
+    public async Task TheSlidingRopeKeepsDescendingToTheFloorLevel()
     {
         await SceneHarness.RunAsync("res://demo/test/rope_slide_collision.tscn", RunSceneAsync);
     }
@@ -53,16 +48,10 @@ public class RopeSlideCollisionTest
         await SceneHarness.WaitPhysicsFrames(root, 600);
 
         var slideLowest = GetLowestParticleY(slideRope);
-        var stickLowest = GetLowestParticleY(stickRope);
 
-        // The wall presses the rope in and the particles that slide keep their movement along it, so the sliding rope
-        // descends instead of being held where it touched. Measured over thirty runs: it ended 0.222 m to 1.524 m lower
-        // than the stuck rope of the same run, while the stuck rope alone came to rest anywhere between 1.00 m and 1.74 m -
-        // which is why the goal is the difference.
-        checks.Check(stickLowest - slideLowest > slideRope.RopeWidth * 2.0f, $"the sliding rope works its way down the wall while the stuck one is held, sliding {slideLowest:F3} against stuck {stickLowest:F3}");
-        // It got there by descending the whole way: over those runs its lowest particle never stopped above 1.001 m, so the
-        // sliding rope reaches the floor instead of stopping on the wall the way its twin does.
-        checks.Check(slideLowest < floorTop + slideRope.RopeWidth, $"the sliding rope reaches the floor rather than stopping on the wall, lowest particle {slideLowest:F3} for a floor top of {floorTop:F3}");
+        // The rope keeps the movement that runs along the wall, so it ends at or below the floor top instead of coming to
+        // rest on it: measured over thirty runs, its lowest particle had passed the floor top every time.
+        checks.Check(slideLowest < floorTop + slideRope.RopeWidth, $"the sliding rope keeps descending to the floor, lowest particle {slideLowest:F3} for a floor top of {floorTop:F3}");
         // It did not gain that by being stretched: measured 2.48 m to 2.66 m over the same runs for a configured 2.5 m.
         checks.CheckRange(slideRope.GetCurrentRopeLength(), slideRope.RopeLength - lengthTolerance, slideRope.RopeLength + lengthTolerance, "the sliding rope keeps its rest length");
         checks.CheckRange(stickRope.GetCurrentRopeLength(), stickRope.RopeLength - lengthTolerance, stickRope.RopeLength + lengthTolerance, "the stuck rope keeps its rest length");

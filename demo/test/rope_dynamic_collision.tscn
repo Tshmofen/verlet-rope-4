@@ -64,5 +64,5 @@ shadow_enabled = true
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=334919445]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -6.5, 1.5, -1)
-fov = 45.0
 current = true
+fov = 45.0

@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://d8k2m5s9vx4ce"]
+[gd_scene format=3 uid="uid://d5613v1cq8km"]
 
 [ext_resource type="Script" uid="uid://c3oxgehluk75x" path="res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs" id="1_rope"]
 
@@ -53,10 +53,10 @@ script = ExtResource("1_rope")
 SimulationParticles = 12
 IsDisabledWhenInvisible = false
 SimulationBehavior = 2
-RopeCollisionBehavior = 1
-RopeLength = 2.5
 Gravity = Vector3(8, -9.8, 0)
+RopeCollisionBehavior = 1
 SlideCollisionStretch = 1.0
+RopeLength = 2.5
 
 [node name="StickRope" type="Node3D" parent="." unique_id=1931094233]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2, 2.5)
@@ -64,10 +64,10 @@ script = ExtResource("1_rope")
 SimulationParticles = 12
 IsDisabledWhenInvisible = false
 SimulationBehavior = 2
-RopeCollisionBehavior = 1
-RopeLength = 2.5
 Gravity = Vector3(8, -9.8, 0)
+RopeCollisionBehavior = 1
 SlideCollisionStretch = 20.0
+RopeLength = 2.5
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=144802697]
 environment = SubResource("Environment_env")
@@ -79,6 +79,6 @@ light_energy = 1.5
 shadow_enabled = true
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1884649406]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 6, 2.8, -0.5)
-fov = 50.0
+transform = Transform3D(0.58390284, 0.11999514, -0.8029064, 0, 0.9890159, 0.14780939, 0.81182355, -0.08630632, 0.5774892, -9.439039, 3.2301126, 4.5484824)
 current = true
+fov = 50.0

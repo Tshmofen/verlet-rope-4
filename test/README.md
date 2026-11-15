@@ -48,6 +48,8 @@ Every suite loads its scene headless, applies what that scene needs to simulate 
   the demo cycle casts the line, phase is Casting
 ```
 
+The waits are counted in physics frames and the host advances simulated time as fast as the machine can step it rather than in real time (`--fixed-fps` in `test/test.runsettings.template`), which is why the scene lane finishes in seconds instead of the ~40 s its frame counts add up to.
+
 ## Not Covered
 
 Anything visual, any input and editor-only code. 
