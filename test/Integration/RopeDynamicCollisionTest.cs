@@ -8,11 +8,9 @@ using VerletRope4.Tests.Integration.Harness;
 namespace VerletRope4.Tests.Integration;
 
 /// <summary>
-/// Drives `demo/test/rope_dynamic_collision`, a purpose-built scene instead of a shipped example: a rope tied at both ends so it
-/// hangs taut in a straight line, while a body on its own physics layer sweeps through it with dynamic collision tracking
-/// enabled. The rope has to be pushed out of its line instead of being passed through, which is what
-/// <see cref="RopeCollisionType.DynamicOnly"/> and its tracked body velocity are for, and what no example scene covers on
-/// its own.
+/// Drives `demo/test/rope_dynamic_collision`: a body on its own physics layer sweeps through a rope hanging taut between two
+/// attachments while dynamic collision tracking is enabled, which is what <see cref="RopeCollisionType.DynamicOnly"/> and its
+/// tracked body velocity are for - no example scene covers it on its own.
 /// </summary>
 [TestSuite]
 [RequireGodotRuntime]
@@ -63,8 +61,8 @@ public class RopeDynamicCollisionTest
     }
 
     /// <summary>
-    /// Largest distance any particle has from the segment between the two anchors. Measured in 3D, so a rope that sags or
-    /// drifts in any direction counts against its line instead of only a horizontal bow.
+    /// Largest distance any particle has from the segment between the anchors, measured in 3D so a rope that sags or drifts
+    /// in any direction counts against its line instead of only a horizontal bow.
     /// </summary>
     private static float GetLargestLineDeviation(VerletRopeSimulated rope, Vector3 startAnchor, Vector3 endAnchor)
     {

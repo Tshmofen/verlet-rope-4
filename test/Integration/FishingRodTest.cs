@@ -7,10 +7,7 @@ using VerletRope4.Tests.Integration.Harness;
 
 namespace VerletRope4.Tests.Integration;
 
-/// <summary>
-/// Drives `5_fishing_rod`, a fishing line tied to a rod tip with a hook on its end: the line has to be created tied to the
-/// tip, the hook has to hang under the rod while the demo waits and the cast has to throw it away from the tip on its own.
-/// </summary>
+/// <summary> Drives `5_fishing_rod`, a fishing line tied to a rod tip with a hook on its end. </summary>
 [TestSuite]
 [RequireGodotRuntime]
 [Trait("lane", "integration")]

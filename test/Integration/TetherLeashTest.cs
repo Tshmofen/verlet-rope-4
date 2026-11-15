@@ -8,11 +8,7 @@ using VerletRope4.Tests.Integration.Harness;
 
 namespace VerletRope4.Tests.Integration;
 
-/// <summary>
-/// Drives `2_tether_leash`, a rigid chain between a walking body and a crate: it has to be built from segment bodies of the
-/// configured length, hold the two bodies about one rope length apart and drag the crate along with the body that walks
-/// away from it.
-/// </summary>
+/// <summary> Drives `2_tether_leash`, a rigid chain between a walking body and a crate. </summary>
 [TestSuite]
 [RequireGodotRuntime]
 [Trait("lane", "integration")]

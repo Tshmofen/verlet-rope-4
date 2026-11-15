@@ -10,8 +10,8 @@ using static GdUnit4.Assertions;
 namespace VerletRope4.Tests.Unit;
 
 /// <summary>
-/// Covers that the mesh tools turn particle data into geometry. The screen notifier is off on every mesh here, because
-/// headless it is never "on screen" and a mesh that is not visible draws nothing.
+/// The screen notifier is off on every mesh here, because headless it is never on screen and a mesh that is not visible
+/// draws nothing.
 /// </summary>
 [TestSuite]
 [RequireGodotRuntime]
@@ -52,9 +52,8 @@ public class RopeMeshTest
 
     /// <summary>
     /// A tube is framed from the direction between two particles, and two particles that sit on the same point have none -
-    /// handing that zero vector to the quaternion a frame is built with is what the builder guards against. The surface of
-    /// such a tube has to commit and have no extent at all, and only a real direction may give it one. Caps need a ring of
-    /// three segments to close, so a tube configured below that draws its rings alone.
+    /// which is what the builder guards against. Caps need a ring of three segments to close, so a tube configured below
+    /// that draws its rings alone.
     /// </summary>
     [TestCase]
     public void TubeMeshWithAZeroTangentDrawsNoExtentAndSkipsItsCapsBelowThreeSegments()
@@ -76,7 +75,6 @@ public class RopeMeshTest
         // Measured 1.277693 m of extent for the same particle count once a real direction is there, so the collapsed
         // surface is the one without geometry and not a surface this tool never commits.
         AssertThat(collapsedMesh.GetAabb().Size.Length()).IsGreater(0.5f);
-        // Nine of its ten rings carry triangles of 6 vertices per segment and the two caps 3 per segment: 360 vertices.
         AssertThat(GetVertexCount(collapsedMesh)).IsEqual(360);
 
         var narrowMesh = CreateMesh(RopeMeshType.Tube);
@@ -86,14 +84,12 @@ public class RopeMeshTest
         ISceneRunner.Load(narrowMesh);
         narrowMesh.DrawRopeParticles(CreateParticles());
 
-        // 108 vertices for the same nine quads of two segments each against the 360 already established: 9 x 2 x 6, with
-        // none of the 36 vertices the two caps add, which a tube below three segments does not build.
         AssertThat(GetVertexCount(narrowMesh)).IsEqual(108);
     }
 
     /// <summary>
-    /// The committed tube of a fixed particle list: the rings of six segments around a straight line, capped at both
-    /// ends. Pinned as counts and as the box they span, so a change that only keeps "a surface exists" fails here.
+    /// The committed tube of a fixed particle list, pinned as counts and as the box it spans, so a change that only keeps
+    /// "a surface exists" fails here.
     /// </summary>
     [TestCase]
     public void TubeMeshCommitsTheRingsAndCapsOfAConfiguredParticleList()
@@ -105,8 +101,6 @@ public class RopeMeshTest
 
         var bounds = mesh.GetAabb();
 
-        // Nine of the ten rings carry triangles of 6 segments and 6 vertices each, and the two caps 3 vertices per
-        // segment: measured 360 vertices, which is 120 triangles.
         AssertThat(GetVertexCount(mesh)).IsEqual(360);
         AssertThat(GetVertexCount(mesh) / 3).IsEqual(120);
         // Measured (0.2, 1.25, 0.173205) from the box's own minimum (-0.1, -1.25, -0.086603): two rope widths across, the
@@ -120,10 +114,9 @@ public class RopeMeshTest
     }
 
     /// <summary>
-    /// The screen notifier is what lets a rope stop drawing once it leaves the view, and headless it is never on screen -
-    /// so a mesh that was readied with one draws nothing, while the flag being off is both a drawn mesh and the
-    /// configuration warning that recommends turning it back on. The notifier is only created on ready, which is why the
-    /// drawing half is checked on a mesh that never had one.
+    /// Headless a mesh is never on screen, so one that was readied with a notifier draws nothing, while turning the flag
+    /// off is both a drawn mesh and the configuration warning that recommends turning it back on. The notifier is only
+    /// created on ready, which is why the drawing half is checked on a mesh that never had one.
     /// </summary>
     [TestCase]
     public void OnScreenNotifierHidesTheMeshAndItsWarningFollowsTheFlag()
@@ -140,7 +133,7 @@ public class RopeMeshTest
         notifiedMesh.DrawRopeParticles(CreateParticles());
         AssertThat(notifiedMesh.Mesh.GetSurfaceCount()).IsEqual(0);
 
-        // The notifier is what the rope reports its own box to, which is the only thing that can make it on screen again.
+        // The notifier is what the rope reports its own box to, which is the only thing that can make it on screen.
         notifiedMesh.UpdateRopeVisibility(CreateParticles());
         AssertThat(notifier.Aabb.Size).IsNotEqual(Vector3.Zero);
 

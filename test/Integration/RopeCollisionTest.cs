@@ -7,10 +7,8 @@ using VerletRope4.Tests.Integration.Harness;
 namespace VerletRope4.Tests.Integration;
 
 /// <summary>
-/// Drives `demo/test/rope_collision`, a purpose-built scene instead of a shipped example: a rope hanging one metre above a
-/// static floor with static collision enabled. The rope has to fall onto the floor and stay on top of it instead of passing
-/// through, which is what the raycast collision path in <see cref="VerletRopeSimulated"/> is for and what no example scene
-/// covers on its own.
+/// Drives `demo/test/rope_collision`: the raycast collision path of <see cref="VerletRopeSimulated"/> against a static floor,
+/// which no example scene covers on its own.
 /// </summary>
 [TestSuite]
 [RequireGodotRuntime]
@@ -25,7 +23,7 @@ public class RopeCollisionTest
 
     #region Utility
 
-    /// <summary> Fraction of its configured length the piled up rope is allowed to be shorter or longer by. </summary>
+    /// <summary> Fraction of its configured length the piled up rope may differ by. </summary>
     private const float LengthTolerance = 0.05f;
 
     private static async Task RunSceneAsync(Node root, SceneChecks checks)
@@ -37,7 +35,7 @@ public class RopeCollisionTest
         var floorTop = floor.GlobalPosition.Y + (floorBox.Size.Y / 2.0f);
         // Collision moves a particle out of the floor as a point, so it comes to rest on the surface itself and may sink
         // half a drawn rope width into it before the rope visibly cuts through the box. Measured on the piling rope:
-        // 1.0037 m for a floor top of 1.0000 m, which is 0.0037 m above the surface.
+        // 1.0037 m for a floor top of 1.0000 m.
         var restMargin = rope.RopeWidth / 2.0f;
 
         checks.Check(rope.IsRopeCreated, "the rope is created on ready");

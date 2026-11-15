@@ -12,7 +12,6 @@ using static GdUnit4.Assertions;
 
 namespace VerletRope4.Tests.Unit;
 
-/// <summary> Covers the configuration warnings the simulated joint reports and the findings they are built from. </summary>
 [TestSuite]
 [RequireGodotRuntime]
 [Trait("lane", "unit")]
@@ -67,8 +66,7 @@ public class JointSimulatedTest
 
     /// <summary>
     /// The ignore flags are not a value the rope reads back: a joint pushes the bodies its rope has to leave out into the
-    /// rope's collision exceptions, which is what keeps a rope from colliding with the body it is tied to. The list lives
-    /// on the rope and is only handed to the rope's own raycast, so the case reads it where the rope keeps it.
+    /// rope's collision exceptions, which is where the case reads them.
     /// </summary>
     [TestCase]
     public async Task CollisionIgnoreFlagsReachTheRopeAsBodyRids()
@@ -118,9 +116,8 @@ public class JointSimulatedTest
     }
 
     /// <summary>
-    /// A script reload on a joint re-applies it through <see cref="BaseVerletJoint.ResetJoint"/>, and an attachment point is
-    /// what a rope is laid out between - so the rope is attached to where the joint points at that moment, one frame after
-    /// the reload asked for it.
+    /// A reload re-applies the joint through <see cref="BaseVerletJoint.ResetJoint"/>, so the rope has to be laid out to
+    /// where an attachment point of the joint points a frame later.
     /// </summary>
     [TestCase]
     public async Task ScriptReloadOnTheJointRelaysTheRopeBetweenItsAttachmentPoints()
@@ -150,7 +147,7 @@ public class JointSimulatedTest
 
     #region Utility
 
-    /// <summary> A rope that lays itself out on ready and is not gated by the visibility of a screen notifier. </summary>
+    /// <summary> Laid out on ready and not gated by a screen notifier, which never reports on screen headless. </summary>
     private static VerletRopeSimulated CreateAnchoredRope()
     {
         return new VerletRopeSimulated

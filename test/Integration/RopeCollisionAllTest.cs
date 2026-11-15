@@ -8,10 +8,9 @@ using VerletRope4.Tests.Integration.Harness;
 namespace VerletRope4.Tests.Integration;
 
 /// <summary>
-/// Drives `demo/test/rope_collision_all`, the purpose-built scene that turns both collision paths on at once: a rope falls
-/// onto a static floor and stays on it, and a body sweeping past on its own physics layer pushes the rope out of the way
-/// while it keeps lying on that floor. <see cref="RopeCollisionType.StaticOnly"/> and
-/// <see cref="RopeCollisionType.DynamicOnly"/> have a scene of their own, so this one is the pair of them in one run.
+/// Drives `demo/test/rope_collision_all`, the purpose-built scene that turns both collision paths on at once -
+/// <see cref="RopeCollisionType.StaticOnly"/> and <see cref="RopeCollisionType.DynamicOnly"/> have a scene of their own, so
+/// this one is the pair of them in one run.
 /// </summary>
 [TestSuite]
 [RequireGodotRuntime]
@@ -46,8 +45,8 @@ public class RopeCollisionAllTest
         var settledLowest = GetLowestParticleY(rope);
         var settledPositions = Snapshot(rope);
 
-        // The static path is the one being measured first: the rope is laid out above the floor and has to come to rest on
-        // top of it. Measured 1.005 m for a floor top of 1.000 m, well inside the 0.035 m half width the goal allows.
+        // The static path settles first: measured 1.005 m for a floor top of 1.000 m, inside the 0.035 m half width the
+        // goal allows.
         checks.Check(settledLowest > floorTop - restMargin, $"the rope rests on the floor instead of passing through it, lowest particle {settledLowest:F3} against a floor top of {floorTop:F3}");
         checks.Check(settledLowest < floorTop + restMargin, $"the rope really fell onto the floor, lowest particle {settledLowest:F3}");
 
@@ -66,13 +65,12 @@ public class RopeCollisionAllTest
         // pushed the furthest, over the 6 m the body travels at the 4 m/s it was given.
         checks.Check(body.GlobalPosition.Z > 1.5f, $"the body travels past the rope, it ends at z {body.GlobalPosition.Z:F2}");
         checks.Check(pushedDistance > 0.5f, $"the body pushes the rope out of its way, the furthest particle moved {pushedDistance:F2}");
-        // Both paths in one run: the rope the body pushed is still on the floor and not through it.
         checks.Check(lowestAfterPass > floorTop - restMargin, $"the rope is still above the floor after the body passed, lowest particle {lowestAfterPass:F3}");
         checks.Check(rope.GetParticleCount() == 14, $"the rope keeps its particles through the pass, got {rope.GetParticleCount()}");
         checks.CheckParticlesAreFinite(rope, "the rope particle positions stay finite");
     }
 
-    /// <summary> The particle positions as they are now, so the movement a pass caused can be measured against them. </summary>
+    /// <summary> The positions as they are now, so the movement a pass causes can be measured against them. </summary>
     private static Vector3[] Snapshot(VerletRopeSimulated rope)
     {
         var positions = new Vector3[rope.GetParticleCount()];
@@ -85,7 +83,6 @@ public class RopeCollisionAllTest
         return positions;
     }
 
-    /// <summary> How far the particle that moved the most has left the position it had in the snapshot. </summary>
     private static float GetLargestDisplacement(VerletRopeSimulated rope, Vector3[] snapshot)
     {
         var largestDisplacement = 0.0f;

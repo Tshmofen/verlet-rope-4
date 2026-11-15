@@ -7,10 +7,7 @@ using VerletRope4.Tests.Integration.Harness;
 
 namespace VerletRope4.Tests.Integration;
 
-/// <summary>
-/// Drives `4_grappling_hook`, a hook on a rope that the demo cycle fires on a timer: the cycle has to leave the parked
-/// state on its own, the rope has to keep its particles and its end has to stay on the hook.
-/// </summary>
+/// <summary> Drives `4_grappling_hook`, a hook on a rope that the demo cycle fires on a timer. </summary>
 [TestSuite]
 [RequireGodotRuntime]
 [Trait("lane", "integration")]
@@ -25,9 +22,9 @@ public class GrapplingHookTest
     #region Utility
 
     /// <summary>
-    /// Distance the rope end is allowed to be behind the attachment it is written from. The end particle is written on
-    /// every physics step, so the only distance left is the frame the hook moved in after that write: measured 0.0000 m on
-    /// the hooked hook, and 0.3 m covers a frame of the rig recalling at its 12 m/s.
+    /// Distance the rope end is allowed to be behind the attachment it is written from: the write goes out on every physics
+    /// step, so all that is left is the frame the hook moved in. Measured 0.0000 m on the hooked hook, and 0.3 m covers a
+    /// frame of the rig recalling at its 12 m/s.
     /// </summary>
     private const float EndLagDistance = 0.3f;
 
@@ -55,8 +52,7 @@ public class GrapplingHookTest
         checks.Check(hook.Phase != GrapplingHookRig.HookPhase.Parked, $"the demo cycle fires the hook on its own, phase is {hook.Phase}");
         checks.Check(hookTravel > 0.5f, $"the hook leaves the hand, travelled {hookTravel:F2}");
         checks.Check(rope.GetParticleCount() == 20, $"the rope keeps its particles through the cycle, got {rope.GetParticleCount()}");
-        // The rope writes its last particle from the attachment node of the hook, so the only distance left is the frame
-        // the hook moved in after that write.
+        // The only distance left is the frame the hook moved in after that write.
         checks.CheckAtMost(rope.GetParticlePosition(-1).DistanceTo(attachment.GlobalPosition), EndLagDistance, "the rope end follows the hook");
         checks.CheckParticlesAreFinite(rope, "the grapple rope particle positions stay finite");
     }

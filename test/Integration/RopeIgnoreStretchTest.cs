@@ -7,11 +7,10 @@ using VerletRope4.Tests.Integration.Harness;
 namespace VerletRope4.Tests.Integration;
 
 /// <summary>
-/// Drives `demo/test/rope_ignore_stretch`, the purpose-built scene for the stretch a segment is allowed to reach before a
-/// collision gives up on it: past <see cref="VerletRopeSimulated.IgnoreCollisionStretch"/> times its rest length the segment
-/// skips collision entirely, so a rope hanging more than it can hold falls through the floor instead of piling up on it. The
-/// scene hangs two identical ropes one metre above the same static floor, one at the default ratio and one at the bottom of
-/// the property's range, so the twin that keeps colliding is the difference the goal is measured against.
+/// Drives `demo/test/rope_ignore_stretch`: past <see cref="VerletRopeSimulated.IgnoreCollisionStretch"/> times its rest
+/// length a segment skips collision entirely, so a rope hanging more than the ratio allows falls through the floor instead
+/// of piling up on it. The scene hangs two identical ropes over one static floor, so the twin that keeps colliding is what
+/// the goal is measured against.
 /// </summary>
 [TestSuite]
 [RequireGodotRuntime]

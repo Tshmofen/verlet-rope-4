@@ -8,12 +8,12 @@ using VerletRope4.Physics;
 namespace VerletRope4.Tests.Unit.Harness;
 
 /// <summary>
-/// The waits and lookups every unit suite needs, so one frame contract and one body collection are declared once instead
-/// of once per suite.
+/// The waits and lookups every unit suite needs, so the frame contract and the body collection are declared once instead of
+/// once per suite.
 /// </summary>
 public static class UnitHarness
 {
-    /// <summary> What <paramref name="action"/> threw, or `null` when it threw nothing, so a case can assert a refusal without a try block. </summary>
+    /// <summary> What <paramref name="action"/> threw, or `null`, so a case can assert a refusal without a try block. </summary>
     public static Exception CatchException(Action action)
     {
         try
@@ -28,8 +28,8 @@ public static class UnitHarness
     }
 
     /// <summary>
-    /// The segment bodies of a rigid rope. A rebuild queues the bodies it replaces for free, and they stay children until
-    /// the frame ends, so they are left out.
+    /// The segment bodies of a rigid rope, without the ones a rebuild replaced: they are queued for free but stay children
+    /// until the frame ends.
     /// </summary>
     public static List<RigidBody3D> CollectBodies(VerletRopeRigid rope)
     {
@@ -40,8 +40,8 @@ public static class UnitHarness
     }
 
     /// <summary>
-    /// A deferred apply flushes after the process signal of the frame it was queued in, so a write is only visible from
-    /// the frame after that one: two awaits are the contract here, never a spare.
+    /// A deferred apply flushes after the process signal of the frame it was queued in, so a write is only visible from the
+    /// frame after that one: two awaits are the contract here, never a spare.
     /// </summary>
     public static async Task NextFrame(Node node)
     {

@@ -6,10 +6,7 @@ using VerletRope4.Tests.Integration.Harness;
 
 namespace VerletRope4.Tests.Integration;
 
-/// <summary>
-/// Drives `1_swinging_rope`, a vine hanging off a branch that sways: it has to be created, stay tied to the branch, hang at
-/// about its own length and keep moving with the branch it is tied to.
-/// </summary>
+/// <summary> Drives `1_swinging_rope`, a vine hanging off a branch that sways. </summary>
 [TestSuite]
 [RequireGodotRuntime]
 [Trait("lane", "integration")]
@@ -41,8 +38,8 @@ public class SwingingRopeTest
         checks.Check(movedEnd.DistanceTo(settledEnd) > 0.02f, "the free end keeps moving once the rope has settled");
         checks.Check(movedEnd.Y < vine.GlobalPosition.Y - 0.5f, "the rope hangs below the anchor it is tied to");
         checks.CheckRange(vine.GetCurrentRopeLength(), 2.0f, 4.5f, "the rope hangs at about its rest length");
-        // The vine node is the anchor the rope is tied to, and its first particle is written from it on every physics
-        // step: measured 0.0000 m once the rope has settled.
+        // The first particle is written from the node the rope is tied to on every physics step: measured 0.0000 m once the
+        // rope has settled.
         checks.Check(vine.GetParticlePosition(0).DistanceTo(vine.GlobalPosition) < 0.05f, "the start particle stays at the rope node");
         checks.CheckRopeIntegrity(vine, "the rope stays in one piece");
         checks.CheckParticlesAreFinite(vine, "the rope particle positions stay finite");

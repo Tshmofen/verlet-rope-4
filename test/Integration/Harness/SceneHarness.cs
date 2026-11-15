@@ -20,7 +20,7 @@ namespace VerletRope4.Tests.Integration;
 /// </summary>
 public static class SceneHarness
 {
-    /// <summary> Loads the scene, drives it through <paramref name="run"/>, and reports every goal it did not meet as one test failure. </summary>
+    /// <summary> Loads the scene, drives it through <paramref name="run"/>, and reports every missed goal as one test failure. </summary>
     public static async Task RunAsync(string scenePath, SceneRun run)
     {
         var packedScene = ResourceLoader.Load<PackedScene>(scenePath);
@@ -61,7 +61,7 @@ public static class SceneHarness
     /// <summary> Wall clock limit for one scene, so a goal that waits on a frame that never comes fails instead of stalling the session. </summary>
     private const double SceneTimeoutSeconds = 60.0;
 
-    /// <summary> How long a scene that has just been cancelled gets to leave the frame it is waiting in before the harness stops waiting for it. </summary>
+    /// <summary> How long a cancelled scene gets to leave the frame it waits in before the harness stops waiting for it. </summary>
     private const int SceneStopMilliseconds = 5000;
 
     /// <summary>
@@ -102,8 +102,8 @@ public static class SceneHarness
     }
 
     /// <summary>
-    /// Cancels a body that overran the timeout and waits for it to leave, so it stops at its next frame instead of awaiting a
-    /// scene the runner frees at case end - where it would fault into a task nobody observes and take the reason it hung with it.
+    /// Cancels a body that overran the timeout and waits for it to leave: it would otherwise await a scene the runner frees
+    /// at case end, where its fault goes into a task nobody observes and takes the reason it hung with it.
     /// </summary>
     private static async Task StopSceneRun(Task sceneRun, SceneChecks checks, CancellationTokenSource cancellation)
     {

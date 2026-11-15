@@ -12,9 +12,8 @@ using static GdUnit4.Assertions;
 namespace VerletRope4.Tests.Unit;
 
 /// <summary>
-/// Covers what a joint does to the rope it belongs to: an attachment write that changed nothing has to leave the chain
-/// alone, while a moved attachment point has to rebuild it. That decision is the snapshot every reactive joint property
-/// goes through, which is why it is worth its own suite instead of one case per joint type.
+/// The attachment snapshot is the decision every reactive joint property goes through, which is why a joint is covered by
+/// what it does to its rope instead of one case per joint type.
 /// </summary>
 [TestSuite]
 [RequireGodotRuntime]
@@ -64,10 +63,8 @@ public class JointRigidTest
     }
 
     /// <summary>
-    /// A joint decides what a written property has to apply by: the distance joint values are read on every frame, so a
-    /// write of one has to reach the child joint that reads them and leave the rope where it is - only an attachment or a
-    /// rope change may re-lay it. The configuration values only exist on <see cref="VerletJointSimulated"/>, so the write
-    /// is measured on the rope type it belongs to.
+    /// The distance joint values are read on every frame, so a write of one has to reach the child joint that reads them and
+    /// leave the rope where it is - only an attachment or a rope change may re-lay it.
     /// </summary>
     [TestCase]
     public async Task ConfigurationWritesReachTheDistanceJointAndLeaveTheRopeWhereItIs()
@@ -95,8 +92,7 @@ public class JointRigidTest
         await UnitHarness.NextFrame(simulatedRope);
         await UnitHarness.NextFrame(simulatedRope);
 
-        // The write has to reach the node the joint type reads its distance values from, which is what a configuration
-        // reason applies and an attachment or rope reason does not have to.
+        // The write has to reach the node the joint type reads its distance values from.
         var distanceJoint = simulatedJoint.GetChildren().OfType<DistanceForceJoint>().FirstOrDefault();
 
         AssertThat(distanceJoint == null).OverrideFailureMessage("the distance joint values were written but no distance joint was configured for them").IsFalse();
@@ -104,8 +100,8 @@ public class JointRigidTest
         AssertThat(distanceJoint.MaxForce).IsEqualApprox(25.0f, 0.0001f);
         AssertThat(distanceJoint.ForceEasing).IsEqualApprox(0.5f, 0.0001f);
 
-        // And it must not have re-laid the rope: a re-laid rope is back in the clump it is created as, within centimetres
-        // of its start, while the hanging one it was is measured in metres.
+        // A re-laid rope is back in the clump it is created as, within centimetres of its start, while the hanging one it
+        // was is measured in metres.
         var distanceAfterWrites = GetFarthestParticleDistance(simulatedRope);
 
         AssertThat(distanceAfterWrites).OverrideFailureMessage($"the rope was re-laid: hanging {hangingDistance:F2}, now {distanceAfterWrites:F2}").IsGreater(hangingDistance * 0.5f);
@@ -113,9 +109,8 @@ public class JointRigidTest
     }
 
     /// <summary>
-    /// Leaving the tree has to leave the rope without the joint that left it: while the joint is still there the rope
-    /// refuses an attachment write, and once it is gone the same write goes through and the chain it built stays where it
-    /// was.
+    /// While the joint is still there the rope refuses an attachment write, and once it has left the tree the same write
+    /// goes through and the chain it built stays where it was.
     /// </summary>
     [TestCase]
     public async Task LeavingTheTreeDetachesTheJointFromTheRope()
@@ -167,7 +162,7 @@ public class JointRigidTest
         };
     }
 
-    /// <summary> A rigid rope with a rigid joint on it, the joint attached to a marker node the chain starts from. </summary>
+    /// <summary> A rigid rope with a rigid joint whose start attachment is a marker node. </summary>
     private static VerletRopeRigid CreateRope(out Node3D anchor, out VerletJointRigid joint)
     {
         var rope = new VerletRopeRigid

@@ -76,9 +76,9 @@ public sealed class SceneChecks
     }
 
     /// <summary>
-    /// Records whether a rope that stays in one piece keeps every segment within a few rest lengths of its neighbours.
-    /// The rest length is taken from the rope as it is configured now, so this belongs after the rope has settled at the
-    /// length its scene keeps it at - not while a winch is reeling it in or a hook is paying it out.
+    /// Records whether a rope that stays in one piece keeps every segment within a few rest lengths of its neighbours. The
+    /// rest length is taken from the rope as it is configured now, so this belongs after the rope has settled at the length
+    /// its scene keeps it at.
     /// </summary>
     public void CheckRopeIntegrity(BaseVerletRopePhysical rope, string description)
     {

@@ -12,8 +12,8 @@ using static GdUnit4.Assertions;
 namespace VerletRope4.Tests.Unit;
 
 /// <summary>
-/// Covers the rigid rope node, whose structure is a chain of <see cref="RigidBody3D"/> segments pinned together rather
-/// than a solved particle buffer - which is why its length and segment count are rebuilt instead of applied.
+/// A rigid rope is a chain of <see cref="RigidBody3D"/> segments pinned together rather than a solved particle buffer, which
+/// is why its length and segment count are rebuilt instead of applied.
 /// </summary>
 [TestSuite]
 [RequireGodotRuntime]
@@ -37,8 +37,8 @@ public class RigidRopeTest
     }
 
     /// <summary>
-    /// Every segment is pinned to the next one, and the first one is pinned to the (empty) start body slot, which is a
-    /// world anchor. Nothing pins the last segment, because the rope has no end attachment.
+    /// The first segment is pinned to the empty start body slot, which is a world anchor, and nothing pins the last segment
+    /// because the rope has no end attachment.
     /// </summary>
     [TestCase]
     public async Task SegmentBodiesArePinnedTogetherAndToTheStart()
@@ -97,7 +97,7 @@ public class RigidRopeTest
         AssertThat(rope.GetParticleCount()).IsEqual(9);
     }
 
-    /// <summary> Destroying the rope drops the chain and the particle data laid out from it, so nothing stale is reported. </summary>
+    /// <summary> The particle data is laid out from the chain, so a destroyed rope reports neither. </summary>
     [TestCase]
     public async Task DestroyRopeRemovesTheParticleData()
     {
@@ -116,8 +116,7 @@ public class RigidRopeTest
     }
 
     /// <summary>
-    /// A rebuild after a teardown starts from nothing - the particle positions were already dropped with the old chain, so
-    /// the rope has to lay out both again instead of reporting the destroyed one.
+    /// The particle positions are dropped with the old chain, so a rebuild after a teardown has to lay out both again.
     /// </summary>
     [TestCase]
     public async Task RopeIsRebuiltAfterBeingDestroyed()
@@ -153,8 +152,8 @@ public class RigidRopeTest
         var segmentShapes = CollectCapsuleShapes(rope);
         var distinctSegmentShapes = segmentShapes.Distinct().ToList();
 
-        // The rope assigns one capsule instance to every segment, so its radius is checked once instead of once per body;
-        // the shape count still has to match the body count, which is what a segment of another shape type breaks.
+        // The rope assigns one capsule instance to every segment, so its radius is checked once; the shape count still has
+        // to match the body count, which is what a segment of another shape type breaks.
         AssertThat(bodies.Count).IsEqual(4);
         AssertThat(segmentShapes.Count)
             .OverrideFailureMessage($"every segment carries a capsule shape, got {segmentShapes.Count} capsule shapes for {bodies.Count} bodies")
@@ -167,8 +166,8 @@ public class RigidRopeTest
     }
 
     /// <summary>
-    /// Write of the length the chain already has is not a rebuild: the bodies have to survive it, or every repeated write
-    /// from an inspector, a tween or a loop would tear the rope down and spawn it again frame after frame.
+    /// A write of the length the chain already has must not rebuild it, or every repeated write from an inspector, a tween
+    /// or a loop would tear the rope down and spawn it again frame after frame.
     /// </summary>
     [TestCase]
     public async Task WritingTheLengthItAlreadyHasLeavesTheChainAlone()
@@ -188,8 +187,7 @@ public class RigidRopeTest
 
         AssertThat(bodiesAfterWrite.Count).IsEqual(5);
         AssertThat(bodiesAfterWrite.All(body => bodies.Contains(body))).IsTrue();
-        // The bodies collected before the write are still alive and still the rope's own: a chain that was rebuilt under
-        // the same count would have freed them instead.
+        // A chain that was rebuilt under the same count would have freed the bodies collected before the write.
         AssertThat(bodies.All(body => body != null && body.GetParent() == rope)).IsTrue();
     }
 
@@ -213,7 +211,7 @@ public class RigidRopeTest
         AssertThat(UnitHarness.CollectBodies(rope).Count).IsEqual(0);
     }
 
-    /// <summary> A rigid rope only understands a rigid joint: the wrong type is refused while the rope is still unbuilt. </summary>
+    /// <summary> A rigid rope only understands a rigid joint, and the refusal happens before anything is built. </summary>
     [TestCase]
     public async Task RigidRopeRejectsASimulatedJointBeforeBuildingAnything()
     {
@@ -240,8 +238,8 @@ public class RigidRopeTest
     }
 
     /// <summary>
-    /// An end attachment is what pins the last segment, so a chain with one hangs from both of its ends instead of from its
-    /// start alone, while a rope with no start pin and no start attachment keeps only the joints between its segments.
+    /// An end attachment is what pins the last segment, while a rope with no start pin keeps only the joints between its
+    /// segments.
     /// </summary>
     [TestCase]
     public async Task TheEndAttachmentPinsTheLastSegmentAndAnUnpinnedStartLeavesTheFirstOneFree()
@@ -267,7 +265,7 @@ public class RigidRopeTest
         var pinnedJoints = pinnedBodies.Sum(body => body.GetChildren().OfType<PinJoint3D>().Count());
         var freeJoints = freeBodies.Sum(body => body.GetChildren().OfType<PinJoint3D>().Count());
 
-        // Four segments pinned to each other, plus the start anchor and the end attachment.
+        // The joints between the four segments, plus the start anchor and the end attachment.
         AssertThat(pinnedBodies.Count).IsEqual(4);
         AssertThat(pinnedJoints).IsEqual(5);
         AssertThat(pinnedBodies[0].GetChildren().OfType<PinJoint3D>().Count()).IsEqual(2);

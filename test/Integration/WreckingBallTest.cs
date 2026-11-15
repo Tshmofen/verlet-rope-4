@@ -7,10 +7,7 @@ using VerletRope4.Tests.Integration.Harness;
 
 namespace VerletRope4.Tests.Integration;
 
-/// <summary>
-/// Drives `3_wrecking_ball`, a ball hanging off a rope that the demo kicks: the rope has to be tied to the ball, the ball
-/// has to be thrown by the kick, the rope end has to keep following it and the joint has to keep the ball on its leash.
-/// </summary>
+/// <summary> Drives `3_wrecking_ball`, a ball hanging off a rope that the demo kicks. </summary>
 [TestSuite]
 [RequireGodotRuntime]
 [Trait("lane", "integration")]
@@ -25,9 +22,9 @@ public class WreckingBallTest
     #region Utility
 
     /// <summary>
-    /// Distance the rope end is allowed to be behind the attachment it is written from. The end particle is written on
-    /// every physics step, so the only distance left is the frame the ball moved in after that write: measured 0.0087 m
-    /// while the ball swings, and 0.1 m covers a frame of it moving at 6 m/s.
+    /// Distance the rope end is allowed to be behind the attachment it is written from: the write goes out on every physics
+    /// step, so all that is left is the frame the ball moved in. Measured 0.0087 m while the ball swings, and 0.1 m covers a
+    /// frame of it moving at 6 m/s.
     /// </summary>
     private const float EndLagDistance = 0.1f;
 
@@ -40,8 +37,7 @@ public class WreckingBallTest
 
         checks.Check(rope.IsRopeCreated, "the wrecking rope is created on ready");
         checks.Check(rope.GetParticleCount() == 15, $"the wrecking rope keeps its 15 configured particles, got {rope.GetParticleCount()}");
-        // The last particle is laid out on the attachment the joint ties it to, so a ball the rope never reached would put
-        // it elsewhere: measured 0.0000 m on creation.
+        // A rope that never reached the ball would lay its last particle somewhere else: measured 0.0000 m on creation.
         checks.CheckAtMost(rope.GetParticlePosition(-1).DistanceTo(attachment.GlobalPosition), EndLagDistance, "the last particle is tied to the ball");
 
         var ballStart = ball.GlobalPosition;

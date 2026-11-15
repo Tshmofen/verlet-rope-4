@@ -6,7 +6,6 @@ using static GdUnit4.Assertions;
 
 namespace VerletRope4.Tests.Unit;
 
-/// <summary> Covers the particle buffer both rope types are simulated and rendered from. </summary>
 [TestSuite]
 [RequireGodotRuntime]
 [Trait("lane", "unit")]
