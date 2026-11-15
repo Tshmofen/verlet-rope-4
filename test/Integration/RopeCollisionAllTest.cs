@@ -47,7 +47,7 @@ public class RopeCollisionAllTest
         var settledPositions = Snapshot(rope);
 
         // The static path is the one being measured first: the rope is laid out above the floor and has to come to rest on
-        // top of it. Measured 1.005 m for a floor top of 1.000 m, which is the 0.035 m half width of the drawn rope.
+        // top of it. Measured 1.005 m for a floor top of 1.000 m, well inside the 0.035 m half width the goal allows.
         checks.Check(settledLowest > floorTop - restMargin, $"the rope rests on the floor instead of passing through it, lowest particle {settledLowest:F3} against a floor top of {floorTop:F3}");
         checks.Check(settledLowest < floorTop + restMargin, $"the rope really fell onto the floor, lowest particle {settledLowest:F3}");
 

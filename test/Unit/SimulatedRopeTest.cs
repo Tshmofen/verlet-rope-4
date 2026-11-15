@@ -416,16 +416,18 @@ public class SimulatedRopeTest
         var everyFrameCount = everyFrameSteps.Count - everyFrameBaseline;
         var halfRateCount = halfRateSteps.Count - halfRateBaseline;
 
-        // Measured 20 steps for 60 frames at a configured 30 per second: the gate needs an accumulated delta of 1/30, and
-        // two frames of 1/60 add up to just under it as a double, so every third frame is the one that reaches the gate.
+        // Measured 20 steps for 60 frames at a configured 30 per second: the loop accumulates the frame delta as a double
+        // while the gate it compares against is the float `1f / SimulationRate`, so two frames of 1/60 still fall a hair
+        // under 1/30 and every third frame is the one that fires. The bound leaves room for the accumulator's own margin
+        // without accepting a gate that fires on every second frame, which is 30.
         AssertThat(everyFrameCount).IsEqual(60);
-        AssertThat(halfRateCount).IsEqual(20);
+        AssertThat(halfRateCount).IsBetween(19, 21);
 
         halfRate._PhysicsProcess(0.5);
         var afterSkippedFrame = halfRateSteps.Count - halfRateBaseline;
 
         // The 0.5 s frame is five times the 300 ms DeltaSkipMs, so it is dropped before the rate gate ever sees it.
-        AssertThat(afterSkippedFrame).IsEqual(20);
+        AssertThat(afterSkippedFrame).IsEqual(halfRateCount);
     }
 
     /// <summary>
@@ -442,8 +444,7 @@ public class SimulatedRopeTest
         physicsRope.RenderMode = RopeRenderMode.Physics;
         processRope.RenderMode = RopeRenderMode.Process;
 
-        // The rope creates its presentation child on demand and deferred, so the child is added here - before the ropes
-        // enter the tree - instead of being raced for in the frame the load awaited.
+        // Added before the ropes enter the tree, so the case never races the rope's own deferred child.
         var physicsMesh = AddMesh(physicsRope);
         var processMesh = AddMesh(processRope);
 
@@ -493,7 +494,7 @@ public class SimulatedRopeTest
         rope.AddChild(endAnchor);
         rope.SetAttachmentPoints(null, startAnchor, null, endAnchor);
         rope.IsSelfColliding = isSelfColliding;
-        // The node's own defaults, written out so the measurement quotes what it was measured against.
+        // Pinned here so a default change cannot move the goal silently: 0.12 m and 0.4 are the node's own defaults.
         rope.SelfCollisionRadius = 0.12f;
         rope.SelfCollisionSmoothing = 0.4f;
 

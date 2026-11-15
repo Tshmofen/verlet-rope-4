@@ -66,12 +66,11 @@ public class JointRigidTest
     /// <summary>
     /// A joint decides what a written property has to apply by: the distance joint values are read on every frame, so a
     /// write of one has to reach the child joint that reads them and leave the rope where it is - only an attachment or a
-    /// rope change may re-lay it. The other half of the same bookkeeping is leaving the tree, where the rope has to be left
-    /// without a joint instead of keeping one that is gone from it. The configuration values only exist on
-    /// <see cref="VerletJointSimulated"/>, so that half is measured on the rope type it belongs to.
+    /// rope change may re-lay it. The configuration values only exist on <see cref="VerletJointSimulated"/>, so the write
+    /// is measured on the rope type it belongs to.
     /// </summary>
     [TestCase]
-    public async Task ConfigurationWritesLeaveTheRopeAloneAndLeavingTheTreeDetachesTheJoint()
+    public async Task ConfigurationWritesReachTheDistanceJointAndLeaveTheRopeWhereItIs()
     {
         var startBody = new RigidBody3D { Name = "StartBody" };
         var simulatedRope = CreateSimulatedRope();
@@ -79,16 +78,8 @@ public class JointRigidTest
         simulatedRope.AddChild(startBody);
         simulatedRope.AddChild(simulatedJoint);
 
-        var rigidRope = CreateRope(out _, out var rigidJoint);
-
-        rigidRope.Position = new Vector3(6.0f, 0.0f, 0.0f);
-
-        var rig = new Node3D { Name = "JointRig" };
-        rig.AddChild(simulatedRope);
-        rig.AddChild(rigidRope);
-
-        ISceneRunner.Load(rig);
-        await UnitHarness.NextFrame(rig);
+        ISceneRunner.Load(simulatedRope);
+        await UnitHarness.NextFrame(simulatedRope);
 
         for (var frame = 0; frame < 60; frame++)
         {
@@ -101,8 +92,8 @@ public class JointRigidTest
         simulatedJoint.JointMaxForce = 25.0f;
         simulatedJoint.JointForceEasing = 0.5f;
 
-        await UnitHarness.NextFrame(rig);
-        await UnitHarness.NextFrame(rig);
+        await UnitHarness.NextFrame(simulatedRope);
+        await UnitHarness.NextFrame(simulatedRope);
 
         // The write has to reach the node the joint type reads its distance values from, which is what a configuration
         // reason applies and an attachment or rope reason does not have to.
@@ -119,6 +110,20 @@ public class JointRigidTest
 
         AssertThat(distanceAfterWrites).OverrideFailureMessage($"the rope was re-laid: hanging {hangingDistance:F2}, now {distanceAfterWrites:F2}").IsGreater(hangingDistance * 0.5f);
         AssertThat(simulatedRope.GetParticleCount()).IsEqual(8);
+    }
+
+    /// <summary>
+    /// Leaving the tree has to leave the rope without the joint that left it: while the joint is still there the rope
+    /// refuses an attachment write, and once it is gone the same write goes through and the chain it built stays where it
+    /// was.
+    /// </summary>
+    [TestCase]
+    public async Task LeavingTheTreeDetachesTheJointFromTheRope()
+    {
+        var rigidRope = CreateRope(out _, out var rigidJoint);
+
+        ISceneRunner.Load(rigidRope);
+        await UnitHarness.NextFrame(rigidRope);
 
         var bodies = UnitHarness.CollectBodies(rigidRope);
         var thrownWhileConnected = UnitHarness.CatchException(() => rigidRope.SetAttachmentPoints(null, null, null, null));

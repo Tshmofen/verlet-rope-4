@@ -27,7 +27,7 @@ dotnet test VerletRope.csproj --filter 'Class=VerletRope4.Tests.Unit.SimulatedRo
 E:\Apps\Godot\Godot_v4.7.2-stable_mono_win64\Godot_v4.7.2-stable_mono_win64_console.exe
 ```
 
-The path is read during the build, a missing file only warns on build, while the test run fails and names the file it expects.
+The path is read during the build, which stays silent when the file is missing, while the test run fails and names the file it expects.
 
 ## Unit Tests
 
@@ -37,7 +37,7 @@ A test creates the node it needs, writes the properties under test, steps the si
 
 ## Scene Integration Tests
 
-`test/Integration/` drives the real scenes of `demo/examples/` and asserts on the physics invariants of each one.
+`test/Integration/` drives the real scenes of `demo/examples/` plus the purpose-built collision scenes under `demo/test/`, and asserts on the physics invariants of each one.
 
 For example, if the rope stays connected, keeps its length, its segments hold together, the body it pulls travels where it should and collisions stop it where they should.
 

@@ -76,6 +76,8 @@ public class RopeMeshTest
         // Measured 1.277693 m of extent for the same particle count once a real direction is there, so the collapsed
         // surface is the one without geometry and not a surface this tool never commits.
         AssertThat(collapsedMesh.GetAabb().Size.Length()).IsGreater(0.5f);
+        // Nine of its ten rings carry triangles of 6 vertices per segment and the two caps 3 per segment: 360 vertices.
+        AssertThat(GetVertexCount(collapsedMesh)).IsEqual(360);
 
         var narrowMesh = CreateMesh(RopeMeshType.Tube);
         // Below the three segments a cap is built from, the tube is drawn without caps.
@@ -84,10 +86,9 @@ public class RopeMeshTest
         ISceneRunner.Load(narrowMesh);
         narrowMesh.DrawRopeParticles(CreateParticles());
 
-        // 108 vertices for two segment rings against 360 for six: the nine rings that carry triangles are 6 vertices per
-        // segment either way, and the 36 vertices the two caps add are the ones a two segment tube does not commit.
+        // 108 vertices for the same nine quads of two segments each against the 360 already established: 9 x 2 x 6, with
+        // none of the 36 vertices the two caps add, which a tube below three segments does not build.
         AssertThat(GetVertexCount(narrowMesh)).IsEqual(108);
-        AssertThat(GetVertexCount(collapsedMesh)).IsEqual(360);
     }
 
     /// <summary>

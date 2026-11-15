@@ -25,18 +25,18 @@ sky = SubResource("Sky_env")
 tonemap_mode = 2
 glow_enabled = true
 
-[node name="RopeCollisionAllExample" type="Node3D"]
+[node name="RopeCollisionAllExample" type="Node3D" unique_id=192784906]
 
-[node name="Floor" type="StaticBody3D" parent="."]
+[node name="Floor" type="StaticBody3D" parent="." unique_id=343745710]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=1653589076]
 mesh = SubResource("BoxMesh_floor")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor" unique_id=642059143]
 shape = SubResource("BoxShape3D_floor")
 
-[node name="CollisionRope" type="Node3D" parent="."]
+[node name="CollisionRope" type="Node3D" parent="." unique_id=1400861709]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
 script = ExtResource("1_rope")
 SimulationParticles = 14
@@ -47,28 +47,28 @@ RopeCollisionBehavior = 1
 RopeLength = 2.0
 DynamicCollisionMask = 2
 
-[node name="MovingBody" type="RigidBody3D" parent="."]
+[node name="MovingBody" type="RigidBody3D" parent="." unique_id=1037138156]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, -4)
 collision_layer = 2
 collision_mask = 0
 gravity_scale = 0.0
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="MovingBody"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MovingBody" unique_id=365590970]
 shape = SubResource("SphereShape3D_body")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="MovingBody"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="MovingBody" unique_id=1642813237]
 mesh = SubResource("SphereMesh_body")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=544847232]
 environment = SubResource("Environment_env")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1339150611]
 transform = Transform3D(0.952619, -0.233005, 0.195514, 0.0514738, 0.757012, 0.65137, -0.299779, -0.610444, 0.733137, 0, 4, 0)
 light_color = Color(0.976471, 0.956863, 0.976471, 1)
 light_energy = 1.5
 shadow_enabled = true
 
-[node name="Camera3D" type="Camera3D" parent="."]
+[node name="Camera3D" type="Camera3D" parent="." unique_id=485836017]
 transform = Transform3D(1, 0, 0, 0, 0.948683, 0.316228, 0, -0.316228, 0.948683, 0, 2.8, 4.8)
 fov = 50.0
 current = true

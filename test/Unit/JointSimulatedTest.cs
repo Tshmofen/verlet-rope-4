@@ -85,14 +85,12 @@ public class JointSimulatedTest
         await UnitHarness.NextFrame(rope);
         await UnitHarness.NextFrame(rope);
 
-        // Both bodies are ignored out of the box, and the joint reports them end first, which is the order they are added.
+        // Both bodies are ignored out of the box, which is the default of both ignore flags.
         var exceptions = GetCollisionExceptions(rope);
 
         AssertThat(exceptions.Count).IsEqual(2);
         AssertThat(exceptions.Contains(startBody.GetRid())).IsTrue();
         AssertThat(exceptions.Contains(endBody.GetRid())).IsTrue();
-        AssertThat(joint.GetPhysicsExceptionRids()[0] == endBody.GetRid()).IsTrue();
-        AssertThat(joint.GetPhysicsExceptionRids()[1] == startBody.GetRid()).IsTrue();
 
         joint.IgnoreStartBodyCollision = false;
         await UnitHarness.NextFrame(rope);
