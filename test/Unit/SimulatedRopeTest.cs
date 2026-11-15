@@ -1,6 +1,7 @@
 ﻿using GdUnit4;
 using Godot;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using VerletRope4.Data;
@@ -298,7 +299,311 @@ public class SimulatedRopeTest
         AssertThat(thrown.Message.Contains(nameof(VerletJointSimulated))).IsTrue();
     }
 
+    /// <summary>
+    /// A rope whose end anchor sits behind its start has to fold back through itself to reach it. With self collision on,
+    /// the parts of the rope that are not neighbours are pushed apart to the configured radius on every step; with it off
+    /// they end up on top of each other. The pinned ends are left out of the measurement, because a pair whose first index
+    /// is attached is skipped by the self collision pass.
+    /// </summary>
+    [TestCase]
+    public async Task SelfCollisionKeepsTheFoldedLegsOfARopeOneRadiusApart()
+    {
+        var folded = CreateFoldedRope(isSelfColliding: true);
+        var crossing = CreateFoldedRope(isSelfColliding: false);
+
+        await LoadRigAsync(folded, crossing);
+        StepFrames(folded, 120);
+        StepFrames(crossing, 120);
+
+        var foldedDistance = GetSmallestFreeNonNeighborDistance(folded);
+        var crossingDistance = GetSmallestFreeNonNeighborDistance(crossing);
+        var radius = folded.SelfCollisionRadius;
+
+        // Measured 0.1096 m with self collision on against 0.0756 m with it off, for a 0.12 m radius: the pass removes
+        // only a smoothing share of an overlap per step while the constraint pass pulls the legs back together, so they
+        // settle just under the radius instead of exactly on it.
+        AssertThat(foldedDistance).OverrideFailureMessage($"the folded legs are {foldedDistance:F4} m apart for a {radius:F4} m radius").IsGreater(radius * 0.85f);
+        AssertThat(crossingDistance).OverrideFailureMessage($"the folded legs are {crossingDistance:F4} m apart with self collision off").IsLess(radius * 0.8f);
+    }
+
+    /// <summary>
+    /// A script reload throws away everything the rope built in memory, so the node recreates it from a deferred call - the
+    /// rope is only back once the frame that scheduled it has ended, which is why nothing is created in the same frame.
+    /// </summary>
+    [TestCase]
+    public async Task ScriptReloadCreatesTheRopeAgainOnADeferredCall()
+    {
+        var rope = CreateRope(simulationParticles: 8, ropeLength: 2.0f);
+
+        await LoadRope(rope);
+        rope.DestroyRope();
+        rope.OnAfterDeserialize();
+
+        AssertThat(rope.IsRopeCreated).IsFalse();
+
+        await UnitHarness.NextFrame(rope);
+        await UnitHarness.NextFrame(rope);
+
+        AssertThat(rope.IsRopeCreated).IsTrue();
+        AssertThat(rope.GetParticleCount()).IsEqual(8);
+    }
+
+    /// <summary>
+    /// Wind is a force along <see cref="VerletRopeSimulated.WindDirection"/> scaled by the noise and clamped to its floor
+    /// and ceiling, applied to every particle on every step - so a rope with no wind stays in the plane it was laid in,
+    /// while one with wind is displaced the way the direction points. <see cref="VerletRopeSimulated.DampingFactor"/> is
+    /// applied against the velocity of the particle it damps, so it decides whether that displacement comes to rest:
+    /// both wind-blown ropes end up at the same offset, and only the damped one has stopped moving by then.
+    /// </summary>
+    [TestCase]
+    public async Task WindPushesTheRopeAlongItsDirectionAndDampingBringsThatMovementToRest()
+    {
+        var calm = CreateWindRope(applyWind: false, dampingFactor: 1.0f);
+        var wind = CreateWindRope(applyWind: true, dampingFactor: 1.0f);
+        var dampedWind = CreateWindRope(applyWind: true, dampingFactor: 500.0f);
+
+        await LoadRigAsync(calm, wind, dampedWind);
+
+        for (var frame = 0; frame < 60; frame++)
+        {
+            calm._PhysicsProcess(FrameDelta);
+            wind._PhysicsProcess(FrameDelta);
+            dampedWind._PhysicsProcess(FrameDelta);
+        }
+
+        var calmOffset = GetMeanParticleX(calm);
+        var windOffset = GetMeanParticleX(wind);
+        var dampedOffset = GetMeanParticleX(dampedWind);
+        var windMovement = 0.0f;
+        var dampedMovement = 0.0f;
+
+        for (var frame = 0; frame < 5; frame++)
+        {
+            windMovement = Mathf.Max(windMovement, StepAndMeasureMovement(wind));
+            dampedMovement = Mathf.Max(dampedMovement, StepAndMeasureMovement(dampedWind));
+        }
+
+        // Measured 0.0000 m, 0.5353 m and 0.5556 m of mean offset after 60 steps: the rope with no wind never leaves X = 0,
+        // and both wind-blown ropes are thrown the way WindDirection points, so the direction is what pushes them.
+        AssertThat(Mathf.Abs(calmOffset)).OverrideFailureMessage($"the rope with no wind drifted to {calmOffset:F4} m").IsLess(0.01f);
+        AssertThat(windOffset).OverrideFailureMessage($"the wind pushed the rope to {windOffset:F4} m").IsGreater(0.02f);
+        AssertThat(dampedOffset).OverrideFailureMessage($"the damped rope settled at {dampedOffset:F4} m").IsGreater(0.02f);
+        // Measured 0.02309 m against 0.00038 m of the largest movement one step makes: the damped rope has come to rest
+        // while the undamped one is still swinging, which is what the damping is applied against.
+        AssertThat(windMovement).OverrideFailureMessage($"the undamped rope moves {windMovement:F5} m per step").IsGreater(0.005f);
+        AssertThat(dampedMovement).OverrideFailureMessage($"the damped rope moves {dampedMovement:F5} m per step against {windMovement:F5}").IsLess(windMovement / 10.0f);
+    }
+
+    /// <summary>
+    /// <see cref="VerletRopeSimulated.SimulationRate"/> gates the step on the delta a rope has accumulated, never more than
+    /// once per physics frame - so a rope set to half the frame rate takes fewer steps than it is given frames, and a frame
+    /// long enough to be a freeze is skipped before it can reach the gate at all.
+    /// </summary>
+    [TestCase]
+    public async Task SimulationRateStepsTheRopeFewerTimesThanTheFramesItIsGiven()
+    {
+        var everyFrame = CreateCountedRope(simulationRate: 0, out var everyFrameSteps);
+        var halfRate = CreateCountedRope(simulationRate: 30, out var halfRateSteps);
+
+        await LoadRigAsync(everyFrame, halfRate);
+
+        var everyFrameBaseline = everyFrameSteps.Count;
+        var halfRateBaseline = halfRateSteps.Count;
+
+        StepFrames(everyFrame, 60);
+        StepFrames(halfRate, 60);
+
+        var everyFrameCount = everyFrameSteps.Count - everyFrameBaseline;
+        var halfRateCount = halfRateSteps.Count - halfRateBaseline;
+
+        // Measured 20 steps for 60 frames at a configured 30 per second: the gate needs an accumulated delta of 1/30, and
+        // two frames of 1/60 add up to just under it as a double, so every third frame is the one that reaches the gate.
+        AssertThat(everyFrameCount).IsEqual(60);
+        AssertThat(halfRateCount).IsEqual(20);
+
+        halfRate._PhysicsProcess(0.5);
+        var afterSkippedFrame = halfRateSteps.Count - halfRateBaseline;
+
+        // The 0.5 s frame is five times the 300 ms DeltaSkipMs, so it is dropped before the rate gate ever sees it.
+        AssertThat(afterSkippedFrame).IsEqual(20);
+    }
+
+    /// <summary>
+    /// <see cref="RopeRenderMode.Process"/> draws the mesh from the process callback and leaves the physics tick alone, while
+    /// <see cref="RopeRenderMode.Physics"/> is the other way around - which is the whole difference between a rope that
+    /// flickers while its node moves and one that redraws every frame. The surface is cleared from the outside so only the
+    /// path under test can put one back.
+    /// </summary>
+    [TestCase]
+    public async Task RenderModeDecidesWhetherTheMeshIsDrawnInProcessOrPhysics()
+    {
+        var physicsRope = CreateRope(simulationParticles: 8, ropeLength: 2.0f);
+        var processRope = CreateRope(simulationParticles: 8, ropeLength: 2.0f);
+        physicsRope.RenderMode = RopeRenderMode.Physics;
+        processRope.RenderMode = RopeRenderMode.Process;
+
+        // The rope creates its presentation child on demand and deferred, so the child is added here - before the ropes
+        // enter the tree - instead of being raced for in the frame the load awaited.
+        var physicsMesh = AddMesh(physicsRope);
+        var processMesh = AddMesh(processRope);
+
+        await LoadRigAsync(physicsRope, processRope);
+
+        ClearSurface(physicsMesh);
+        physicsRope._Process(FrameDelta);
+        AssertThat(physicsMesh.Mesh.GetSurfaceCount()).OverrideFailureMessage("the physics mode drew in the process frame").IsEqual(0);
+        physicsRope._PhysicsProcess(FrameDelta);
+        AssertThat(physicsMesh.Mesh.GetSurfaceCount()).IsEqual(1);
+
+        ClearSurface(processMesh);
+        processRope._PhysicsProcess(FrameDelta);
+        AssertThat(processMesh.Mesh.GetSurfaceCount()).OverrideFailureMessage("the process mode drew in the physics frame").IsEqual(0);
+        processRope._Process(FrameDelta);
+        AssertThat(processMesh.Mesh.GetSurfaceCount()).IsEqual(1);
+    }
+
     #region Utility
+
+    /// <summary>
+    /// The presentation child of a rope, created before the rope enters the tree: a rope builds its own one on demand
+    /// through a deferred `AddChild`, so a case that reads it in the frame a rope was loaded races that call.
+    /// </summary>
+    private static VerletRopeMesh AddMesh(VerletRopeSimulated rope)
+    {
+        // The mesh creates its notifier from its own flag in `_Ready`, which runs before the rope mirrors its value onto
+        // it, so the flag is set here for a mesh that has to draw headless.
+        var mesh = new VerletRopeMesh { UseVisibleOnScreenNotifier = false };
+        rope.AddChild(mesh);
+
+        return mesh;
+    }
+
+    private static void ClearSurface(VerletRopeMesh mesh)
+    {
+        ((ArrayMesh)mesh.Mesh).ClearSurfaces();
+    }
+
+    /// <summary> A rope whose end anchor sits behind its start, so the only way to reach it is to fold back through the rope. </summary>
+    private static VerletRopeSimulated CreateFoldedRope(bool isSelfColliding)
+    {
+        var rope = CreateRope(simulationParticles: 12, ropeLength: 2.0f);
+        var startAnchor = new Node3D { Name = "StartAnchor" };
+        var endAnchor = new Node3D { Name = "EndAnchor", Position = new Vector3(0.0f, 0.0f, -0.05f) };
+        rope.AddChild(startAnchor);
+        rope.AddChild(endAnchor);
+        rope.SetAttachmentPoints(null, startAnchor, null, endAnchor);
+        rope.IsSelfColliding = isSelfColliding;
+        // The node's own defaults, written out so the measurement quotes what it was measured against.
+        rope.SelfCollisionRadius = 0.12f;
+        rope.SelfCollisionSmoothing = 0.4f;
+
+        return rope;
+    }
+
+    /// <summary> A rope laid between two anchors, so every particle starts on the same line and only the forces move it off. </summary>
+    private static VerletRopeSimulated CreateWindRope(bool applyWind, float dampingFactor)
+    {
+        var rope = CreateRope(simulationParticles: 12, ropeLength: 2.5f);
+        var startAnchor = new Node3D { Name = "StartAnchor" };
+        var endAnchor = new Node3D { Name = "EndAnchor", Position = new Vector3(0.0f, 0.0f, 2.0f) };
+        rope.AddChild(startAnchor);
+        rope.AddChild(endAnchor);
+        rope.SetAttachmentPoints(null, startAnchor, null, endAnchor);
+        rope.ApplyWind = applyWind;
+        rope.WindDirection = new Vector3(40.0f, 0.0f, 0.0f);
+        // A noise floor at its ceiling makes the wind the constant force of WindDirection, so the case measures the
+        // direction the wind is applied in instead of the noise field it is scaled by.
+        rope.WindNoise = new FastNoiseLite();
+        rope.WindNoiseMin = 1.0f;
+        rope.WindNoiseMax = 1.0f;
+        rope.DampingFactor = dampingFactor;
+
+        return rope;
+    }
+
+    /// <summary> A rope that reports every step it takes through <see cref="VerletRopeSimulated.SimulationStep"/> instead of being judged by its shape. </summary>
+    private static VerletRopeSimulated CreateCountedRope(int simulationRate, out List<double> steps)
+    {
+        var rope = CreateRope(simulationParticles: 8, ropeLength: 2.0f);
+        rope.SimulationRate = simulationRate;
+        steps = [];
+        rope.SimulationStep += steps.Add;
+
+        return rope;
+    }
+
+    /// <summary>
+    /// The distance between the closest two particles that are neither neighbours nor one of the pinned ends: the self
+    /// collision pass skips a particle that is attached, so a pair it contains is never resolved.
+    /// </summary>
+    private static float GetSmallestFreeNonNeighborDistance(VerletRopeSimulated rope)
+    {
+        var smallestDistance = float.MaxValue;
+
+        for (var i = 1; i < rope.GetParticleCount() - 1; i++)
+        {
+            if (rope.GetParticle(i)!.Value.IsAttached)
+            {
+                continue;
+            }
+
+            for (var j = i + 2; j < rope.GetParticleCount() - 1; j++)
+            {
+                smallestDistance = Mathf.Min(smallestDistance, rope.GetParticlePosition(i).DistanceTo(rope.GetParticlePosition(j)));
+            }
+        }
+
+        return smallestDistance;
+    }
+
+    /// <summary> Mean X of the particles between the two pinned ends, which is what a sideways force shows up in. </summary>
+    private static float GetMeanParticleX(VerletRopeSimulated rope)
+    {
+        var total = 0.0f;
+
+        for (var i = 1; i < rope.GetParticleCount() - 1; i++)
+        {
+            total += rope.GetParticlePosition(i).X;
+        }
+
+        return total / (rope.GetParticleCount() - 2);
+    }
+
+    /// <summary> Steps the rope once and returns the largest distance any of its particles moved, which is how fast it is still going. </summary>
+    private static float StepAndMeasureMovement(VerletRopeSimulated rope)
+    {
+        var positions = new Vector3[rope.GetParticleCount()];
+
+        for (var i = 0; i < positions.Length; i++)
+        {
+            positions[i] = rope.GetParticlePosition(i);
+        }
+
+        rope._PhysicsProcess(FrameDelta);
+
+        var largestMovement = 0.0f;
+
+        for (var i = 0; i < positions.Length; i++)
+        {
+            largestMovement = Mathf.Max(largestMovement, positions[i].DistanceTo(rope.GetParticlePosition(i)));
+        }
+
+        return largestMovement;
+    }
+
+    /// <summary> Loads several ropes under one root, because a runner holds the scene it was given and a node it replaced would stop stepping. </summary>
+    private static async Task LoadRigAsync(params Node3D[] ropes)
+    {
+        var rig = new Node3D { Name = "Rig" };
+
+        foreach (var rope in ropes)
+        {
+            rig.AddChild(rope);
+        }
+
+        ISceneRunner.Load(rig);
+        await UnitHarness.NextFrame(rig);
+    }
 
     /// <summary> Distance from the given point to the particle that is farthest away from it. </summary>
     private static float GetFarthestParticleDistance(VerletRopeSimulated rope, Vector3 point)

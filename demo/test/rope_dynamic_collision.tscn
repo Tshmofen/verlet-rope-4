@@ -7,6 +7,19 @@
 
 [sub_resource type="SphereMesh" id="SphereMesh_body"]
 
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+
+[sub_resource type="Sky" id="Sky_env"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_env"]
+background_mode = 2
+sky = SubResource("Sky_env")
+tonemap_mode = 2
+glow_enabled = true
+
 [node name="RopeDynamicCollisionExample" type="Node3D" unique_id=316960509]
 
 [node name="DynamicCollisionRope" type="Node3D" parent="." unique_id=351336862]
@@ -39,3 +52,17 @@ shape = SubResource("SphereShape3D_body")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="MovingBody" unique_id=1658117213]
 mesh = SubResource("SphereMesh_body")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=11786220]
+environment = SubResource("Environment_env")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1193345751]
+transform = Transform3D(0.952619, -0.233005, 0.195514, 0.0514738, 0.757012, 0.65137, -0.299779, -0.610444, 0.733137, 0, 4, 0)
+light_color = Color(0.976471, 0.956863, 0.976471, 1)
+light_energy = 1.5
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=334919445]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -6.5, 1.5, -1)
+fov = 45.0
+current = true

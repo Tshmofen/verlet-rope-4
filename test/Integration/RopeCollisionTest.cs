@@ -7,7 +7,7 @@ using VerletRope4.Tests.Integration.Harness;
 namespace VerletRope4.Tests.Integration;
 
 /// <summary>
-/// Drives `demo/rope_collision`, a purpose-built scene instead of a shipped example: a rope hanging one metre above a
+/// Drives `demo/test/rope_collision`, a purpose-built scene instead of a shipped example: a rope hanging one metre above a
 /// static floor with static collision enabled. The rope has to fall onto the floor and stay on top of it instead of passing
 /// through, which is what the raycast collision path in <see cref="VerletRopeSimulated"/> is for and what no example scene
 /// covers on its own.
@@ -20,7 +20,7 @@ public class RopeCollisionTest
     [TestCase]
     public async Task RopeFallsOntoTheFloorAndStaysOnIt()
     {
-        await SceneHarness.RunAsync("res://demo/rope_collision.tscn", RunSceneAsync);
+        await SceneHarness.RunAsync("res://demo/test/rope_collision.tscn", RunSceneAsync);
     }
 
     #region Utility

@@ -239,6 +239,47 @@ public class RigidRopeTest
         AssertThat(UnitHarness.CollectBodies(rope).Count).IsEqual(0);
     }
 
+    /// <summary>
+    /// An end attachment is what pins the last segment, so a chain with one hangs from both of its ends instead of from its
+    /// start alone, while a rope with no start pin and no start attachment keeps only the joints between its segments.
+    /// </summary>
+    [TestCase]
+    public async Task TheEndAttachmentPinsTheLastSegmentAndAnUnpinnedStartLeavesTheFirstOneFree()
+    {
+        var pinnedRope = CreateRope(simulationSegments: 4, ropeLength: 1.0f);
+        var endAnchor = new Node3D { Name = "EndAnchor", Position = new Vector3(0.0f, -1.0f, 0.0f) };
+        pinnedRope.AddChild(endAnchor);
+        pinnedRope.SetAttachmentPoints(null, null, null, endAnchor);
+
+        var freeRope = CreateRope(simulationSegments: 4, ropeLength: 1.0f);
+        freeRope.IsStartPinned = false;
+        freeRope.Position = new Vector3(6.0f, 0.0f, 0.0f);
+
+        var rig = new Node3D { Name = "RigidRig" };
+        rig.AddChild(pinnedRope);
+        rig.AddChild(freeRope);
+
+        ISceneRunner.Load(rig);
+        await UnitHarness.NextFrame(rig);
+
+        var pinnedBodies = UnitHarness.CollectBodies(pinnedRope);
+        var freeBodies = UnitHarness.CollectBodies(freeRope);
+        var pinnedJoints = pinnedBodies.Sum(body => body.GetChildren().OfType<PinJoint3D>().Count());
+        var freeJoints = freeBodies.Sum(body => body.GetChildren().OfType<PinJoint3D>().Count());
+
+        // Four segments pinned to each other, plus the start anchor and the end attachment.
+        AssertThat(pinnedBodies.Count).IsEqual(4);
+        AssertThat(pinnedJoints).IsEqual(5);
+        AssertThat(pinnedBodies[0].GetChildren().OfType<PinJoint3D>().Count()).IsEqual(2);
+        AssertThat(pinnedBodies[^1].GetChildren().OfType<PinJoint3D>().Count()).IsEqual(1);
+        // Only the three joints between the segments are left when neither end of the chain is held.
+        AssertThat(freeBodies.Count).IsEqual(4);
+        AssertThat(freeJoints).IsEqual(3);
+        AssertThat(freeBodies[0].GetChildren().OfType<PinJoint3D>().Count()).IsEqual(1);
+        AssertThat(freeBodies[^1].GetChildren().OfType<PinJoint3D>().Count()).IsEqual(0);
+        AssertThat(pinnedRope.GetParticleCount()).IsEqual(5);
+    }
+
     #region Utility
 
     private static List<CapsuleShape3D> CollectCapsuleShapes(VerletRopeRigid rope)

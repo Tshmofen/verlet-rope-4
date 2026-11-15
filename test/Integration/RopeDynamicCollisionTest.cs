@@ -8,7 +8,7 @@ using VerletRope4.Tests.Integration.Harness;
 namespace VerletRope4.Tests.Integration;
 
 /// <summary>
-/// Drives `demo/rope_dynamic_collision`, a purpose-built scene instead of a shipped example: a rope tied at both ends so it
+/// Drives `demo/test/rope_dynamic_collision`, a purpose-built scene instead of a shipped example: a rope tied at both ends so it
 /// hangs taut in a straight line, while a body on its own physics layer sweeps through it with dynamic collision tracking
 /// enabled. The rope has to be pushed out of its line instead of being passed through, which is what
 /// <see cref="RopeCollisionType.DynamicOnly"/> and its tracked body velocity are for, and what no example scene covers on
@@ -22,7 +22,7 @@ public class RopeDynamicCollisionTest
     [TestCase]
     public async Task MovingBodyPushesTheRopeOutOfItsLine()
     {
-        await SceneHarness.RunAsync("res://demo/rope_dynamic_collision.tscn", RunSceneAsync);
+        await SceneHarness.RunAsync("res://demo/test/rope_dynamic_collision.tscn", RunSceneAsync);
     }
 
     #region Utility
