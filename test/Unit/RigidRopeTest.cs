@@ -178,6 +178,9 @@ public class RigidRopeTest
 
         AssertThat(bodiesAfterWrite.Count).IsEqual(5);
         AssertThat(bodiesAfterWrite.All(body => bodies.Contains(body))).IsTrue();
+        // The bodies collected before the write are still alive and still the rope's own: a chain that was rebuilt under
+        // the same count would have freed them instead.
+        AssertThat(bodies.All(body => body != null && body.GetParent() == rope)).IsTrue();
     }
 
     /// <summary> A rebuild queued before the rope was destroyed has to be dropped, or the rope revives a frame after the user removed it, laid out from the world origin. </summary>
@@ -269,6 +272,8 @@ public class RigidRopeTest
             .ToList();
     }
 
+    // A deferred apply flushes after the process signal of the frame it was queued in, so a write is only visible from the
+    // frame after that one: two awaits are the contract here, never a spare.
     private static async Task NextFrame(Node node)
     {
         await node.ToSignal(node.GetTree(), SceneTree.SignalName.ProcessFrame);

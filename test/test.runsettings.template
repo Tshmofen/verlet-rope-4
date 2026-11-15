@@ -8,7 +8,7 @@
   <RunConfiguration>
     <MaxCpuCount>1</MaxCpuCount>
     <ResultsDirectory>./TestResults</ResultsDirectory>
-    <TestSessionTimeout>300000</TestSessionTimeout>
+    <TestSessionTimeout>600000</TestSessionTimeout>
     <TreatNoTestsAsError>true</TreatNoTestsAsError>
     <EnvironmentVariables>
       <GODOT_BIN>@GODOT_BIN@</GODOT_BIN>

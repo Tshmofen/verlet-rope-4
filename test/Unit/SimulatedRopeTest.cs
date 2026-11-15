@@ -340,6 +340,8 @@ public class SimulatedRopeTest
         await NextFrame(rope);
     }
 
+    // A deferred apply flushes after the process signal of the frame it was queued in, so a write is only visible from the
+    // frame after that one: two awaits are the contract here, never a spare.
     private static async Task NextFrame(Node node)
     {
         await node.ToSignal(node.GetTree(), SceneTree.SignalName.ProcessFrame);

@@ -18,16 +18,22 @@ public sealed class SceneChecks
     private const float IntegrityLimit = 5.0f;
 
     private readonly List<string> _failures = [];
+    private int _goalCount;
 
     /// <summary> Amount of goals the run did not meet. </summary>
     public int FailureCount => _failures.Count;
 
+    /// <summary> Amount of goals the run evaluated, met or not, so a body that recorded none at all cannot pass. </summary>
+    public int GoalCount => _goalCount;
+
     /// <summary> What every goal that was not met reported, in the order they were checked. </summary>
     public IReadOnlyList<string> Failures => _failures;
 
-    /// <summary> Records a goal that is not met, and keeps the run going so one scene reports every miss at once. </summary>
+    /// <summary> Records a goal, met or not, and keeps the run going so one scene reports every miss at once. </summary>
     public void Check(bool condition, string description)
     {
+        _goalCount++;
+
         if (!condition)
         {
             _failures.Add(description);
@@ -65,6 +71,8 @@ public sealed class SceneChecks
                 return;
             }
         }
+
+        Check(true, description);
     }
 
     /// <summary>

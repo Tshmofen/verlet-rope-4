@@ -1,25 +1,25 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3 uid="uid://d3m83i0sjefgc"]
 
-[ext_resource type="Script" path="res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs" id="1_rope"]
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
-size = Vector3(4, 0.4, 4)
+[ext_resource type="Script" uid="uid://c3oxgehluk75x" path="res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs" id="1_rope"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(4, 0.4, 4)
 
-[node name="RopeCollisionExample" type="Node3D"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+size = Vector3(4, 0.4, 4)
 
-[node name="Floor" type="StaticBody3D" parent="."]
+[node name="RopeCollisionExample" type="Node3D" unique_id=574210830]
+
+[node name="Floor" type="StaticBody3D" parent="." unique_id=771617925]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=1289421361]
 mesh = SubResource("BoxMesh_floor")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor" unique_id=1077773487]
 shape = SubResource("BoxShape3D_floor")
 
-[node name="CollisionRope" type="Node3D" parent="."]
+[node name="CollisionRope" type="Node3D" parent="." unique_id=1223654191]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
 script = ExtResource("1_rope")
 SimulationParticles = 12

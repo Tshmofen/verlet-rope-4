@@ -2,7 +2,7 @@
   <!--
     Turns the machine-local `godot.path` into the Godot binary the gdUnit4 test adapter starts.
     `godot.path` is gitignored, contains one line with the absolute path of the Godot mono `_console.exe`.
-    A missing or empty file only warns, so the addon still builds; the test run is what fails.
+    A missing or empty file keeps an ordinary build silent; the test run is what fails, naming the file.
   -->
 
   <PropertyGroup>
@@ -17,13 +17,13 @@
     <PropertyGroup>
       <GodotBinPath Condition="Exists('$(GodotPathFile)')">$([System.IO.File]::ReadAllText('$(GodotPathFile)').Trim())</GodotBinPath>
     </PropertyGroup>
-
-    <Warning
-      Condition="'$(GodotBinPath)' == ''"
-      Text="godot.path is missing or empty. Write the absolute path of the Godot mono console executable into '$(GodotPathFile)'; without it the tests cannot start the engine." />
   </Target>
 
   <Target Name="GodotTestWriteRunSettings" DependsOnTargets="GodotTestResolvePath" BeforeTargets="Build">
+    <Error
+      Condition="!Exists('$(GodotTestRunSettingsTemplate)')"
+      Text="test/test.runsettings.template is missing. Restore it at '$(GodotTestRunSettingsTemplate)'; without it the tests have no settings to start the engine with." />
+
     <PropertyGroup>
       <_GodotTestRunSettingsContent Condition="Exists('$(GodotTestRunSettingsTemplate)')">$([System.IO.File]::ReadAllText('$(GodotTestRunSettingsTemplate)').Replace('@GODOT_BIN@', '$(GodotBinPath)'))</_GodotTestRunSettingsContent>
     </PropertyGroup>

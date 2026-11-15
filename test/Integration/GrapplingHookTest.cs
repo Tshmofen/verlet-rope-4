@@ -24,11 +24,28 @@ public class GrapplingHookTest
 
     #region Utility
 
+    /// <summary> Physics ticks per second the demo counts its exported durations in. </summary>
+    private const int PhysicsTicksPerSecond = 60;
+
+    /// <summary>
+    /// Frames kept clear of the phase boundary a wait is aimed at. The demo counts its own clock in seconds while a wait
+    /// counts frames, so a budget derived from a duration alone would land on the very frame a phase flips.
+    /// </summary>
+    private const int PhaseMarginTicks = 12;
+
+    /// <summary>
+    /// Distance the rope end is allowed to be behind the attachment it is written from. The end particle is written on
+    /// every physics step, so the only distance left is the frame the hook moved in after that write: measured 0.0000 m on
+    /// the hooked hook, and 0.3 m covers a frame of the rig recalling at its 12 m/s.
+    /// </summary>
+    private const float EndLagDistance = 0.3f;
+
     private static async Task RunSceneAsync(Node root, SceneChecks checks)
     {
         var rope = root.GetNode<VerletRopeSimulated>("GrappleRope");
         var hook = root.GetNode<GrapplingHookRig>("HookBody");
         var attachment = root.GetNode<Node3D>("HookBody/Attachment");
+        var demo = root.GetNode<GrapplingHookDemo>("DemoCycle");
 
         checks.Check(rope.IsRopeCreated, "the grapple rope is created on ready");
         checks.Check(rope.GetParticleCount() == 20, $"the grapple rope keeps its 20 configured particles, got {rope.GetParticleCount()}");
@@ -36,15 +53,20 @@ public class GrapplingHookTest
 
         var hookStart = hook.GlobalPosition;
 
-        // The demo holds the hook for 1.5 s before it fires, so the run has to outlast that to see the cycle move.
-        await SceneHarness.WaitPhysicsFrames(root, 150);
+        // The demo holds the hook for IdleTime before it fires and gives the flight FlightTimeout to hit something, so
+        // outlasting both is what makes the parked state impossible to be the one this run measures.
+        var cycleTicks = Mathf.RoundToInt((demo.IdleTime + demo.FlightTimeout) * PhysicsTicksPerSecond) + PhaseMarginTicks;
+
+        await SceneHarness.WaitPhysicsFrames(root, cycleTicks);
 
         var hookTravel = hook.GlobalPosition.DistanceTo(hookStart);
 
         checks.Check(hook.Phase != GrapplingHookRig.HookPhase.Parked, $"the demo cycle fires the hook on its own, phase is {hook.Phase}");
         checks.Check(hookTravel > 0.5f, $"the hook leaves the hand, travelled {hookTravel:F2}");
         checks.Check(rope.GetParticleCount() == 20, $"the rope keeps its particles through the cycle, got {rope.GetParticleCount()}");
-        checks.Check(rope.GetParticlePosition(-1).DistanceTo(attachment.GlobalPosition) < 1.0f, "the rope end follows the hook");
+        // The rope writes its last particle from the attachment node of the hook, so the only distance left is the frame
+        // the hook moved in after that write.
+        checks.CheckAtMost(rope.GetParticlePosition(-1).DistanceTo(attachment.GlobalPosition), EndLagDistance, "the rope end follows the hook");
         checks.CheckParticlesAreFinite(rope, "the grapple rope particle positions stay finite");
     }
 

@@ -2,6 +2,7 @@
 using Godot;
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using VerletRope4.Physics;
 using VerletRope4.Tests.Integration.Harness;
@@ -37,17 +38,20 @@ public static class SceneHarness
         }
         catch (Exception exception)
         {
-            checks.Check(false, $"the scene threw `{exception.GetType().Name}`: {exception.Message}");
+            checks.Check(false, $"the scene threw: {exception}");
         }
 
         AssertThat(checks.FailureCount).OverrideFailureMessage(DescribeFailures(scenePath, checks)).IsEqual(0);
+        AssertThat(checks.GoalCount > 0).OverrideFailureMessage(DescribeMissingGoals(scenePath)).IsTrue();
     }
 
     /// <summary> Waits out real physics ticks, which is what the scene's own driver and ropes are stepped by. </summary>
+    /// <remarks> A cancelled run leaves this wait at its next frame instead of running out the frames it was asked for. </remarks>
     public static async Task WaitPhysicsFrames(Node node, int frames)
     {
         for (var i = 0; i < frames; i++)
         {
+            _sceneCancellation?.Token.ThrowIfCancellationRequested();
             await node.ToSignal(node.GetTree(), SceneTree.SignalName.PhysicsFrame);
         }
     }
@@ -57,19 +61,73 @@ public static class SceneHarness
     /// <summary> Wall clock limit for one scene, so a goal that waits on a frame that never comes fails instead of stalling the session. </summary>
     private const double SceneTimeoutSeconds = 60.0;
 
-    /// <summary> Drives the scene and turns a run that never returns into a failed goal, because the wait it is stuck in cannot report one. </summary>
+    /// <summary> How long a scene that has just been cancelled gets to leave the frame it is waiting in before the harness stops waiting for it. </summary>
+    private const int SceneStopMilliseconds = 5000;
+
+    /// <summary>
+    /// The run in flight, so a body that waits for a frame can be stopped instead of running on after its case has ended.
+    /// </summary>
+    /// <remarks>
+    /// Static because a scene body reaches <see cref="WaitPhysicsFrames"/> without a token - the delegate is the scene, not
+    /// the harness - and this host drives every scene from its main thread, one run at a time, so only the run in flight
+    /// ever reads it.
+    /// </remarks>
+    private static CancellationTokenSource _sceneCancellation;
+
+    /// <summary> Drives the scene under a wall clock limit, and stops the body on a timeout instead of abandoning the task it returned. </summary>
     private static async Task RunScene(Node root, SceneChecks checks, SceneRun run)
     {
         var timer = root.GetTree().CreateTimer(SceneTimeoutSeconds, true, false, true);
-        var sceneRun = run(root, checks);
+        using var cancellation = new CancellationTokenSource();
 
-        if (await Task.WhenAny(sceneRun, WaitTimeout(root, timer)) != sceneRun)
+        _sceneCancellation = cancellation;
+
+        try
         {
+            var sceneRun = run(root, checks);
+
+            if (await Task.WhenAny(sceneRun, WaitTimeout(root, timer)) == sceneRun)
+            {
+                await sceneRun;
+                return;
+            }
+
             checks.Check(false, $"the scene did not finish within {SceneTimeoutSeconds} s");
+            await StopSceneRun(sceneRun, checks, cancellation);
+        }
+        finally
+        {
+            _sceneCancellation = null;
+        }
+    }
+
+    /// <summary>
+    /// Cancels a body that overran the timeout and waits for it to leave, so it stops at its next frame instead of awaiting a
+    /// scene the runner frees at case end - where it would fault into a task nobody observes and take the reason it hung with it.
+    /// </summary>
+    private static async Task StopSceneRun(Task sceneRun, SceneChecks checks, CancellationTokenSource cancellation)
+    {
+        cancellation.Cancel();
+
+        if (await Task.WhenAny(sceneRun, Task.Delay(SceneStopMilliseconds)) != sceneRun)
+        {
+            // Stuck somewhere the token cannot reach: its own failure has nothing left to report to, but it must not stay unobserved.
+            _ = sceneRun.ContinueWith(task => _ = task.Exception, TaskScheduler.Default);
             return;
         }
 
-        await sceneRun;
+        try
+        {
+            await sceneRun;
+        }
+        catch (OperationCanceledException)
+        {
+            // The stop this method asked for, so it is not a second failure.
+        }
+        catch (Exception exception)
+        {
+            checks.Check(false, $"the scene threw while it was stopped: {exception}");
+        }
     }
 
     private static async Task WaitTimeout(Node root, SceneTreeTimer timer)
@@ -83,6 +141,14 @@ public static class SceneHarness
         var failurePrefix = System.Environment.NewLine + "  ";
 
         return $"`{sceneName}` did not meet {checks.FailureCount} goal(s):{failurePrefix}{string.Join(failurePrefix, checks.Failures)}";
+    }
+
+    /// <summary> What a scene reports when it recorded nothing at all, since a body whose checks were skipped would otherwise pass. </summary>
+    private static string DescribeMissingGoals(string scenePath)
+    {
+        var sceneName = Path.GetFileNameWithoutExtension(scenePath);
+
+        return $"`{sceneName}` recorded no goal, so it cannot pass: the run never reached a `{nameof(SceneChecks)}` check.";
     }
 
     /// <summary>

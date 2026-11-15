@@ -24,6 +24,13 @@ public class WreckingBallTest
 
     #region Utility
 
+    /// <summary>
+    /// Distance the rope end is allowed to be behind the attachment it is written from. The end particle is written on
+    /// every physics step, so the only distance left is the frame the ball moved in after that write: measured 0.0087 m
+    /// while the ball swings, and 0.1 m covers a frame of it moving at 6 m/s.
+    /// </summary>
+    private const float EndLagDistance = 0.1f;
+
     private static async Task RunSceneAsync(Node root, SceneChecks checks)
     {
         var rope = root.GetNode<VerletRopeSimulated>("WreckingRope");
@@ -33,7 +40,9 @@ public class WreckingBallTest
 
         checks.Check(rope.IsRopeCreated, "the wrecking rope is created on ready");
         checks.Check(rope.GetParticleCount() == 15, $"the wrecking rope keeps its 15 configured particles, got {rope.GetParticleCount()}");
-        checks.Check(rope.GetParticle(-1)?.IsAttached == true, "the last particle is tied to the ball");
+        // The last particle is laid out on the attachment the joint ties it to, so a ball the rope never reached would put
+        // it elsewhere: measured 0.0000 m on creation.
+        checks.CheckAtMost(rope.GetParticlePosition(-1).DistanceTo(attachment.GlobalPosition), EndLagDistance, "the last particle is tied to the ball");
 
         var ballStart = ball.GlobalPosition;
         await SceneHarness.WaitPhysicsFrames(root, 120);
@@ -45,7 +54,8 @@ public class WreckingBallTest
         var leash = joint.JointMaxDistance + attachment.Position.Length();
 
         checks.Check(ballTravel > 0.2f, $"the ball swings away from the pose it starts in, travelled {ballTravel:F2}");
-        checks.Check(rope.GetParticlePosition(-1).DistanceTo(attachment.GlobalPosition) < 0.5f, "the rope end follows the ball");
+        // The rope end keeps following the ball it is tied to: measured 0.0087 m behind the attachment once it swings.
+        checks.CheckAtMost(rope.GetParticlePosition(-1).DistanceTo(attachment.GlobalPosition), EndLagDistance, "the rope end follows the ball");
         // The ball settles just past the leash - measured 2.84 m against a 2.74 m one - so the margin is that settle and not
         // what the joint is allowed to give.
         checks.CheckAtMost(anchorDistance, leash + 0.25f, "the joint keeps the ball on its leash from the rope anchor");
