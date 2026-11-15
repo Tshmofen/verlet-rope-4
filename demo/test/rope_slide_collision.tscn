@@ -1,0 +1,84 @@
+[gd_scene format=3 uid="uid://d5613v1cq8km"]
+
+[ext_resource type="Script" uid="uid://c3oxgehluk75x" path="res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs" id="1_rope"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+size = Vector3(12, 0.4, 6)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+size = Vector3(12, 0.4, 6)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall"]
+size = Vector3(0.4, 4, 6)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wall"]
+size = Vector3(0.4, 4, 6)
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+
+[sub_resource type="Sky" id="Sky_env"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_env"]
+background_mode = 2
+sky = SubResource("Sky_env")
+tonemap_mode = 2
+glow_enabled = true
+
+[node name="RopeSlideCollisionExample" type="Node3D" unique_id=1246898754]
+
+[node name="Floor" type="StaticBody3D" parent="." unique_id=1186316558]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=619353058]
+mesh = SubResource("BoxMesh_floor")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor" unique_id=901204505]
+shape = SubResource("BoxShape3D_floor")
+
+[node name="Wall" type="StaticBody3D" parent="." unique_id=1460413864]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6, 2.8, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Wall" unique_id=648333135]
+mesh = SubResource("BoxMesh_wall")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Wall" unique_id=1321770863]
+shape = SubResource("BoxShape3D_wall")
+
+[node name="SlideRope" type="Node3D" parent="." unique_id=1776251045]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2, 0)
+script = ExtResource("1_rope")
+SimulationParticles = 12
+IsDisabledWhenInvisible = false
+SimulationBehavior = 2
+Gravity = Vector3(8, -9.8, 0)
+RopeCollisionBehavior = 1
+SlideCollisionStretch = 1.0
+RopeLength = 2.5
+
+[node name="StickRope" type="Node3D" parent="." unique_id=1931094233]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2, 2.5)
+script = ExtResource("1_rope")
+SimulationParticles = 12
+IsDisabledWhenInvisible = false
+SimulationBehavior = 2
+Gravity = Vector3(8, -9.8, 0)
+RopeCollisionBehavior = 1
+SlideCollisionStretch = 20.0
+RopeLength = 2.5
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=144802697]
+environment = SubResource("Environment_env")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1781819346]
+transform = Transform3D(0.952619, -0.233005, 0.195514, 0.0514738, 0.757012, 0.65137, -0.299779, -0.610444, 0.733137, 0, 4, 0)
+light_color = Color(0.976471, 0.956863, 0.976471, 1)
+light_energy = 1.5
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1884649406]
+transform = Transform3D(0.58390284, 0.11999514, -0.8029064, 0, 0.9890159, 0.14780939, 0.81182355, -0.08630632, 0.5774892, -9.439039, 3.2301126, 4.5484824)
+current = true
+fov = 50.0

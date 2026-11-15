@@ -4,6 +4,7 @@
 #   warning    - enforced repository convention, the code in the repository satisfies it.
 #   suggestion - preferred, reported in the IDE only, never fails a build.
 #   silent     - pinned to the SDK default so a future SDK cannot change it unnoticed.
+#   none       - switched off, nothing to report.
 #
 # Verify a change to this file with:
 #   dotnet format VerletRope.csproj --verify-no-changes --no-restore
@@ -52,6 +53,11 @@ charset = utf-8-bom
 generated_code = true
 
 [*.generated.cs]
+generated_code = true
+
+# The gdUnit4 test adapter writes its runner scene into the project on the first `dotnet test` run and rewrites it
+# every run, so its style is not ours to fix and it would otherwise fail the build.
+[gdunit4_testadapter_v5/**]
 generated_code = true
 
 # ---------------------------------------------------------------------------------------------
@@ -332,3 +338,20 @@ dotnet_naming_style.underscore_camel_case.capitalization = camel_case
 dotnet_naming_style.underscore_camel_case.required_prefix = _
 dotnet_naming_style.underscore_camel_case.required_suffix =
 dotnet_naming_style.underscore_camel_case.word_separator =
+
+# ---------------------------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------------------------
+
+# A gdUnit4 suite has no call sites: the runner reaches suites, hooks and cases by reflection, and it only ever discovers
+# the public ones, so a member it cannot reach is one the compiler reports as removable. Both unused-member rules are
+# silenced for test sources - a test member is public by rule instead, see `test/README.md`.
+[test/**/*.cs]
+dotnet_diagnostic.IDE0051.severity = none
+dotnet_diagnostic.IDE0052.severity = none
+# CA1822 wants a member that touches no instance data to be static, which no case, hook or suite may be: the runner
+# instantiates the suite and calls into it, so a static case is never discovered.
+dotnet_diagnostic.CA1822.severity = none
+# ReSharper reports the same thing under its own rule, and that rule is the one a case trips: unlike the two above it also
+# covers public members, and a case is public by rule.
+resharper_unused_member_global_highlighting = none

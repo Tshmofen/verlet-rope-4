@@ -1,5 +1,4 @@
 ﻿using Godot;
-using System.Collections.Generic;
 
 namespace VerletRope4.Rendering.Tools;
 

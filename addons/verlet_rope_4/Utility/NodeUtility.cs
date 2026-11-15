@@ -74,7 +74,7 @@ public static class NodeUtility
     /// <summary> Returns whether the engine runs without a display backend, which is the only run where the configuration warnings are not visible anywhere else. </summary>
     public static bool IsHeadless => DisplayServer.GetName() == HeadlessDisplayServerName;
 
-    /// <summary> Pushes the given configuration warnings through <see cref="GD.PushWarning"/>, and does nothing when a display backend is present. </summary>
+    /// <summary> Pushes the given configuration warnings through <see cref="GD.PushWarning(string)"/>, and does nothing when a display backend is present. </summary>
     public static void PrintHeadlessWarnings(this Node node, string[] warnings)
     {
         if (!IsHeadless || warnings == null)

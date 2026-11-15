@@ -1,0 +1,68 @@
+[gd_scene format=3 uid="uid://wew3xvuel0uy"]
+
+[ext_resource type="Script" uid="uid://c3oxgehluk75x" path="res://addons/verlet_rope_4/Physics/VerletRopeSimulated.cs" id="1_rope"]
+[ext_resource type="Script" uid="uid://cvxw3h20i7vjf" path="res://addons/verlet_rope_4/Physics/Joints/VerletJointSimulated.cs" id="2_joint"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_body"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_body"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+
+[sub_resource type="Sky" id="Sky_env"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_env"]
+background_mode = 2
+sky = SubResource("Sky_env")
+tonemap_mode = 2
+glow_enabled = true
+
+[node name="RopeDynamicCollisionExample" type="Node3D" unique_id=316960509]
+
+[node name="DynamicCollisionRope" type="Node3D" parent="." unique_id=351336862]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+script = ExtResource("1_rope")
+SimulationParticles = 14
+IsDisabledWhenInvisible = false
+SimulationBehavior = 2
+RopeCollisionType = 1
+RopeCollisionBehavior = 1
+StaticCollisionMask = 0
+DynamicCollisionMask = 2
+
+[node name="EndAnchor" type="Node3D" parent="DynamicCollisionRope" unique_id=1759582614]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3, 0)
+
+[node name="JointSimulated" type="Node" parent="DynamicCollisionRope" unique_id=1745078312 node_paths=PackedStringArray("VerletRope", "EndCustomLocation")]
+script = ExtResource("2_joint")
+VerletRope = NodePath("..")
+EndCustomLocation = NodePath("../EndAnchor")
+
+[node name="MovingBody" type="RigidBody3D" parent="." unique_id=757244916]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -4)
+collision_layer = 2
+collision_mask = 0
+gravity_scale = 0.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MovingBody" unique_id=1731326298]
+shape = SubResource("SphereShape3D_body")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="MovingBody" unique_id=1658117213]
+mesh = SubResource("SphereMesh_body")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=11786220]
+environment = SubResource("Environment_env")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1193345751]
+transform = Transform3D(0.952619, -0.233005, 0.195514, 0.0514738, 0.757012, 0.65137, -0.299779, -0.610444, 0.733137, 0, 4, 0)
+light_color = Color(0.976471, 0.956863, 0.976471, 1)
+light_energy = 1.5
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=334919445]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -6.5, 1.5, -1)
+current = true
+fov = 45.0

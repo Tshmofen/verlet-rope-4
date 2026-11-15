@@ -156,7 +156,7 @@ public partial class VerletRopeSimulated : BaseVerletRopePhysical, IVerletExport
         return delta > DeltaSkipMs / 1000f;
     }
 
-    /// <summary> Returns the total length of the rope along its current particle positions, which under load is longer than the target <see cref="RopeLength"/>. </summary>
+    /// <summary> Returns the total length of the rope along its current particle positions, which under load is longer than the target <see cref="BaseVerletRopePhysical.RopeLength"/>. </summary>
     public float GetCurrentRopeLength()
     {
         if (ParticleData == null || ParticleData.Count == 0)

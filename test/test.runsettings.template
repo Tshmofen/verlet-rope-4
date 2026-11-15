@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Template of the test settings gdUnit4 needs to start the engine.
+  `test/godot-test.targets` fills in its Godot binary placeholder from the gitignored `godot.path` and writes the result to
+  `test.runsettings` in the intermediate output folder, which the project's `RunSettingsFilePath` points at.
+-->
+<RunSettings>
+  <RunConfiguration>
+    <MaxCpuCount>1</MaxCpuCount>
+    <ResultsDirectory>./TestResults</ResultsDirectory>
+    <TestSessionTimeout>600000</TestSessionTimeout>
+    <TreatNoTestsAsError>true</TreatNoTestsAsError>
+    <EnvironmentVariables>
+      <GODOT_BIN>@GODOT_BIN@</GODOT_BIN>
+    </EnvironmentVariables>
+  </RunConfiguration>
+
+  <LoggerRunSettings>
+    <Loggers>
+      <Logger friendlyName="console" enabled="True">
+        <Configuration>
+          <Verbosity>normal</Verbosity>
+        </Configuration>
+      </Logger>
+    </Loggers>
+  </LoggerRunSettings>
+
+  <GdUnit4>
+    <Parameters>--headless --fixed-fps 60</Parameters>
+    <DisplayName>FullyQualifiedName</DisplayName>
+    <CaptureStdOut>true</CaptureStdOut>
+    <TolerateExitCodeAfterCompletion>true</TolerateExitCodeAfterCompletion>
+  </GdUnit4>
+</RunSettings>

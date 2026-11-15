@@ -6,4 +6,39 @@
     <AnalysisLevelStyle>latest</AnalysisLevelStyle>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
+
+  <!-- The gdUnit4 toolchain belongs to the editor build alone: `ExportDebug` and `ExportRelease` compile the game
+       Godot ships, which must carry neither the test host nor the adapter next to the addon. -->
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+    <PackageReference Include="gdUnit4.api" Version="5.1.0-rc7" />
+    <PackageReference Include="gdUnit4.test.adapter" Version="3.2.0" />
+    <PackageReference Include="gdUnit4.analyzers" Version="1.1.0">
+      <PrivateAssets>none</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- The SDK's own glob would compile the suites and the adapter's generated runner into an exported assembly. -->
+  <ItemGroup Condition="'$(Configuration)' != 'Debug'">
+    <Compile Remove="test/**/*.cs" />
+    <Compile Remove="gdunit4_testadapter_v5/**/*.cs" />
+  </ItemGroup>
+
+  <Import Project="test/godot-test.targets" Condition="'$(Configuration)' == 'Debug' And Exists('test/godot-test.targets')" />
+
+  <!-- Restore is evaluated for one configuration at a time, not per build: an assets file left behind by the editor build still
+       lists the toolchain, and `EnableDynamicLoading` then copies the whole test host into the export next to the game. -->
+  <Target Name="GodotExportToolchainValidate" BeforeTargets="Build" Condition="'$(Configuration)' != 'Debug'">
+    <Error
+      Condition="Exists('$(ProjectAssetsFile)') And $([System.IO.File]::ReadAllText('$(ProjectAssetsFile)').Contains('gdUnit4.api'))"
+      Text="'$(ProjectAssetsFile)' still lists the test toolchain, so an export build would ship the test host next to the game. Restore the configuration being built first: dotnet restore -p:Configuration=$(Configuration)." />
+  </Target>
+
+  <!-- Without the toolchain in the restored assets `IsTestProject` stays false and the test target skips the build entirely, so
+       `dotnet test` runs nothing and still exits 0. Fail here instead, so a green run is always a run. -->
+  <Target Name="GodotTestRunValidate" BeforeTargets="VSTest" Condition="'$(IsTestProject)' != 'true'">
+    <Error
+      Text="No test run happened: the gdUnit4 toolchain is part of the 'Debug' configuration only and the assets of this build ('$(Configuration)') do not contain it. Restore `Debug` and run `dotnet test` without a configuration override. Assets: '$(ProjectAssetsFile)'." />
+  </Target>
 </Project>
